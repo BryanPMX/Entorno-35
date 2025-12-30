@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/entorno35/backend/internal/core/ports"
-	"github.com/entorno35/backend/internal/core/scoring"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/google/uuid"
 )
