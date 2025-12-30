@@ -14,6 +14,7 @@ import (
 
 var (
 	ErrAssessmentNotFound = errors.New("assessment not found")
+	ErrLinkNotFound       = errors.New("assessment link not found")
 )
 
 // assessmentRepository implements the AssessmentRepository interface using GORM (High cohesion - persistence concerns only)
@@ -120,3 +121,87 @@ func (r *assessmentRepository) UpdateResult(assessment *domain.Assessment, resul
 	return nil
 }
 
+// Create creates a new assessment
+func (r *assessmentRepository) Create(assessment *domain.Assessment) error {
+	result := r.db.Create(assessment)
+	if result.Error != nil {
+		return fmt.Errorf("failed to create assessment: %w", result.Error)
+	}
+
+	return nil
+}
+
+// ListByCompany retrieves all assessments for a company with optional filters
+func (r *assessmentRepository) ListByCompany(companyID uuid.UUID, staffID *uuid.UUID, period *int, status *domain.AssessmentStatus) ([]domain.Assessment, error) {
+	var assessments []domain.Assessment
+
+	query := r.db.Where("company_id = ?", companyID)
+
+	if staffID != nil {
+		query = query.Where("staff_id = ?", *staffID)
+	}
+
+	if period != nil {
+		query = query.Where("period = ?", *period)
+	}
+
+	if status != nil {
+		query = query.Where("status = ?", *status)
+	}
+
+	result := query.
+		Preload("Staff").
+		Order("created_at DESC").
+		Find(&assessments)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to list assessments: %w", result.Error)
+	}
+
+	return assessments, nil
+}
+
+// CreateLink creates a new assessment link with secure token
+func (r *assessmentRepository) CreateLink(link *domain.AssessmentLink) error {
+	result := r.db.Create(link)
+	if result.Error != nil {
+		return fmt.Errorf("failed to create assessment link: %w", result.Error)
+	}
+
+	return nil
+}
+
+// GetLinkByToken retrieves an assessment link by token
+func (r *assessmentRepository) GetLinkByToken(token string) (*domain.AssessmentLink, error) {
+	var link domain.AssessmentLink
+
+	result := r.db.
+		Preload("Staff").
+		Preload("Assessment").
+		Where("token = ?", token).
+		First(&link)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrLinkNotFound
+		}
+		return nil, fmt.Errorf("failed to fetch assessment link: %w", result.Error)
+	}
+
+	return &link, nil
+}
+
+// UpdateLinkAccess updates the link's accessed_at timestamp
+func (r *assessmentRepository) UpdateLinkAccess(linkID uuid.UUID) error {
+	now := time.Now()
+
+	result := r.db.Model(&domain.AssessmentLink{}).
+		Where("id = ?", linkID).
+		Update("accessed_at", now)
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to update link access: %w", result.Error)
+	}
+
+	return nil
+}
