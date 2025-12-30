@@ -59,11 +59,13 @@ func main() {
 	// Initialize services
 	scoringService := services.NewScoringService(assessmentRepo)
 	assessmentService := services.NewAssessmentService(assessmentRepo, companyRepo, staffRepo, responseRepo, scoringService)
+	staffService := services.NewStaffService(staffRepo)
 
 	// Initialize handlers
 	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
 	scoringHandler := http.NewScoringHandler(scoringService)
 	assessmentHandler := http.NewAssessmentHandler(assessmentService)
+	staffHandler := http.NewStaffHandler(staffService)
 
 	// Initialize router
 	router := gin.Default()
@@ -101,6 +103,17 @@ func main() {
 			assessments.GET("/:id", assessmentHandler.GetAssessment)
 			assessments.POST("/:id/links", assessmentHandler.CreateAssessmentLink)
 			assessments.POST("/:id/calculate", scoringHandler.CalculateAssessment)
+		}
+
+		// Staff endpoints
+		staff := api.Group("/staff")
+		{
+			staff.POST("", staffHandler.CreateStaff)
+			staff.GET("", staffHandler.ListStaff)
+			staff.GET("/:id", staffHandler.GetStaff)
+			staff.PUT("/:id", staffHandler.UpdateStaff)
+			staff.DELETE("/:id", staffHandler.DeleteStaff)
+			staff.POST("/import", staffHandler.ImportStaff)
 		}
 	}
 
