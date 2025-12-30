@@ -271,7 +271,7 @@ func TestGetRiskLabel(t *testing.T) {
 
 ## 5. Critical Implementation Notes
 
-### ⚠️ Must Follow These Rules:
+### WARNING: Must Follow These Rules:
 
 1. **Polarity MUST be applied at question level BEFORE aggregation**
    - Wrong: Sum responses, then invert
@@ -308,5 +308,5 @@ func TestGetRiskLabel(t *testing.T) {
 ---
 
 **Last Verified**: Based on rigorous review of official NOM-035-STPS-2018 document  
-**Status**: ✅ Ready for Phase 2 Implementation (Scoring Engine)
+**Status**: Ready for Phase 2 Implementation (Scoring Engine)
 

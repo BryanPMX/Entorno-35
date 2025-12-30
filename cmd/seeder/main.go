@@ -29,7 +29,7 @@ func main() {
 	}
 	defer database.Close()
 
-	log.Println("✅ Database connected successfully")
+	log.Println("Database connected successfully")
 
 	// Read JSON file
 	jsonFile := "nom035_questions.json"
@@ -47,25 +47,25 @@ func main() {
 		log.Fatalf("Failed to parse JSON: %v", err)
 	}
 
-	log.Printf("✅ Parsed JSON file: %s", jsonFile)
+	log.Printf("Parsed JSON file: %s", jsonFile)
 
 	// Seed each guide
 	if err := seedGuide(db, questionsData.GuideI, domain.GuideTypeI); err != nil {
 		log.Fatalf("Failed to seed Guide I: %v", err)
 	}
-	log.Println("✅ Guide I seeded successfully")
+	log.Println("Guide I seeded successfully")
 
 	if err := seedGuide(db, questionsData.GuideII, domain.GuideTypeII); err != nil {
 		log.Fatalf("Failed to seed Guide II: %v", err)
 	}
-	log.Println("✅ Guide II seeded successfully")
+	log.Println("Guide II seeded successfully")
 
 	if err := seedGuide(db, questionsData.GuideIII, domain.GuideTypeIII); err != nil {
 		log.Fatalf("Failed to seed Guide III: %v", err)
 	}
-	log.Println("✅ Guide III seeded successfully")
+	log.Println("Guide III seeded successfully")
 
-	log.Println("🎉 Database seeding completed successfully!")
+	log.Println("Database seeding completed successfully")
 }
 
 // seedGuide seeds a single guide into the database

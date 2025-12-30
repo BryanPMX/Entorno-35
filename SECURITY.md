@@ -2,7 +2,7 @@
 
 ## Credentials Management
 
-⚠️ **NEVER commit passwords, secrets, or API keys to the repository.**
+**WARNING**: NEVER commit passwords, secrets, or API keys to the repository.
 
 ### Fixed Security Issues
 
