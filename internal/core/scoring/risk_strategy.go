@@ -103,7 +103,8 @@ func (s *riskStrategy) Calculate(responses []domain.Response) (*AssessmentResult
 		return nil, fmt.Errorf("invalid guide type for risk strategy: %s", s.guideType)
 	}
 
-	riskLevel = thresholds.GetRiskLevel(totalScore)
+	scoringRiskLevel := thresholds.GetRiskLevel(totalScore)
+	riskLevel = domain.RiskLevel(scoringRiskLevel)
 
 	return &AssessmentResult{
 		TotalScore:             totalScore,

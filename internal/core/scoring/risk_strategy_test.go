@@ -13,6 +13,19 @@ func createLikertQuestion(id uint, number int, guideType domain.GuideType, categ
 	dimensionID := uint(1) // Mock dimension ID
 	polarityPtr := &polarity
 	
+	categoryObj := domain.Category{
+		ID:   categoryID,
+		Name: category,
+	}
+	domainObj := domain.Domain{
+		ID:   domainID,
+		Name: domainName,
+	}
+	dimensionObj := domain.Dimension{
+		ID:   dimensionID,
+		Name: dimension,
+	}
+	
 	return domain.Question{
 		ID:             id,
 		QuestionNumber: number,
@@ -23,18 +36,9 @@ func createLikertQuestion(id uint, number int, guideType domain.GuideType, categ
 		CategoryID:     &categoryID,
 		DomainID:       &domainID,
 		DimensionID:    &dimensionID,
-		Category: domain.Category{
-			ID:   categoryID,
-			Name: category,
-		},
-		Domain: domain.Domain{
-			ID:   domainID,
-			Name: domainName,
-		},
-		Dimension: &domain.Dimension{
-			ID:   dimensionID,
-			Name: dimension,
-		},
+		Category:       &categoryObj,
+		Domain:         &domainObj,
+		Dimension:      &dimensionObj,
 	}
 }
 
