@@ -12,8 +12,7 @@ internal/
 ├── core/              # Core business logic and ports
 ├── database/          # Database connection utilities
 ├── domain/            # Domain models and entities
-├── middleware/        # HTTP middleware
-└── services/          # Business logic services
+└── middleware/        # HTTP middleware
 ```
 
 ## Design Principles
@@ -50,6 +49,6 @@ GORM domain models representing the business entities (Company, Staff, Assessmen
 ### middleware/
 HTTP middleware for authentication, authorization, and multi-tenant isolation.
 
-### services/
-Business logic services that orchestrate repositories and core logic.
+### core/services/
+Business logic services that orchestrate repositories and core logic. See `core/README.md` for details.
 

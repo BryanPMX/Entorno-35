@@ -9,11 +9,13 @@ Entorno35/
 ├── cmd/
 │   └── api/              # Application entry point
 ├── internal/             # Private application code
+│   ├── adapters/        # HTTP and database adapters
+│   ├── auth/            # Authentication context
 │   ├── config/          # Configuration management
-│   ├── database/        # Database connection and migrations
-│   ├── models/          # Domain models
-│   ├── middleware/      # HTTP middleware
-│   └── services/        # Business logic services
+│   ├── core/            # Core business logic
+│   ├── database/        # Database connection utilities
+│   ├── domain/          # Domain models and entities
+│   └── middleware/      # HTTP middleware
 ├── pkg/                  # Public reusable packages
 │   ├── errors/          # Error handling
 │   └── utils/           # Utility functions
