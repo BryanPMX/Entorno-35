@@ -52,13 +52,17 @@ func main() {
 	// Initialize repositories
 	authRepo := postgres.NewAuthRepository(db)
 	assessmentRepo := postgres.NewAssessmentRepository(db)
+	companyRepo := postgres.NewCompanyRepository(db)
+	staffRepo := postgres.NewStaffRepository(db)
 
 	// Initialize services
 	scoringService := services.NewScoringService(assessmentRepo)
+	assessmentService := services.NewAssessmentService(assessmentRepo, companyRepo, staffRepo)
 
 	// Initialize handlers
 	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
 	scoringHandler := http.NewScoringHandler(scoringService)
+	assessmentHandler := http.NewAssessmentHandler(assessmentService)
 
 	// Initialize router
 	router := gin.Default()
@@ -82,9 +86,13 @@ func main() {
 	api.Use(middleware.AuthMiddleware(jwtService))
 	api.Use(middleware.TenantMiddleware())
 	{
-		// Assessment scoring endpoints
+		// Assessment endpoints
 		assessments := api.Group("/assessments")
 		{
+			assessments.POST("", assessmentHandler.CreateAssessment)
+			assessments.GET("", assessmentHandler.ListAssessments)
+			assessments.GET("/:id", assessmentHandler.GetAssessment)
+			assessments.POST("/:id/links", assessmentHandler.CreateAssessmentLink)
 			assessments.POST("/:id/calculate", scoringHandler.CalculateAssessment)
 		}
 	}
