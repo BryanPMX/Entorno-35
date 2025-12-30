@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -82,10 +83,28 @@ func Load() *Config {
 }
 
 // DatabaseURL returns the PostgreSQL connection URL
-func (c *Config) DatabaseURL() string {
-	return "postgres://" + c.Database.User + ":" + c.Database.Password + "@" +
+// Returns an error if required database configuration fields are missing
+func (c *Config) DatabaseURL() (string, error) {
+	if c.Database.User == "" {
+		return "", fmt.Errorf("database user (DB_USER) is required")
+	}
+	if c.Database.Password == "" {
+		return "", fmt.Errorf("database password (DB_PASSWORD) is required")
+	}
+	if c.Database.Name == "" {
+		return "", fmt.Errorf("database name (DB_NAME) is required")
+	}
+	if c.Database.Host == "" {
+		return "", fmt.Errorf("database host (DB_HOST) is required")
+	}
+	if c.Database.Port == "" {
+		return "", fmt.Errorf("database port (DB_PORT) is required")
+	}
+
+	dsn := "postgres://" + c.Database.User + ":" + c.Database.Password + "@" +
 		c.Database.Host + ":" + c.Database.Port + "/" + c.Database.Name +
 		"?sslmode=" + c.Database.SSLMode
+	return dsn, nil
 }
 
 // RedisURL returns the Redis connection URL
