@@ -1,7 +1,7 @@
 # Project Status - Entorno35
 
 **Last Updated**: 2025-12-30  
-**Current Phase**: Phase 4 - Reporting & Compliance Engine - COMPLETED
+**Current Phase**: Phase 5 - Frontend Implementation - IN PROGRESS (Phase 5.1 Complete)
 
 ---
 
@@ -50,12 +50,113 @@
 - E2E integration tests for reporting engine
 - Test directory organization (`tests/integration/` with shared infrastructure)
 
+### Phase 5: Frontend Implementation - IN PROGRESS
+
+#### Phase 5 Branches:
+1. **`phase-5/frontend-architecture`** - COMPLETED ✅
+   - Next.js 14+ project initialization (App Router, TypeScript, Tailwind, ESLint)
+   - TanStack Query (React Query) configuration for race condition prevention
+   - Axios client with interceptors (automatic token injection, 401 handling)
+   - Service Layer Pattern implementation (auth.service.ts, staff.service.ts)
+   - Complete TypeScript type definitions matching Go domain models
+   - Shadcn UI component library setup
+   - QueryProvider wrapper for React Query integration
+   - Vitest testing infrastructure setup
+   - AuthService unit tests with mocks
+   - Diagnostics page for backend connectivity verification
+
+2. **`phase-5/auth-ui`** - PENDING
+   - Login screen component
+   - Auth context/store (Zustand)
+   - Route protection middleware
+
+3. **`phase-5/staff-management-ui`** - PENDING
+   - Staff data table with pagination and sorting
+   - CSV uploader with progress indication
+
+4. **`phase-5/dashboard`** - PENDING
+   - Admin dashboard with heatmaps/charts
+   - Assessment creation wizard
+
+5. **`phase-5/public-assessment-view`** - PENDING
+   - Minimalist interface for staff to take assessments
+
+**Architecture Decisions:**
+- **Service Layer Pattern**: Components never call axios directly; all API calls go through service methods
+- **Type Safety**: Strict TypeScript interfaces matching backend Go models
+- **Race Condition Prevention**: TanStack Query handles request cancellation, caching, and background re-fetching
+- **Auth Sync**: Axios interceptors automatically inject tokens and handle 401 redirects
+
+#### Phase 5 Git Workflow
+
+**Branch Naming Convention:**
+- Feature branches: `phase-5/{feature-name}`
+- Examples: `phase-5/frontend-architecture`, `phase-5/auth-ui`, `phase-5/staff-management-ui`
+
+**Branch Strategy:**
+1. **Base Branch**: `develop` (all Phase 5 branches branch from `develop`)
+2. **Feature Development**: Each Phase 5.x milestone gets its own branch
+3. **Integration**: Feature branches merge into `develop` when complete
+4. **Release**: `develop` merges to `main` when Phase 5 is complete
+
+**Commit Message Convention:**
+```
+<type>(<scope>): <subject>
+
+<body (optional)>
+
+<footer (optional)>
+```
+
+**Types:**
+- `feat`: New feature (e.g., `feat(auth): add login screen component`)
+- `fix`: Bug fix (e.g., `fix(axios): correct 401 redirect logic`)
+- `test`: Test additions/changes (e.g., `test(auth-service): add unit tests for login method`)
+- `docs`: Documentation changes (e.g., `docs(readme): update frontend setup instructions`)
+- `refactor`: Code refactoring (e.g., `refactor(services): extract common error handling`)
+- `style`: Code style changes (formatting, missing semi-colons, etc.)
+- `chore`: Build process or auxiliary tool changes (e.g., `chore(deps): update vitest to v4`)
+
+**Examples:**
+- `feat(frontend): initialize Next.js 14 project with TypeScript and Tailwind`
+- `feat(auth-service): implement login and token management`
+- `test(auth-service): add unit tests with axios mocks`
+- `feat(diagnostics): add connection diagnostics page`
+- `docs(status): document Phase 5 git workflow`
+
+**Merge Strategy:**
+1. Feature branch is created from `develop`
+2. Development happens on feature branch with atomic commits
+3. Before merge: Ensure all tests pass (`npm test`), build succeeds (`npm run build`)
+4. Merge via Pull Request (or direct merge if solo development) into `develop`
+5. After merge: Delete feature branch (keep for reference if needed)
+
+**Phase 5.1 Commit Strategy (frontend-architecture):**
+```
+feat(frontend): initialize Next.js 14 project setup
+feat(frontend): configure TanStack Query and Axios client
+feat(frontend): implement service layer pattern (auth, staff)
+feat(frontend): add TypeScript type definitions for backend models
+feat(frontend): setup Shadcn UI component library
+test(frontend): setup Vitest testing infrastructure
+test(auth-service): add unit tests for AuthService
+feat(diagnostics): add backend connection diagnostics page
+docs(status): document Phase 5 git workflow and branching strategy
+```
+
 ---
 
 ## Current Branch Status
 
 ### Active Branches
-- `develop` - Integration branch (Phase 3 merged)
+- `develop` - Integration branch (Phases 1-4 merged, Phase 5 in progress)
+- `phase-5/frontend-architecture` - Frontend architecture and service layer (COMPLETED, ready to merge)
+- `phase-5/auth-ui` - Authentication UI (PENDING)
+- `phase-5/staff-management-ui` - Staff management UI (PENDING)
+- `phase-5/dashboard` - Admin dashboard (PENDING)
+- `phase-5/public-assessment-view` - Public assessment interface (PENDING)
+
+### Merged Branches
 - `phase-3/api-assessments` - Merged to develop
 - `phase-3/api-responses` - Merged to develop
 - `phase-3/api-admin-staff` - Merged to develop
@@ -122,14 +223,23 @@
 
 ## Next Steps
 
-1. **Phase 5: Frontend Implementation** (Future)
-   - Authentication UI
-   - Admin dashboard
-   - Assessment taking interface
-   - Report viewing interface
-   - PDF report generation
+1. **Phase 5.2: Authentication UI** (In Progress)
+   - Login screen component
+   - Auth context/store (Zustand)
+   - Route protection middleware
 
-2. **Production Preparation** (Future)
+2. **Phase 5.3: Staff Management UI** (Pending)
+   - Staff data table with pagination and sorting
+   - CSV uploader with progress indication
+
+3. **Phase 5.4: Dashboard** (Pending)
+   - Admin dashboard with heatmaps/charts
+   - Assessment creation wizard
+
+4. **Phase 5.5: Public Assessment View** (Pending)
+   - Minimalist interface for staff to take assessments
+
+5. **Production Preparation** (Future)
    - Performance optimization
    - Security audit
    - Deployment configuration
@@ -169,4 +279,4 @@
 
 ---
 
-**Status**: Phase 4 complete, ready for frontend development and PDF report generation
+**Status**: Phase 5.1 complete, frontend architecture established. Ready for Phase 5.2 (Authentication UI)

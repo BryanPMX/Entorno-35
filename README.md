@@ -6,24 +6,45 @@ Cloud-native SaaS platform for automating NOM-035-STPS-2018 compliance for Mexic
 
 ```
 Entorno35/
-├── cmd/
-│   └── api/              # Application entry point
-├── internal/             # Private application code
-│   ├── adapters/        # HTTP and database adapters
-│   ├── auth/            # Authentication context
-│   ├── config/          # Configuration management
-│   ├── core/            # Core business logic
-│   ├── database/        # Database connection utilities
-│   ├── domain/          # Domain models and entities
-│   └── middleware/      # HTTP middleware
-├── pkg/                  # Public reusable packages
-│   ├── errors/          # Error handling
-│   └── utils/           # Utility functions
+├── cmd/                  # Backend application entry points
+│   ├── api/              # Main API server (Go)
+│   └── seeder/           # Database seeder
+├── internal/             # Backend private application code (Go)
+│   ├── adapters/         # HTTP and database adapters
+│   ├── auth/             # Authentication context
+│   ├── config/           # Configuration management
+│   ├── core/             # Core business logic
+│   ├── database/         # Database connection utilities
+│   ├── domain/           # Domain models and entities
+│   └── middleware/       # HTTP middleware
+├── pkg/                  # Backend public reusable packages (Go)
+│   └── errors/           # Error handling
 ├── migrations/           # Database migrations
-├── web/                  # Frontend (Next.js)
-└── docs/                 # Documentation
+├── tests/                # Backend tests
+│   ├── integration/      # Integration tests
+│   └── unit/             # Unit tests
+├── web/                  # Frontend application
+│   └── frontend/         # Next.js 14 frontend (TypeScript)
+│       ├── app/          # Next.js App Router pages
+│       ├── components/   # React components
+│       ├── lib/          # Utilities (axios, query client)
+│       ├── services/     # API service layer
+│       └── types/        # TypeScript type definitions
+├── docs/                 # Documentation
+│   ├── *_ENDPOINTS.md    # API endpoint documentation
+│   └── ...
+├── nom035_questions.json # Question catalog data
+├── risk_strategy.json    # Risk calculation strategy
+└── docker-compose.yml    # Docker services configuration
 
 ```
+
+### Architecture Separation
+
+- **Backend** (Go): Root directory structure (`cmd/`, `internal/`, `pkg/`, `migrations/`, `tests/`)
+- **Frontend** (Next.js/TypeScript): `web/frontend/` directory
+- **Documentation**: `docs/` directory
+- **Shared Data**: Root level JSON files (question catalog, risk strategy)
 
 ## Quick Start
 
@@ -57,17 +78,27 @@ Entorno35/
    go mod download
    ```
 
-4. **Run the application**
+4. **Run the backend API**
    ```bash
    make run
    # or
    go run cmd/api/main.go
    ```
 
-5. **Verify health**
+5. **Run the frontend (optional, in a separate terminal)**
+   ```bash
+   cd web/frontend
+   npm install  # First time only
+   npm run dev
+   ```
+
+6. **Verify backend health**
    ```bash
    curl http://localhost:8080/health
    ```
+
+7. **Verify frontend (if running)**
+   - Open http://localhost:3000 in your browser
 
 ## Development
 
@@ -116,17 +147,23 @@ Note: Risk thresholds are stored as configuration (see `docs/Scoring.md`) and wi
 
 ## Current Phase
 
-**Phase 4: Reporting & Compliance Engine** - COMPLETED
+**Phase 5: Frontend Implementation** - IN PROGRESS
 
 ### Completed
 - Phase 1: Core Infrastructure (project setup, database, authentication)
 - Phase 2: Scoring Logic & Engine (strategy pattern, risk calculation)
 - Phase 3: API Implementation (assessments, responses, staff management)
 - Phase 4: Reporting & Compliance Engine (individual reports, general reports, recommendations)
+- Phase 5.1: Frontend Architecture & Service Layer (Next.js setup, TypeScript types, Axios client, service layer)
+
+### In Progress
+- Phase 5.2: Authentication UI (login screen, auth context, route protection)
 
 ### Next Steps
-1. Phase 5: Frontend Implementation
-2. Production preparation and deployment
+1. Phase 5.3: Staff Management UI (data table, CSV uploader)
+2. Phase 5.4: Dashboard (analytics, assessment creation wizard)
+3. Phase 5.5: Public Assessment View (staff test-taking interface)
+4. Production preparation and deployment
 
 ## License
 
