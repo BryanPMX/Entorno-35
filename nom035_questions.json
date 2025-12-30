@@ -1,0 +1,1107 @@
+{
+  "guide_i": {
+    "name": "Guía de Referencia I - Trauma Assessment",
+    "type": "binary",
+    "total_questions": 20,
+    "questions": [
+      {
+        "number": 1,
+        "text": "¿Ha presenciado o sufrido alguna vez, durante o con motivo del trabajo un acontecimiento como los siguientes: Accidente que tenga como consecuencia la muerte, la pérdida de un miembro o una lesión grave?",
+        "section": "I",
+        "subsection": "ATS",
+        "type": "binary"
+      },
+      {
+        "number": 2,
+        "text": "¿Ha presenciado o sufrido alguna vez, durante o con motivo del trabajo un acontecimiento como los siguientes: Asaltos?",
+        "section": "I",
+        "subsection": "ATS",
+        "type": "binary"
+      },
+      {
+        "number": 3,
+        "text": "¿Ha presenciado o sufrido alguna vez, durante o con motivo del trabajo un acontecimiento como los siguientes: Actos violentos que derivaron en lesiones graves?",
+        "section": "I",
+        "subsection": "ATS",
+        "type": "binary"
+      },
+      {
+        "number": 4,
+        "text": "¿Ha presenciado o sufrido alguna vez, durante o con motivo del trabajo un acontecimiento como los siguientes: Secuestro?",
+        "section": "I",
+        "subsection": "ATS",
+        "type": "binary"
+      },
+      {
+        "number": 5,
+        "text": "¿Ha presenciado o sufrido alguna vez, durante o con motivo del trabajo un acontecimiento como los siguientes: Amenazas?",
+        "section": "I",
+        "subsection": "ATS",
+        "type": "binary"
+      },
+      {
+        "number": 6,
+        "text": "¿Ha presenciado o sufrido alguna vez, durante o con motivo del trabajo un acontecimiento como los siguientes: Cualquier otro que ponga en riesgo su vida o salud, y/o la de otras personas?",
+        "section": "I",
+        "subsection": "ATS",
+        "type": "binary"
+      },
+      {
+        "number": 7,
+        "text": "¿Ha tenido recuerdos recurrentes sobre el acontecimiento que le provocan malestares?",
+        "section": "II",
+        "subsection": "Recuerdos persistentes",
+        "type": "binary"
+      },
+      {
+        "number": 8,
+        "text": "¿Ha tenido sueños de carácter recurrente sobre el acontecimiento, que le producen malestar?",
+        "section": "II",
+        "subsection": "Recuerdos persistentes",
+        "type": "binary"
+      },
+      {
+        "number": 9,
+        "text": "¿Se ha esforzado por evitar todo tipo de sentimientos, conversaciones o situaciones que le puedan recordar el acontecimiento?",
+        "section": "III",
+        "subsection": "Esfuerzo por evitar",
+        "type": "binary"
+      },
+      {
+        "number": 10,
+        "text": "¿Se ha esforzado por evitar todo tipo de actividades, lugares o personas que motivan recuerdos del acontecimiento?",
+        "section": "III",
+        "subsection": "Esfuerzo por evitar",
+        "type": "binary"
+      },
+      {
+        "number": 11,
+        "text": "¿Ha tenido dificultad para recordar alguna parte importante del evento?",
+        "section": "III",
+        "subsection": "Esfuerzo por evitar",
+        "type": "binary"
+      },
+      {
+        "number": 12,
+        "text": "¿Ha disminuido su interés en sus actividades cotidianas?",
+        "section": "III",
+        "subsection": "Esfuerzo por evitar",
+        "type": "binary"
+      },
+      {
+        "number": 13,
+        "text": "¿Se ha sentido usted alejado o distante de los demás?",
+        "section": "III",
+        "subsection": "Esfuerzo por evitar",
+        "type": "binary"
+      },
+      {
+        "number": 14,
+        "text": "¿Ha notado que tiene dificultad para expresar sus sentimientos?",
+        "section": "III",
+        "subsection": "Esfuerzo por evitar",
+        "type": "binary"
+      },
+      {
+        "number": 15,
+        "text": "¿Ha tenido la impresión de que su vida se va a acortar, que va a morir antes que otras personas o que tiene un futuro limitado?",
+        "section": "III",
+        "subsection": "Esfuerzo por evitar",
+        "type": "binary"
+      },
+      {
+        "number": 16,
+        "text": "¿Ha tenido usted dificultades para dormir?",
+        "section": "IV",
+        "subsection": "Afectación",
+        "type": "binary"
+      },
+      {
+        "number": 17,
+        "text": "¿Ha estado particularmente irritable o le han dado arranques de coraje?",
+        "section": "IV",
+        "subsection": "Afectación",
+        "type": "binary"
+      },
+      {
+        "number": 18,
+        "text": "¿Ha tenido dificultad para concentrarse?",
+        "section": "IV",
+        "subsection": "Afectación",
+        "type": "binary"
+      },
+      {
+        "number": 19,
+        "text": "¿Ha estado nervioso o constantemente en alerta?",
+        "section": "IV",
+        "subsection": "Afectación",
+        "type": "binary"
+      },
+      {
+        "number": 20,
+        "text": "¿Se ha sobresaltado fácilmente por cualquier cosa?",
+        "section": "IV",
+        "subsection": "Afectación",
+        "type": "binary"
+      }
+    ]
+  },
+  "guide_ii": {
+    "name": "Guía de Referencia II - Risk Assessment (16-50 employees)",
+    "type": "likert",
+    "total_questions": 46,
+    "questions": [
+      {
+        "number": 1,
+        "text": "Mi trabajo me exige hacer mucho esfuerzo físico",
+        "polarity": "NEGATIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Condiciones deficientes e insalubres"
+      },
+      {
+        "number": 2,
+        "text": "Me preocupa sufrir un accidente en mi trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Condiciones peligrosas e inseguras"
+      },
+      {
+        "number": 3,
+        "text": "Considero que las actividades que realizo son peligrosas",
+        "polarity": "NEGATIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Trabajos peligrosos"
+      },
+      {
+        "number": 4,
+        "text": "Por la cantidad de trabajo que tengo debo quedarme tiempo adicional a mi turno",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas cuantitativas"
+      },
+      {
+        "number": 5,
+        "text": "Por la cantidad de trabajo que tengo debo trabajar sin parar",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Ritmos de trabajo acelerado"
+      },
+      {
+        "number": 6,
+        "text": "Considero que es necesario mantener un ritmo de trabajo acelerado",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Ritmos de trabajo acelerado"
+      },
+      {
+        "number": 7,
+        "text": "Mi trabajo exige que esté muy concentrado",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Carga mental"
+      },
+      {
+        "number": 8,
+        "text": "Mi trabajo requiere que memorice mucha información",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Carga mental"
+      },
+      {
+        "number": 9,
+        "text": "Mi trabajo exige que atienda varios asuntos al mismo tiempo",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas cuantitativas"
+      },
+      {
+        "number": 10,
+        "text": "En mi trabajo soy responsable de cosas de mucho valor",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas de alta responsabilidad"
+      },
+      {
+        "number": 11,
+        "text": "Respondo ante mi jefe por los resultados de toda mi área de trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas de alta responsabilidad"
+      },
+      {
+        "number": 12,
+        "text": "En mi trabajo me dan órdenes contradictorias",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas contradictorias o inconsistentes"
+      },
+      {
+        "number": 13,
+        "text": "Considero que en mi trabajo me piden hacer cosas innecesarias",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas contradictorias o inconsistentes"
+      },
+      {
+        "number": 14,
+        "text": "Trabajo horas extras más de tres veces a la semana",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Jornada de trabajo",
+        "dimension": "Jornadas de trabajo extensas"
+      },
+      {
+        "number": 15,
+        "text": "Mi trabajo me exige laborar en días de descanso, festivos o fines de semana",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Jornada de trabajo",
+        "dimension": "Jornadas de trabajo extensas"
+      },
+      {
+        "number": 16,
+        "text": "Considero que el tiempo en el trabajo es mucho y perjudica mis actividades familiares o personales",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Interferencia en la relación trabajo-familia",
+        "dimension": "Influencia del trabajo fuera del centro laboral"
+      },
+      {
+        "number": 17,
+        "text": "Pienso en las actividades familiares o personales cuando estoy en mi trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Interferencia en la relación trabajo-familia",
+        "dimension": "Influencia de las responsabilidades familiares"
+      },
+      {
+        "number": 18,
+        "text": "Mi trabajo permite que desarrolle nuevas habilidades",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o nula posibilidad de desarrollo"
+      },
+      {
+        "number": 19,
+        "text": "En mi trabajo puedo aspirar a un mejor puesto",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o nula posibilidad de desarrollo"
+      },
+      {
+        "number": 20,
+        "text": "Durante mi jornada de trabajo puedo tomar pausas cuando las necesito",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Falta de control y autonomía sobre el trabajo"
+      },
+      {
+        "number": 21,
+        "text": "Puedo decidir la velocidad a la que realizo mis actividades en mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Falta de control y autonomía sobre el trabajo"
+      },
+      {
+        "number": 22,
+        "text": "Puedo cambiar el orden de las actividades que realizo en mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Falta de control y autonomía sobre el trabajo"
+      },
+      {
+        "number": 23,
+        "text": "Me informan con claridad cuáles son mis funciones",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Escasa claridad de funciones"
+      },
+      {
+        "number": 24,
+        "text": "Me explican claramente los resultados que debo obtener en mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Escasa claridad de funciones"
+      },
+      {
+        "number": 25,
+        "text": "Me informan con quién puedo resolver problemas o asuntos de trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Escasa claridad de funciones"
+      },
+      {
+        "number": 26,
+        "text": "Me permiten asistir a capacitaciones relacionadas con mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o inexistente capacitación"
+      },
+      {
+        "number": 27,
+        "text": "Recibo capacitación útil para hacer mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o inexistente capacitación"
+      },
+      {
+        "number": 28,
+        "text": "Mi jefe tiene en cuenta mis puntos de vista y opiniones",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Características del liderazgo"
+      },
+      {
+        "number": 29,
+        "text": "Mi jefe ayuda a solucionar los problemas que se presentan en el trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Características del liderazgo"
+      },
+      {
+        "number": 30,
+        "text": "Puedo confiar en mis compañeros de trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 31,
+        "text": "Cuando tenemos que realizar trabajo de equipo los compañeros colaboran",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 32,
+        "text": "Mis compañeros de trabajo me ayudan cuando tengo dificultades",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 33,
+        "text": "En mi trabajo puedo expresarme libremente sin interrupciones",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 34,
+        "text": "Recibo críticas constantes a mi persona y/o trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 35,
+        "text": "Recibo burlas, calumnias, difamaciones, humillaciones o ridiculizaciones",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 36,
+        "text": "Se ignora mi presencia o se me excluye de las reuniones de trabajo y en la toma de decisiones",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 37,
+        "text": "Se manipulan las situaciones de trabajo para hacerme parecer un mal trabajador",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 38,
+        "text": "Se ignoran mis éxitos laborales y se atribuyen a otros trabajadores",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 39,
+        "text": "Me bloquean o impiden las oportunidades que tengo para obtener ascenso o mejora en mi trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 40,
+        "text": "He presenciado actos de violencia en mi centro de trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 41,
+        "text": "Atiendo clientes o usuarios muy enojados",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas psicológicas emocionales"
+      },
+      {
+        "number": 42,
+        "text": "Mi trabajo me exige atender personas muy necesitadas de ayuda o enfermas",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas psicológicas emocionales"
+      },
+      {
+        "number": 43,
+        "text": "Para hacer mi trabajo debo demostrar sentimientos distintos a los míos",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas psicológicas emocionales"
+      },
+      {
+        "number": 44,
+        "text": "Comunican tarde los asuntos de trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Deficiente relación con los colaboradores que supervisa"
+      },
+      {
+        "number": 45,
+        "text": "Dificultan el logro de los resultados del trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Deficiente relación con los colaboradores que supervisa"
+      },
+      {
+        "number": 46,
+        "text": "Ignoran las sugerencias para mejorar su trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Deficiente relación con los colaboradores que supervisa"
+      }
+    ]
+  },
+  "guide_iii": {
+    "name": "Guía de Referencia III - Risk Assessment (>50 employees)",
+    "type": "likert",
+    "total_questions": 72,
+    "questions": [
+      {
+        "number": 1,
+        "text": "El espacio donde trabajo me permite realizar mis actividades de manera segura e higiénica",
+        "polarity": "POSITIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Condiciones peligrosas e inseguras"
+      },
+      {
+        "number": 2,
+        "text": "Mi trabajo me exige hacer mucho esfuerzo físico",
+        "polarity": "NEGATIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Condiciones deficientes e insalubres"
+      },
+      {
+        "number": 3,
+        "text": "Me preocupa sufrir un accidente en mi trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Condiciones peligrosas e inseguras"
+      },
+      {
+        "number": 4,
+        "text": "Considero que en mi trabajo se aplican las normas de seguridad y salud en el trabajo",
+        "polarity": "POSITIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Condiciones deficientes e insalubres"
+      },
+      {
+        "number": 5,
+        "text": "Considero que las actividades que realizo son peligrosas",
+        "polarity": "NEGATIVE",
+        "category": "Ambiente de trabajo",
+        "domain": "Condiciones en el ambiente de trabajo",
+        "dimension": "Trabajos peligrosos"
+      },
+      {
+        "number": 6,
+        "text": "Por la cantidad de trabajo que tengo debo quedarme tiempo adicional a mi turno",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas cuantitativas"
+      },
+      {
+        "number": 7,
+        "text": "Por la cantidad de trabajo que tengo debo trabajar sin parar",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Ritmos de trabajo acelerado"
+      },
+      {
+        "number": 8,
+        "text": "Considero que es necesario mantener un ritmo de trabajo acelerado",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Ritmos de trabajo acelerado"
+      },
+      {
+        "number": 9,
+        "text": "Mi trabajo exige que esté muy concentrado",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Carga mental"
+      },
+      {
+        "number": 10,
+        "text": "Mi trabajo requiere que memorice mucha información",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Carga mental"
+      },
+      {
+        "number": 11,
+        "text": "En mi trabajo tengo que tomar decisiones difíciles muy rápido",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Carga mental"
+      },
+      {
+        "number": 12,
+        "text": "Mi trabajo exige que atienda varios asuntos al mismo tiempo",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas cuantitativas"
+      },
+      {
+        "number": 13,
+        "text": "En mi trabajo soy responsable de cosas de mucho valor",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas de alta responsabilidad"
+      },
+      {
+        "number": 14,
+        "text": "Respondo ante mi jefe por los resultados de toda mi área de trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas de alta responsabilidad"
+      },
+      {
+        "number": 15,
+        "text": "En el trabajo me dan órdenes contradictorias",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas contradictorias o inconsistentes"
+      },
+      {
+        "number": 16,
+        "text": "Considero que en mi trabajo me piden hacer cosas innecesarias",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas contradictorias o inconsistentes"
+      },
+      {
+        "number": 17,
+        "text": "Trabajo horas extras más de tres veces a la semana",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Jornada de trabajo",
+        "dimension": "Jornadas de trabajo extensas"
+      },
+      {
+        "number": 18,
+        "text": "Mi trabajo me exige laborar en días de descanso, festivos o fines de semana",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Jornada de trabajo",
+        "dimension": "Jornadas de trabajo extensas"
+      },
+      {
+        "number": 19,
+        "text": "Considero que el tiempo en el trabajo es mucho y perjudica mis actividades familiares o personales",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Interferencia en la relación trabajo-familia",
+        "dimension": "Influencia del trabajo fuera del centro laboral"
+      },
+      {
+        "number": 20,
+        "text": "Debo atender asuntos de trabajo cuando estoy en casa",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Interferencia en la relación trabajo-familia",
+        "dimension": "Influencia del trabajo fuera del centro laboral"
+      },
+      {
+        "number": 21,
+        "text": "Pienso en las actividades familiares o personales cuando estoy en mi trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Interferencia en la relación trabajo-familia",
+        "dimension": "Influencia de las responsabilidades familiares"
+      },
+      {
+        "number": 22,
+        "text": "Pienso que mis responsabilidades familiares afectan mi trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Organización del tiempo de trabajo",
+        "domain": "Interferencia en la relación trabajo-familia",
+        "dimension": "Influencia de las responsabilidades familiares"
+      },
+      {
+        "number": 23,
+        "text": "Mi trabajo permite que desarrolle nuevas habilidades",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o nula posibilidad de desarrollo"
+      },
+      {
+        "number": 24,
+        "text": "En mi trabajo puedo aspirar a un mejor puesto",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o nula posibilidad de desarrollo"
+      },
+      {
+        "number": 25,
+        "text": "Durante mi jornada de trabajo puedo tomar pausas cuando las necesito",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Falta de control y autonomía sobre el trabajo"
+      },
+      {
+        "number": 26,
+        "text": "Puedo decidir cuánto trabajo realizo durante la jornada laboral",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Falta de control y autonomía sobre el trabajo"
+      },
+      {
+        "number": 27,
+        "text": "Puedo decidir la velocidad a la que realizo mis actividades en mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Falta de control y autonomía sobre el trabajo"
+      },
+      {
+        "number": 28,
+        "text": "Puedo cambiar el orden de las actividades que realizo en mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Falta de control y autonomía sobre el trabajo"
+      },
+      {
+        "number": 29,
+        "text": "Los cambios que se presentan en mi trabajo dificultan mi labor",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Insuficiente participación y manejo del cambio"
+      },
+      {
+        "number": 30,
+        "text": "Cuando se presentan cambios en mi trabajo se tienen en cuenta mis ideas o aportaciones",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Insuficiente participación y manejo del cambio"
+      },
+      {
+        "number": 31,
+        "text": "Me informan con claridad cuáles son mis funciones",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Escasa claridad de funciones"
+      },
+      {
+        "number": 32,
+        "text": "Me explican claramente los resultados que debo obtener en mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Escasa claridad de funciones"
+      },
+      {
+        "number": 33,
+        "text": "Me explican claramente los objetivos de mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Escasa claridad de funciones"
+      },
+      {
+        "number": 34,
+        "text": "Me informan con quién puedo resolver problemas o asuntos de trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Escasa claridad de funciones"
+      },
+      {
+        "number": 35,
+        "text": "Me permiten asistir a capacitaciones relacionadas con mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o inexistente capacitación"
+      },
+      {
+        "number": 36,
+        "text": "Recibo capacitación útil para hacer mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Falta de control sobre el trabajo",
+        "dimension": "Limitada o inexistente capacitación"
+      },
+      {
+        "number": 37,
+        "text": "Mi jefe ayuda a organizar mejor el trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Características del liderazgo"
+      },
+      {
+        "number": 38,
+        "text": "Mi jefe tiene en cuenta mis puntos de vista y opiniones",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Características del liderazgo"
+      },
+      {
+        "number": 39,
+        "text": "Mi jefe me comunica a tiempo la información relacionada con el trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Características del liderazgo"
+      },
+      {
+        "number": 40,
+        "text": "La orientación que me da mi jefe me ayuda a realizar mejor mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Características del liderazgo"
+      },
+      {
+        "number": 41,
+        "text": "Mi jefe ayuda a solucionar los problemas que se presentan en el trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Liderazgo",
+        "dimension": "Características del liderazgo"
+      },
+      {
+        "number": 42,
+        "text": "Puedo confiar en mis compañeros de trabajo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 43,
+        "text": "Entre compañeros solucionamos los problemas de trabajo de forma respetuosa",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 44,
+        "text": "En mi trabajo me hacen sentir parte del grupo",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 45,
+        "text": "Cuando tenemos que realizar trabajo de equipo los compañeros colaboran",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 46,
+        "text": "Mis compañeros de trabajo me ayudan cuando tengo dificultades",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Relaciones sociales en el trabajo"
+      },
+      {
+        "number": 47,
+        "text": "Me informan sobre lo que hago bien en mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Reconocimiento del desempeño",
+        "dimension": "Escasa o nula retroalimentación del desempeño"
+      },
+      {
+        "number": 48,
+        "text": "La forma como evalúan mi trabajo en mi centro de trabajo me ayuda a mejorar mi desempeño",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Reconocimiento del desempeño",
+        "dimension": "Escasa o nula retroalimentación del desempeño"
+      },
+      {
+        "number": 49,
+        "text": "En mi centro de trabajo me pagan a tiempo mi salario",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Reconocimiento del desempeño",
+        "dimension": "Escaso o nulo reconocimiento y compensación"
+      },
+      {
+        "number": 50,
+        "text": "El pago que recibo es el que merezco por el trabajo que realizo",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Reconocimiento del desempeño",
+        "dimension": "Escaso o nulo reconocimiento y compensación"
+      },
+      {
+        "number": 51,
+        "text": "Si obtengo los resultados esperados en mi trabajo me recompensan o reconocen",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Reconocimiento del desempeño",
+        "dimension": "Escaso o nulo reconocimiento y compensación"
+      },
+      {
+        "number": 52,
+        "text": "Las personas que hacen bien el trabajo pueden crecer laboralmente",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Reconocimiento del desempeño",
+        "dimension": "Escaso o nulo reconocimiento y compensación"
+      },
+      {
+        "number": 53,
+        "text": "Considero que mi trabajo es estable",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Insuficiente sentido de pertenencia e inestabilidad",
+        "dimension": "Inestabilidad laboral"
+      },
+      {
+        "number": 54,
+        "text": "En mi trabajo existe continua rotación de personal",
+        "polarity": "NEGATIVE",
+        "category": "Entorno organizacional",
+        "domain": "Insuficiente sentido de pertenencia e inestabilidad",
+        "dimension": "Inestabilidad laboral"
+      },
+      {
+        "number": 55,
+        "text": "Siento orgullo de laborar en este centro de trabajo",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Insuficiente sentido de pertenencia e inestabilidad",
+        "dimension": "Limitado sentido de pertenencia"
+      },
+      {
+        "number": 56,
+        "text": "Me siento comprometido con mi trabajo",
+        "polarity": "POSITIVE",
+        "category": "Entorno organizacional",
+        "domain": "Insuficiente sentido de pertenencia e inestabilidad",
+        "dimension": "Limitado sentido de pertenencia"
+      },
+      {
+        "number": 57,
+        "text": "En mi trabajo puedo expresarme libremente sin interrupciones",
+        "polarity": "POSITIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 58,
+        "text": "Recibo críticas constantes a mi persona y/o trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 59,
+        "text": "Recibo burlas, calumnias, difamaciones, humillaciones o ridiculizaciones",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 60,
+        "text": "Se ignora mi presencia o se me excluye de las reuniones de trabajo y en la toma de decisiones",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 61,
+        "text": "Se manipulan las situaciones de trabajo para hacerme parecer un mal trabajador",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 62,
+        "text": "Se ignoran mis éxitos laborales y se atribuyen a otros trabajadores",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 63,
+        "text": "Me bloquean o impiden las oportunidades que tengo para obtener ascenso o mejora en mi trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 64,
+        "text": "He presenciado actos de violencia en mi centro de trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Violencia",
+        "dimension": "Violencia laboral"
+      },
+      {
+        "number": 65,
+        "text": "Atiendo clientes o usuarios muy enojados",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas psicológicas emocionales"
+      },
+      {
+        "number": 66,
+        "text": "Mi trabajo me exige atender personas muy necesitadas de ayuda o enfermas",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas psicológicas emocionales"
+      },
+      {
+        "number": 67,
+        "text": "Para hacer mi trabajo debo demostrar sentimientos distintos a los míos",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas psicológicas emocionales"
+      },
+      {
+        "number": 68,
+        "text": "Mi trabajo me exige atender situaciones de violencia",
+        "polarity": "NEGATIVE",
+        "category": "Factores propios de la actividad",
+        "domain": "Carga de trabajo",
+        "dimension": "Cargas psicológicas emocionales"
+      },
+      {
+        "number": 69,
+        "text": "Comunican tarde los asuntos de trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Deficiente relación con los colaboradores que supervisa"
+      },
+      {
+        "number": 70,
+        "text": "Dificultan el logro de los resultados del trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Deficiente relación con los colaboradores que supervisa"
+      },
+      {
+        "number": 71,
+        "text": "Cooperan poco cuando se necesita",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Deficiente relación con los colaboradores que supervisa"
+      },
+      {
+        "number": 72,
+        "text": "Ignoran las sugerencias para mejorar su trabajo",
+        "polarity": "NEGATIVE",
+        "category": "Liderazgo y relaciones en el trabajo",
+        "domain": "Relaciones en el trabajo",
+        "dimension": "Deficiente relación con los colaboradores que supervisa"
+      }
+    ]
+  }
+}

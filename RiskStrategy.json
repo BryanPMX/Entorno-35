@@ -1,0 +1,59 @@
+{
+  "risk_thresholds": {
+    "guide_ii": {
+      "description": "Scoring rules for companies with 16-50 employees (Official Source: Page 28)",
+      "total_score": {
+        "nulo": { "min": 0, "max": 20 },
+        "bajo": { "min": 20, "max": 45 },
+        "medio": { "min": 45, "max": 70 },
+        "alto": { "min": 70, "max": 90 },
+        "muy_alto": { "min": 90, "max": 999 }
+      },
+      "categories": [
+        { "name": "Ambiente de trabajo", "ranges": [3, 5, 7, 9] },
+        { "name": "Factores propios de la actividad", "ranges": [10, 20, 30, 40] },
+        { "name": "Organización del tiempo de trabajo", "ranges": [4, 6, 9, 12] },
+        { "name": "Liderazgo y relaciones en el trabajo", "ranges": [10, 18, 28, 38] }
+      ],
+      "domains": [
+        { "name": "Condiciones en el ambiente de trabajo", "ranges": [3, 5, 7, 9] },
+        { "name": "Carga de trabajo", "ranges": [12, 16, 20, 24] },
+        { "name": "Falta de control sobre el trabajo", "ranges": [5, 8, 11, 14] },
+        { "name": "Jornada de trabajo", "ranges": [1, 2, 4, 6] },
+        { "name": "Interferencia en la relación trabajo-familia", "ranges": [1, 2, 4, 6] },
+        { "name": "Liderazgo", "ranges": [3, 5, 8, 11] },
+        { "name": "Relaciones en el trabajo", "ranges": [5, 8, 11, 14] },
+        { "name": "Violencia", "ranges": [7, 10, 13, 16] }
+      ]
+    },
+    "guide_iii": {
+      "description": "Scoring rules for companies with >50 employees (Official Source: Page 36)",
+      "total_score": {
+        "nulo": { "min": 0, "max": 50 },
+        "bajo": { "min": 50, "max": 75 },
+        "medio": { "min": 75, "max": 99 },
+        "alto": { "min": 99, "max": 140 },
+        "muy_alto": { "min": 140, "max": 999 }
+      },
+      "categories": [
+        { "name": "Ambiente de trabajo", "ranges": [5, 9, 11, 14] },
+        { "name": "Factores propios de la actividad", "ranges": [15, 30, 45, 60] },
+        { "name": "Organización del tiempo de trabajo", "ranges": [5, 7, 10, 13] },
+        { "name": "Liderazgo y relaciones en el trabajo", "ranges": [14, 29, 42, 58] },
+        { "name": "Entorno organizacional", "ranges": [10, 14, 18, 23] }
+      ],
+      "domains": [
+        { "name": "Condiciones en el ambiente de trabajo", "ranges": [5, 9, 11, 14] },
+        { "name": "Carga de trabajo", "ranges": [15, 21, 27, 37] },
+        { "name": "Falta de control sobre el trabajo", "ranges": [11, 16, 21, 25] },
+        { "name": "Jornada de trabajo", "ranges": [1, 2, 4, 6] },
+        { "name": "Interferencia en la relación trabajo-familia", "ranges": [4, 6, 8, 10] },
+        { "name": "Liderazgo", "ranges": [9, 12, 16, 20] },
+        { "name": "Relaciones en el trabajo", "ranges": [10, 13, 17, 21] },
+        { "name": "Violencia", "ranges": [7, 10, 13, 16] },
+        { "name": "Reconocimiento del desempeño", "ranges": [6, 10, 14, 18] },
+        { "name": "Insuficiente sentido de pertenencia e inestabilidad", "ranges": [4, 6, 8, 10] }
+      ]
+    }
+  }
+}
