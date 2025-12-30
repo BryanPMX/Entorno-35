@@ -26,34 +26,39 @@
 
 ---
 
-## Phase 1 Remaining: Authentication Foundation
+## Phase 1 Remaining: Authentication Foundation ✅ COMPLETED
 
-### Branch: `phase-1/auth-foundation`
+### Branch: `phase-1/auth-foundation` ✅
 
-**Tasks**:
-1. **JWT Authentication Middleware**
+**Completed Tasks**:
+1. ✅ **JWT Authentication Service**
    - Token generation and validation
    - Token refresh logic
-   - Token blacklisting (optional, via Redis)
+   - Interface-based design (low coupling)
 
-2. **Multi-Tenant Context Middleware**
+2. ✅ **Multi-Tenant Context Middleware**
    - Extract company context from JWT
    - Verify company access permissions
    - Company isolation enforcement
 
-3. **Basic User/Company Models**
-   - User authentication model (if separate from Staff)
-   - Company admin users
-   - Password hashing (bcrypt)
+3. ✅ **Password Hashing**
+   - bcrypt implementation with interface
+   - Configurable cost
 
-4. **Auth Endpoints** (Optional, if time permits)
+4. ✅ **Auth Repository (Hexagonal Architecture)**
+   - AuthRepository interface (ports)
+   - Postgres implementation (adapter)
+   - Company and Staff lookup with subscription validation
+
+5. ✅ **Auth Endpoints**
    - POST /auth/login
-   - POST /auth/refresh
-   - POST /auth/logout
+   - Company and Staff authentication
+   - MVP: Identifier validation (RFC/CURP)
 
-**Estimated Duration**: 1-2 weeks
-
-**Dependencies**: None (can be parallel with question-seeder)
+**Next Steps**: Optional enhancements
+- Password field for Staff model (production)
+- POST /auth/refresh endpoint
+- POST /auth/logout endpoint (token blacklisting via Redis)
 
 ---
 
@@ -156,8 +161,8 @@ After Phase 1 auth is complete (or in parallel if resources allow):
 - `develop` - Integration branch (ready for merge)
 - `phase-1/project-setup` - ✅ Completed (needs merge to develop)
 - `phase-1/database-schema` - ✅ Completed (needs merge to develop)
-- `phase-1/question-seeder` - ✅ Completed (current branch)
-- `phase-1/auth-foundation` - ⏳ Next to implement
+- `phase-1/question-seeder` - ✅ Completed (needs merge to develop)
+- `phase-1/auth-foundation` - ✅ Completed (current branch)
 
 ---
 
