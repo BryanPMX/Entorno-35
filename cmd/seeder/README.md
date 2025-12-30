@@ -47,9 +47,10 @@ make seed
 
 ## Guide I Mapping
 
-- `section` → Stored in Question.Section field (not linked to Category table)
-- `subsection` → Stored in Question.Subsection field (not linked to Domain table)
-- No CategoryID/DomainID relationships (these are NULL)
+- `section` → Category table (created for consistency) + Question.Section field
+- `subsection` → Domain table (created for consistency) + Question.Subsection field
+- **Note**: Guide I questions store section/subsection in their own fields
+- No CategoryID/DomainID FK relationships (these are NULL in Question table)
 
 ## Guide II/III Mapping
 

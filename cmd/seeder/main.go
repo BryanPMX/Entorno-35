@@ -81,11 +81,31 @@ func seedGuide(db *gorm.DB, guide domain.GuideJSON, guideType domain.GuideType) 
 		var section, subsection *string
 
 		if guideType == domain.GuideTypeI {
-			// Guide I: Use section/subsection (no category/domain/dimension links)
+			// Guide I: Map Section -> Category, Subsection -> Domain (create for consistency but don't link via FK)
 			section = &qJSON.Section
 			subsection = &qJSON.Subsection
-			// Guide I doesn't have polarity or hierarchical relationships
+			// Guide I doesn't have polarity
 			polarity = nil
+			
+			// Create Category/Domain entries for Guide I (for organizational purposes)
+			// but don't link Question via FK (category_id/domain_id remain NULL)
+			var category domain.Category
+			if err := db.Where("name = ?", qJSON.Section).FirstOrCreate(&category, domain.Category{
+				Name: qJSON.Section,
+			}).Error; err != nil {
+				return fmt.Errorf("failed to find or create category %s: %w", qJSON.Section, err)
+			}
+
+			var domainObj domain.Domain
+			if err := db.Where("category_id = ? AND name = ?", category.ID, qJSON.Subsection).
+				FirstOrCreate(&domainObj, domain.Domain{
+					CategoryID: category.ID,
+					Name:       qJSON.Subsection,
+				}).Error; err != nil {
+				return fmt.Errorf("failed to find or create domain %s: %w", qJSON.Subsection, err)
+			}
+
+			// Guide I questions don't link to category/domain via FK (use section/subsection fields instead)
 			categoryID = nil
 			domainID = nil
 			dimensionID = nil
