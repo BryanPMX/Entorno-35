@@ -1,6 +1,5 @@
--- Enable UUID extension
+-- Enable UUID extension (PostgreSQL 13+ has gen_random_uuid() built-in, but we use uuid-ossp for compatibility)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Create custom types/enums
 CREATE TYPE subscription_status AS ENUM ('active', 'inactive');
@@ -12,7 +11,7 @@ CREATE TYPE risk_level AS ENUM ('nulo', 'bajo', 'medio', 'alto', 'muy_alto');
 
 -- Companies table
 CREATE TABLE companies (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     rfc VARCHAR(13) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     address TEXT,
@@ -31,7 +30,7 @@ CREATE INDEX idx_companies_deleted_at ON companies(deleted_at);
 
 -- Staff table
 CREATE TABLE staff (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
     curp VARCHAR(18) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
@@ -91,9 +90,14 @@ CREATE TABLE questions (
     guide_type guide_type NOT NULL,
     type question_type NOT NULL,
     text TEXT NOT NULL,
-    polarity question_polarity NOT NULL,
-    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
-    domain_id INTEGER NOT NULL REFERENCES domains(id) ON DELETE RESTRICT,
+    -- Polarity is only for Guide II/III (Likert scale questions)
+    polarity question_polarity,
+    -- Section and Subsection are only for Guide I (Trauma assessment)
+    section VARCHAR(10),
+    subsection VARCHAR(100),
+    -- Category, Domain, Dimension are only for Guide II/III
+    category_id INTEGER REFERENCES categories(id) ON DELETE RESTRICT,
+    domain_id INTEGER REFERENCES domains(id) ON DELETE RESTRICT,
     dimension_id INTEGER REFERENCES dimensions(id) ON DELETE RESTRICT,
     order_index INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -108,7 +112,7 @@ CREATE INDEX idx_questions_guide_number ON questions(guide_type, question_number
 
 -- Assessments table (created before assessment_links due to FK reference)
 CREATE TABLE assessments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
     company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
     period INTEGER NOT NULL,
@@ -150,7 +154,7 @@ CREATE INDEX idx_responses_assessment_question ON responses(assessment_id, quest
 
 -- Assessment Links table (created after assessments due to FK reference)
 CREATE TABLE assessment_links (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     token VARCHAR(255) NOT NULL UNIQUE,
     staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
     assessment_id UUID REFERENCES assessments(id) ON DELETE SET NULL,

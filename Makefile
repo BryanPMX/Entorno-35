@@ -34,11 +34,19 @@ docker-down: ## Stop Docker containers
 
 migrate-up: ## Run database migrations up
 	@echo "Running migrations up..."
-	@migrate -path ./migrations -database "postgres://entorno35:entorno35@localhost:5432/entorno35?sslmode=disable" up
+	@if [ -z "$$DB_URL" ]; then \
+		echo "Error: DB_URL environment variable is required. Example: DB_URL=postgres://user:pass@host:5432/dbname?sslmode=disable"; \
+		exit 1; \
+	fi
+	@migrate -path ./migrations -database "$$DB_URL" up
 
 migrate-down: ## Run database migrations down
 	@echo "Running migrations down..."
-	@migrate -path ./migrations -database "postgres://entorno35:entorno35@localhost:5432/entorno35?sslmode=disable" down
+	@if [ -z "$$DB_URL" ]; then \
+		echo "Error: DB_URL environment variable is required. Example: DB_URL=postgres://user:pass@host:5432/dbname?sslmode=disable"; \
+		exit 1; \
+	fi
+	@migrate -path ./migrations -database "$$DB_URL" down
 
 setup: ## Initial project setup
 	@echo "Setting up project..."

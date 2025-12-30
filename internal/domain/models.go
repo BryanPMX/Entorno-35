@@ -169,7 +169,7 @@ func (r *RiskLevel) Scan(value interface{}) error {
 
 // Company represents a tenant company in the multi-tenant system
 type Company struct {
-	ID                uuid.UUID          `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ID                uuid.UUID          `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	RFC               string             `gorm:"type:varchar(13);uniqueIndex;not null" json:"rfc"`
 	Name              string             `gorm:"type:varchar(255);not null" json:"name"`
 	Address           string             `gorm:"type:text" json:"address"`
@@ -201,7 +201,7 @@ func (c *Company) BeforeCreate(tx *gorm.DB) error {
 
 // Staff represents a staff member (user) belonging to a company
 type Staff struct {
-	ID          uuid.UUID   `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ID          uuid.UUID   `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	CompanyID   uuid.UUID   `gorm:"type:uuid;not null;index" json:"company_id"`
 	CURP        string      `gorm:"type:varchar(18);not null" json:"curp"`
 	FullName    string      `gorm:"type:varchar(255);not null" json:"full_name"`
@@ -320,19 +320,24 @@ type Question struct {
 	GuideType    GuideType       `gorm:"type:varchar(10);not null;index" json:"guide_type"`
 	Type         QuestionType    `gorm:"type:varchar(20);not null" json:"type"`
 	Text         string          `gorm:"type:text;not null" json:"text"`
-	Polarity     QuestionPolarity `gorm:"type:varchar(10);not null" json:"polarity"`
-	CategoryID   uint            `gorm:"not null;index" json:"category_id"`
-	DomainID     uint            `gorm:"not null;index" json:"domain_id"`
-	DimensionID  *uint           `gorm:"index" json:"dimension_id,omitempty"`
-	OrderIndex   int             `gorm:"not null;default:0" json:"order_index"`
-	CreatedAt    time.Time       `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt    time.Time       `gorm:"autoUpdateTime" json:"updated_at"`
+	// Polarity is only for Guide II/III (Likert scale questions)
+	Polarity     *QuestionPolarity `gorm:"type:varchar(10)" json:"polarity,omitempty"`
+	// Section and Subsection are only for Guide I (Trauma assessment)
+	Section      *string          `gorm:"type:varchar(10)" json:"section,omitempty"`
+	Subsection   *string          `gorm:"type:varchar(100)" json:"subsection,omitempty"`
+	// Category, Domain, Dimension are only for Guide II/III
+	CategoryID   *uint            `gorm:"index" json:"category_id,omitempty"`
+	DomainID     *uint            `gorm:"index" json:"domain_id,omitempty"`
+	DimensionID  *uint            `gorm:"index" json:"dimension_id,omitempty"`
+	OrderIndex   int              `gorm:"not null;default:0" json:"order_index"`
+	CreatedAt    time.Time        `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt    time.Time        `gorm:"autoUpdateTime" json:"updated_at"`
 
-	// Relationships
-	Category   Category    `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
-	Domain     Domain      `gorm:"foreignKey:DomainID" json:"domain,omitempty"`
-	Dimension  *Dimension  `gorm:"foreignKey:DimensionID" json:"dimension,omitempty"`
-	Responses  []Response  `gorm:"foreignKey:QuestionID;constraint:OnDelete:RESTRICT" json:"responses,omitempty"`
+	// Relationships (optional for Guide I)
+	Category   *Category    `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
+	Domain     *Domain      `gorm:"foreignKey:DomainID" json:"domain,omitempty"`
+	Dimension  *Dimension   `gorm:"foreignKey:DimensionID" json:"dimension,omitempty"`
+	Responses  []Response   `gorm:"foreignKey:QuestionID;constraint:OnDelete:RESTRICT" json:"responses,omitempty"`
 }
 
 // TableName specifies the table name for Question
@@ -342,7 +347,7 @@ func (Question) TableName() string {
 
 // AssessmentLink represents a secure link for staff to take assessments
 type AssessmentLink struct {
-	ID          uuid.UUID     `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ID          uuid.UUID     `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	Token       string        `gorm:"type:varchar(255);uniqueIndex;not null" json:"token"`
 	StaffID     uuid.UUID     `gorm:"type:uuid;not null;index" json:"staff_id"`
 	AssessmentID *uuid.UUID   `gorm:"type:uuid;index" json:"assessment_id,omitempty"`
