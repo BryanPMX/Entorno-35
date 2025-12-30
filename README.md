@@ -102,8 +102,9 @@ cp .env.example .env
 ## Essential Data Files
 
 - **`nom035_questions.json`** - Complete question catalog (138 questions)
-- **`RiskStrategy.json`** - Scoring thresholds for Guide II and Guide III
-- **`docs/SCORING_IMPLEMENTATION_GUIDE.md`** - Scoring engine implementation guide
+- **`docs/Scoring.md`** - Scoring implementation guide with thresholds
+
+Note: Risk thresholds are stored as configuration (see `docs/Scoring.md`) and will be implemented in Phase 2's scoring engine service.
 
 ## Git Workflow
 
@@ -115,7 +116,19 @@ See `docs/Implementation_Schedule.md` for detailed branching strategy.
 
 ## Current Phase
 
-**Phase 1: Core Infrastructure** - Project Setup ✅
+**Phase 1: Core Infrastructure** - In Progress
+
+### Completed
+- ✅ Project setup and structure
+- ✅ Go module initialization
+- ✅ Docker Compose configuration
+- ✅ Database schema and migrations
+- ✅ GORM domain models
+- ✅ Database seeder for questions
+
+### Next Steps
+1. Complete Phase 1: Authentication foundation
+2. Begin Phase 2: Scoring Logic & Engine
 
 ## License
 
