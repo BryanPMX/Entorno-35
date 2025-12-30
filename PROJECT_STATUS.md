@@ -1,7 +1,7 @@
 # Project Status - Entorno35
 
 **Last Updated**: 2025-12-30  
-**Current Phase**: Phase 5 - Frontend Implementation - IN PROGRESS (Phase 5.1 Complete)
+**Current Phase**: Phase 5 - Frontend Implementation - IN PROGRESS (Phase 5.1 & 5.2 Complete)
 
 **Recent Updates:**
 - Backend CORS middleware configured for frontend connectivity
@@ -244,12 +244,7 @@ feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
 
 ## Next Steps
 
-1. **Phase 5.2: Authentication UI** (In Progress)
-   - Login screen component
-   - Auth context/store (Zustand)
-   - Route protection middleware
-
-2. **Phase 5.3: Staff Management UI** (Pending)
+1. **Phase 5.3: Staff Management UI** (Pending - next to implement)
    - Staff data table with pagination and sorting
    - CSV uploader with progress indication
 
@@ -300,4 +295,4 @@ feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
 
 ---
 
-**Status**: Phase 5.1 complete, frontend architecture established. Ready for Phase 5.2 (Authentication UI)
+**Status**: Phase 5.1 & 5.2 complete. Frontend architecture established with authentication UI and route protection. Ready for Phase 5.3 (Staff Management UI)

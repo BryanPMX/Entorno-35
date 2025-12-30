@@ -162,11 +162,16 @@ Note: Risk thresholds are stored as configuration (see `docs/Scoring.md`) and wi
 - Phase 4: Reporting & Compliance Engine (individual reports, general reports, recommendations)
 - Phase 5.1: Frontend Architecture & Service Layer (Next.js setup, TypeScript types, Axios client, service layer)
 
-### In Progress
-- Phase 5.2: Authentication UI (login screen, auth context, route protection)
+### Completed (Continued)
+- Phase 5.2: Authentication UI & Gatekeeper - COMPLETED ✅
+  - Login screen with Company/Staff type support
+  - Zustand auth store with global state management
+  - Route protection (AuthGuard component)
+  - Dashboard layout with navigation
+  - Integration tests (12 tests passing)
 
 ### Next Steps
-1. Phase 5.3: Staff Management UI (data table, CSV uploader)
+1. Phase 5.3: Staff Management UI (data table, CSV uploader) - Next to implement
 2. Phase 5.4: Dashboard (analytics, assessment creation wizard)
 3. Phase 5.5: Public Assessment View (staff test-taking interface)
 4. Production preparation and deployment
