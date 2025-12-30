@@ -10,7 +10,9 @@ import (
 	"github.com/entorno35/backend/internal/adapters/postgres"
 	"github.com/entorno35/backend/internal/config"
 	"github.com/entorno35/backend/internal/core/jwt"
+	"github.com/entorno35/backend/internal/core/services"
 	"github.com/entorno35/backend/internal/database"
+	"github.com/entorno35/backend/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,9 +51,14 @@ func main() {
 
 	// Initialize repositories
 	authRepo := postgres.NewAuthRepository(db)
+	assessmentRepo := postgres.NewAssessmentRepository(db)
+
+	// Initialize services
+	scoringService := services.NewScoringService(assessmentRepo)
 
 	// Initialize handlers
 	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
+	scoringHandler := http.NewScoringHandler(scoringService)
 
 	// Initialize router
 	router := gin.Default()
@@ -68,6 +75,18 @@ func main() {
 	auth := router.Group("/auth")
 	{
 		auth.POST("/login", authHandler.Login)
+	}
+
+	// Protected API endpoints (require authentication)
+	api := router.Group("/api/v1")
+	api.Use(middleware.AuthMiddleware(jwtService))
+	api.Use(middleware.TenantMiddleware())
+	{
+		// Assessment scoring endpoints
+		assessments := api.Group("/assessments")
+		{
+			assessments.POST("/:id/calculate", scoringHandler.CalculateAssessment)
+		}
 	}
 
 	// Start server
