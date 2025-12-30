@@ -82,8 +82,11 @@ func seedGuide(db *gorm.DB, guide domain.GuideJSON, guideType domain.GuideType) 
 
 		if guideType == domain.GuideTypeI {
 			// Guide I: Map Section -> Category, Subsection -> Domain (create for consistency but don't link via FK)
-			section = &qJSON.Section
-			subsection = &qJSON.Subsection
+			// Create copies to avoid pointer-to-loop-variable issues
+			sectionVal := qJSON.Section
+			subsectionVal := qJSON.Subsection
+			section = &sectionVal
+			subsection = &subsectionVal
 			// Guide I doesn't have polarity
 			polarity = nil
 			
@@ -114,10 +117,12 @@ func seedGuide(db *gorm.DB, guide domain.GuideJSON, guideType domain.GuideType) 
 			section = nil
 			subsection = nil
 			
-			// Parse polarity
+			// Parse polarity (create copy to avoid pointer-to-temporary-variable issues)
 			if qJSON.Polarity != "" {
-				p := domain.QuestionPolarity(qJSON.Polarity)
-				polarity = &p
+				polarityVal := domain.QuestionPolarity(qJSON.Polarity)
+				polarity = &polarityVal
+			} else {
+				polarity = nil
 			}
 
 			// Find or create Category
