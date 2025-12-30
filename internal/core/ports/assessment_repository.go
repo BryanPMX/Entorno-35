@@ -35,4 +35,3 @@ type AssessmentRepository interface {
 	// UpdateLinkAccess updates the link's accessed_at timestamp
 	UpdateLinkAccess(linkID uuid.UUID) error
 }
-
