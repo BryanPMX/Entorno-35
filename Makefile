@@ -32,18 +32,20 @@ docker-down: ## Stop Docker containers
 	@echo "Stopping Docker containers..."
 	@docker-compose down
 
-migrate-up: ## Run database migrations up
+migrate-up: ## Run database migrations up (requires DB_URL env var)
 	@echo "Running migrations up..."
 	@if [ -z "$$DB_URL" ]; then \
-		echo "Error: DB_URL environment variable is required. Example: DB_URL=postgres://user:pass@host:5432/dbname?sslmode=disable"; \
+		echo "Error: DB_URL environment variable is required."; \
+		echo "Example: export DB_URL=postgres://user:pass@host:5432/dbname?sslmode=disable"; \
 		exit 1; \
 	fi
 	@migrate -path ./migrations -database "$$DB_URL" up
 
-migrate-down: ## Run database migrations down
+migrate-down: ## Run database migrations down (requires DB_URL env var)
 	@echo "Running migrations down..."
 	@if [ -z "$$DB_URL" ]; then \
-		echo "Error: DB_URL environment variable is required. Example: DB_URL=postgres://user:pass@host:5432/dbname?sslmode=disable"; \
+		echo "Error: DB_URL environment variable is required."; \
+		echo "Example: export DB_URL=postgres://user:pass@host:5432/dbname?sslmode=disable"; \
 		exit 1; \
 	fi
 	@migrate -path ./migrations -database "$$DB_URL" down
