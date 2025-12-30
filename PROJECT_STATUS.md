@@ -47,6 +47,8 @@
 - Department heatmap (risk by department)
 - Participation rate calculation
 - Report repository with efficient PostgreSQL aggregations
+- E2E integration tests for reporting engine
+- Test directory organization (`tests/integration/` with shared infrastructure)
 
 ---
 
@@ -106,7 +108,10 @@
 ### Passing Tests
 - **Staff Service**: 50+ test cases (CSV import, validation)
 - **Scoring Logic**: 33+ test cases (polarity, risk thresholds, strategies)
-- **Integration Tests**: Staff import functionality
+- **Integration Tests**: 
+  - Staff import functionality
+  - Report E2E tests ("The Compliance Audit" scenario)
+  - Test infrastructure organized in `tests/integration/` with shared `main_test.go`
 
 ### Known Issues
 - Assessment repository tests (3 failures) - SQLite compatibility issue with PostgreSQL JSONB types
