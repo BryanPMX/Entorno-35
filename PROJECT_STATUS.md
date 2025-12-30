@@ -69,10 +69,15 @@
    - AuthService unit tests with mocks
    - Diagnostics page for backend connectivity verification
 
-2. **`phase-5/auth-ui`** - PENDING
-   - Login screen component
-   - Auth context/store (Zustand)
-   - Route protection middleware
+2. **`phase-5/auth-ui`** - COMPLETED ✅ (On branch, ready to merge)
+   - Login screen component with form validation (Company/Staff types)
+   - Auth context/store (Zustand) with global state management
+   - Route protection middleware (AuthGuard component)
+   - Dashboard layout with sidebar and header navigation
+   - JWT token decoding utility
+   - Persistent session via localStorage
+   - Comprehensive integration tests (12 tests passing)
+   - Toast notifications for user feedback
 
 3. **`phase-5/staff-management-ui`** - PENDING
    - Staff data table with pagination and sorting
@@ -148,14 +153,26 @@ feat(diagnostics): add backend connection diagnostics page
 docs(status): document Phase 5 git workflow and branching strategy
 ```
 
+**Phase 5.2 Commit Strategy (auth-ui):**
+```
+feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
+  - Zustand global auth store
+  - AuthGuard component for route protection
+  - Login page with Company/Staff type support
+  - Dashboard layout with navigation
+  - JWT token decoding utility
+  - Integration tests (12 tests)
+  - Toast notifications
+```
+
 ---
 
 ## Current Branch Status
 
 ### Active Branches
 - `develop` - Integration branch (Phases 1-4 and Phase 5.1 merged, Phase 5 in progress)
-- `phase-5/auth-ui` - Authentication UI (PENDING - next branch to create)
-- `phase-5/staff-management-ui` - Staff management UI (PENDING)
+- `phase-5/auth-ui` - Authentication UI (COMPLETED, ready to merge to develop)
+- `phase-5/staff-management-ui` - Staff management UI (PENDING - next branch to create)
 - `phase-5/dashboard` - Admin dashboard (PENDING)
 - `phase-5/public-assessment-view` - Public assessment interface (PENDING)
 
