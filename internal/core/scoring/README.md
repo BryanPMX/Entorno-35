@@ -8,8 +8,19 @@ NOM-035 scoring logic following Test-Driven Development (TDD) principles.
 - **High Cohesion**: Scoring logic only
 - **Low Coupling**: Depends on domain types, not database or HTTP
 - **Pure Functions**: No side effects, easy to test
+- **Strategy Pattern**: Different scoring strategies for different guide types
 
 ## Components
+
+### Interfaces
+
+- `ScoringStrategy`: Interface for scoring implementations
+- `AssessmentResult`: Result structure with scores and risk levels
+
+### Strategies
+
+- **TraumaStrategy**: Guide I (Trauma Assessment) - Binary Yes/No logic
+- **RiskStrategy**: Guide II/III (Psychosocial Risk) - Likert scale with polarity inversion
 
 ### Polarity Application
 
@@ -43,12 +54,14 @@ go test ./internal/core/scoring/... -v
 ```go
 import "github.com/entorno35/backend/internal/core/scoring"
 
+// Create strategy
+strategy := scoring.NewTraumaStrategy() // or NewRiskStrategy()
+
+// Calculate scores
+result, err := strategy.Calculate(responses)
+
 // Apply polarity
 score, err := scoring.ApplyPolarity(selectedValue, polarity)
-
-// Get risk level
-thresholds := scoring.RiskThresholds{Ranges: [4]float64{20, 45, 70, 90}}
-riskLevel := thresholds.GetRiskLevel(85.5) // Returns RiskLevelAlto
 
 // Load rules
 rules := scoring.LoadScoringRules()

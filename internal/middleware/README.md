@@ -1,57 +1,50 @@
 # Middleware Package
 
-HTTP middleware for authentication and multi-tenant isolation (high cohesion - HTTP concerns only).
+HTTP middleware for authentication, authorization, and multi-tenant isolation.
 
-## Design Principles
+## Overview
 
-- **High Cohesion**: Single responsibility - HTTP middleware concerns only
-- **Low Coupling**: Depends on interfaces (`jwt.Service`), not concrete implementations
-- **Dependency Inversion**: Uses service interfaces to enable testing and extensibility
+Middleware functions that handle cross-cutting concerns for HTTP requests. Middleware is applied to route groups in the HTTP router.
 
 ## Components
 
 ### AuthMiddleware
 
-Validates JWT tokens and sets auth context in the request.
+Validates JWT tokens from incoming requests and sets authentication context in the Gin context.
 
+**Usage:**
 ```go
-jwtService := jwt.NewService(config.JWT.Secret)
 router.Use(middleware.AuthMiddleware(jwtService))
 ```
 
+**Requirements:**
+- JWT token in `Authorization: Bearer <token>` header
+- Valid, non-expired token
+
 ### TenantMiddleware
 
-Enforces multi-tenant isolation by validating company ID matches.
+Enforces multi-tenant isolation by validating that requests are scoped to the authenticated company. Must be used after `AuthMiddleware`.
 
+**Usage:**
 ```go
+router.Use(middleware.AuthMiddleware(jwtService))
 router.Use(middleware.TenantMiddleware())
 ```
 
-**Note**: Must be used after `AuthMiddleware` (depends on auth context).
+**Features:**
+- Validates company ID matches authenticated user
+- Sets company ID and staff ID in context for easy access
 
 ### Helper Functions
 
 - `GetAuthContext(c *gin.Context) (*auth.Context, bool)` - Extract auth context
-- `RequireAuth(c *gin.Context) (*auth.Context, bool)` - Require and extract auth context
-- `RequireCompanyID(c *gin.Context) (uuid.UUID, bool)` - Extract company ID
-- `RequireStaffID(c *gin.Context) (uuid.UUID, bool)` - Extract staff ID
+- `RequireAuth(c *gin.Context) (*auth.Context, bool)` - Require and extract auth context (aborts if missing)
+- `RequireCompanyID(c *gin.Context) (uuid.UUID, bool)` - Extract company ID (aborts if missing)
+- `RequireStaffID(c *gin.Context) (uuid.UUID, bool)` - Extract staff ID (aborts if missing)
 
-## Usage Example
+## Design Principles
 
-```go
-// Setup middleware
-jwtService := jwt.NewService(config.JWT.Secret)
-router.Use(middleware.AuthMiddleware(jwtService))
-router.Use(middleware.TenantMiddleware())
-
-// In handlers
-func GetCompanyData(c *gin.Context) {
-    companyID, ok := middleware.RequireCompanyID(c)
-    if !ok {
-        return // Already aborted with error
-    }
-    
-    // Use companyID for data access
-}
-```
-
+- **High Cohesion**: HTTP middleware concerns only
+- **Low Coupling**: Depends on interfaces (jwt.Service), not concrete implementations
+- **Chain of Responsibility**: Middleware chain processes requests sequentially
+- **Context Propagation**: Auth data passed via Gin context
