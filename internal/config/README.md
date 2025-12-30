@@ -23,6 +23,7 @@ Configuration is loaded from environment variables. Required variables:
 - JWT: `JWT_SECRET`, `JWT_EXPIRY`
 - Redis: `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`
 - Server: `PORT`, `ENV`
+- CORS: `CORS_ORIGIN` (defaults to `http://localhost:3000`)
 
 ## Environment Setup
 

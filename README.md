@@ -124,10 +124,16 @@ Copy `.env.example` to `.env` and configure:
 cp .env.example .env
 ```
 
+**Note:** The `make run` command automatically loads environment variables from the `.env` file. No need to manually export variables.
+
 ## Architecture
 
 - **Backend**: Go (Golang) with Gin framework
+  - CORS middleware configured for frontend communication
+  - Automatic .env file loading via Makefile
 - **Frontend**: Next.js 14 with React
+  - TanStack Query for data fetching
+  - Axios client with automatic token injection
 - **Database**: PostgreSQL
 - **Cache/Queue**: Redis
 - **Infrastructure**: Docker Compose (dev) / Kubernetes (prod)
