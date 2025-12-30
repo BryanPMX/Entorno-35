@@ -1,7 +1,7 @@
 # Project Status - Entorno35
 
 **Last Updated**: 2025-12-30  
-**Current Phase**: Phase 5 - Frontend Implementation - IN PROGRESS (Phase 5.1 Complete)
+**Current Phase**: Phase 5 - Frontend Implementation - IN PROGRESS (Phase 5.1 & 5.2 Complete)
 
 **Recent Updates:**
 - Backend CORS middleware configured for frontend connectivity
@@ -69,10 +69,15 @@
    - AuthService unit tests with mocks
    - Diagnostics page for backend connectivity verification
 
-2. **`phase-5/auth-ui`** - PENDING
-   - Login screen component
-   - Auth context/store (Zustand)
-   - Route protection middleware
+2. **`phase-5/auth-ui`** - COMPLETED ✅ (On branch, ready to merge)
+   - Login screen component with form validation (Company/Staff types)
+   - Auth context/store (Zustand) with global state management
+   - Route protection middleware (AuthGuard component)
+   - Dashboard layout with sidebar and header navigation
+   - JWT token decoding utility
+   - Persistent session via localStorage
+   - Comprehensive integration tests (12 tests passing)
+   - Toast notifications for user feedback
 
 3. **`phase-5/staff-management-ui`** - PENDING
    - Staff data table with pagination and sorting
@@ -148,14 +153,26 @@ feat(diagnostics): add backend connection diagnostics page
 docs(status): document Phase 5 git workflow and branching strategy
 ```
 
+**Phase 5.2 Commit Strategy (auth-ui):**
+```
+feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
+  - Zustand global auth store
+  - AuthGuard component for route protection
+  - Login page with Company/Staff type support
+  - Dashboard layout with navigation
+  - JWT token decoding utility
+  - Integration tests (12 tests)
+  - Toast notifications
+```
+
 ---
 
 ## Current Branch Status
 
 ### Active Branches
 - `develop` - Integration branch (Phases 1-4 and Phase 5.1 merged, Phase 5 in progress)
-- `phase-5/auth-ui` - Authentication UI (PENDING - next branch to create)
-- `phase-5/staff-management-ui` - Staff management UI (PENDING)
+- `phase-5/auth-ui` - Authentication UI (COMPLETED, ready to merge to develop)
+- `phase-5/staff-management-ui` - Staff management UI (PENDING - next branch to create)
 - `phase-5/dashboard` - Admin dashboard (PENDING)
 - `phase-5/public-assessment-view` - Public assessment interface (PENDING)
 
@@ -227,12 +244,7 @@ docs(status): document Phase 5 git workflow and branching strategy
 
 ## Next Steps
 
-1. **Phase 5.2: Authentication UI** (In Progress)
-   - Login screen component
-   - Auth context/store (Zustand)
-   - Route protection middleware
-
-2. **Phase 5.3: Staff Management UI** (Pending)
+1. **Phase 5.3: Staff Management UI** (Pending - next to implement)
    - Staff data table with pagination and sorting
    - CSV uploader with progress indication
 
@@ -283,4 +295,4 @@ docs(status): document Phase 5 git workflow and branching strategy
 
 ---
 
-**Status**: Phase 5.1 complete, frontend architecture established. Ready for Phase 5.2 (Authentication UI)
+**Status**: Phase 5.1 & 5.2 complete. Frontend architecture established with authentication UI and route protection. Ready for Phase 5.3 (Staff Management UI)
