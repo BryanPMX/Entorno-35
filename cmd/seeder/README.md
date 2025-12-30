@@ -69,6 +69,7 @@ The seeder will log:
 
 ## Notes
 
-- **Risk Thresholds**: Risk threshold data is NOT seeded by this tool. It should be stored in a configuration file (e.g., `internal/core/services/scoring_rules.go`) for Phase 2 implementation.
-- **Idempotency**: Running the seeder multiple times will update existing questions, not create duplicates.
+- **Risk Thresholds**: Risk threshold data is NOT seeded by this tool. The thresholds (stored in `RiskStrategy.json` or similar) should be loaded as configuration in Phase 2's scoring engine (e.g., `internal/core/services/scoring_rules.go`). These are static business rules and don't need database storage.
+- **Idempotency**: Running the seeder multiple times will update existing questions, not create duplicates (uses Find-or-Create pattern).
+- **Transaction Safety**: Consider wrapping the entire seed operation in a transaction for production use if you need atomic updates.
 
