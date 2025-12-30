@@ -58,7 +58,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	var token string
-	var err error
 
 	if req.Type == "COMPANY" {
 		// Find company by RFC
