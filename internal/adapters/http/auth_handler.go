@@ -1,9 +1,11 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
+	"github.com/entorno35/backend/internal/adapters/postgres"
 	"github.com/entorno35/backend/internal/core/jwt"
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/gin-gonic/gin"
@@ -64,7 +66,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		if err != nil {
 			statusCode := http.StatusInternalServerError
 			// Map repository errors to appropriate HTTP status codes
-			if err == ports.ErrCompanyNotFound || err == ports.ErrCompanyInactive {
+			if errors.Is(err, postgres.ErrCompanyNotFound) || errors.Is(err, postgres.ErrCompanyInactive) {
 				statusCode = http.StatusUnauthorized
 			}
 			c.JSON(statusCode, gin.H{"error": err.Error()})
@@ -94,7 +96,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		staff, err := h.authRepo.GetStaffByCURP(req.Identifier, req.CompanyID)
 		if err != nil {
 			statusCode := http.StatusInternalServerError
-			if err == ports.ErrStaffNotFound || err == ports.ErrCompanyInactive || err == ports.ErrCompanyNotFound {
+			if errors.Is(err, postgres.ErrStaffNotFound) || errors.Is(err, postgres.ErrCompanyInactive) || errors.Is(err, postgres.ErrCompanyNotFound) {
 				statusCode = http.StatusUnauthorized
 			}
 			c.JSON(statusCode, gin.H{"error": err.Error()})
