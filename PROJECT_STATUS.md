@@ -53,7 +53,7 @@
 ### Phase 5: Frontend Implementation - IN PROGRESS
 
 #### Phase 5 Branches:
-1. **`phase-5/frontend-architecture`** - COMPLETED ✅
+1. **`phase-5/frontend-architecture`** - COMPLETED ✅ (Merged to develop)
    - Next.js 14+ project initialization (App Router, TypeScript, Tailwind, ESLint)
    - TanStack Query (React Query) configuration for race condition prevention
    - Axios client with interceptors (automatic token injection, 401 handling)
@@ -149,9 +149,8 @@ docs(status): document Phase 5 git workflow and branching strategy
 ## Current Branch Status
 
 ### Active Branches
-- `develop` - Integration branch (Phases 1-4 merged, Phase 5 in progress)
-- `phase-5/frontend-architecture` - Frontend architecture and service layer (COMPLETED, ready to merge)
-- `phase-5/auth-ui` - Authentication UI (PENDING)
+- `develop` - Integration branch (Phases 1-4 and Phase 5.1 merged, Phase 5 in progress)
+- `phase-5/auth-ui` - Authentication UI (PENDING - next branch to create)
 - `phase-5/staff-management-ui` - Staff management UI (PENDING)
 - `phase-5/dashboard` - Admin dashboard (PENDING)
 - `phase-5/public-assessment-view` - Public assessment interface (PENDING)
@@ -160,6 +159,7 @@ docs(status): document Phase 5 git workflow and branching strategy
 - `phase-3/api-assessments` - Merged to develop
 - `phase-3/api-responses` - Merged to develop
 - `phase-3/api-admin-staff` - Merged to develop
+- `phase-5/frontend-architecture` - Merged to develop (Phase 5.1 complete)
 
 ### Completed Features
 
