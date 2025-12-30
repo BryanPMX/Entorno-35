@@ -12,7 +12,11 @@ build: ## Build the application
 
 run: ## Run the application
 	@echo "Running backend..."
-	@cd cmd/api && go run main.go
+	@if [ -f .env ]; then \
+		export $$(cat .env | grep -v '^#' | xargs) && cd cmd/api && go run main.go; \
+	else \
+		cd cmd/api && go run main.go; \
+	fi
 
 test: ## Run tests
 	@echo "Running tests..."

@@ -13,6 +13,7 @@ import (
 	"github.com/entorno35/backend/internal/core/services"
 	"github.com/entorno35/backend/internal/database"
 	"github.com/entorno35/backend/internal/middleware"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -72,6 +73,15 @@ func main() {
 
 	// Initialize router
 	router := gin.Default()
+
+	// Configure CORS middleware
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{cfg.CORS.Origin}
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "origin", "Cache-Control", "X-Requested-With"}
+	corsConfig.ExposeHeaders = []string{"Content-Length"}
+	corsConfig.AllowCredentials = true
+	router.Use(cors.New(corsConfig))
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
