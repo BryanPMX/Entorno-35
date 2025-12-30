@@ -11,6 +11,7 @@ The following security issues have been addressed:
 1. **docker-compose.yml**: Removed hardcoded passwords, now uses environment variables
 2. **internal/config/config.go**: Removed default password values
 3. **Makefile**: Migrations now require DB_URL environment variable
+4. **tests/integration/main_test.go**: Removed hardcoded password from default DB_URL fallback - DB_URL is now required
 
 ### Required Environment Variables
 
@@ -62,6 +63,6 @@ make migrate-up
 
 ---
 
-**Last Updated**: 2025-12-29  
-**Security Alert**: Resolved - Removed committed generic passwords
+**Last Updated**: 2025-12-30  
+**Security Alert**: Resolved - Removed all committed generic passwords (including test defaults)
 

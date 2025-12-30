@@ -28,10 +28,13 @@ var (
 
 // TestMain sets up the test environment for all integration tests
 func TestMain(m *testing.M) {
-	// Get database URL from environment or use default
+	// Get database URL from environment (required - no hardcoded defaults for security)
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		dbURL = "postgres://entorno35:entorno35@localhost:5432/entorno35_test?sslmode=disable"
+		fmt.Println("Error: DB_URL environment variable is required for integration tests")
+		fmt.Println("Example: export DB_URL=postgres://user:password@localhost:5432/entorno35_test?sslmode=disable")
+		fmt.Println("Never commit passwords to the repository - use environment variables only")
+		os.Exit(1)
 	}
 
 	// Connect to database

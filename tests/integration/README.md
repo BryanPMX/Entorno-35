@@ -30,12 +30,16 @@ go test -tags=integration -v ./tests/integration/... -cover
    # Or use existing PostgreSQL instance
    ```
 
-2. **Environment Variables**:
+2. **Environment Variables** (Required):
    ```bash
-   export DB_URL=postgres://user:pass@localhost:5432/entorno35_test?sslmode=disable
+   # DB_URL is REQUIRED - integration tests will fail without it
+   # Never commit passwords to the repository - use environment variables only
+   export DB_URL=postgres://user:password@localhost:5432/entorno35_test?sslmode=disable
    export JWT_SECRET=your-jwt-secret-key  # Optional, defaults to test secret
    export API_BASE_URL=http://localhost:8080  # Optional, for HTTP endpoint tests
    ```
+   
+   **Security Note**: The `DB_URL` environment variable is required. Integration tests will fail immediately if it's not set. This prevents hardcoded credentials from being committed to the repository.
 
 ## Test Database
 
