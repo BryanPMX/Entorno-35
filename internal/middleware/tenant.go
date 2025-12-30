@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/entorno35/backend/internal/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
