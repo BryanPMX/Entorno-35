@@ -16,10 +16,10 @@ type Config struct {
 
 // AppConfig holds application-level configuration
 type AppConfig struct {
-	Env         string
-	Port        string
-	APIVersion  string
-	LogLevel    string
+	Env        string
+	Port       string
+	APIVersion string
+	LogLevel   string
 }
 
 // DatabaseConfig holds database configuration
@@ -121,4 +121,3 @@ func getEnv(key, defaultValue string) string {
 	}
 	return defaultValue
 }
-
