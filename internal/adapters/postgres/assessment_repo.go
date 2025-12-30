@@ -193,6 +193,11 @@ func (r *assessmentRepository) GetLinkByToken(token string) (*domain.AssessmentL
 
 // UpdateLinkAccess updates the link's accessed_at timestamp
 func (r *assessmentRepository) UpdateLinkAccess(linkID uuid.UUID) error {
+	return r.UpdateLinkAccessedAt(linkID)
+}
+
+// UpdateLinkAccessedAt updates the link's accessed_at timestamp
+func (r *assessmentRepository) UpdateLinkAccessedAt(linkID uuid.UUID) error {
 	now := time.Now()
 
 	result := r.db.Model(&domain.AssessmentLink{}).
@@ -200,7 +205,7 @@ func (r *assessmentRepository) UpdateLinkAccess(linkID uuid.UUID) error {
 		Update("accessed_at", now)
 
 	if result.Error != nil {
-		return fmt.Errorf("failed to update link access: %w", result.Error)
+		return fmt.Errorf("failed to update link accessed_at: %w", result.Error)
 	}
 
 	return nil

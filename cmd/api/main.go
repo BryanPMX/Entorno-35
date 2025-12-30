@@ -54,10 +54,11 @@ func main() {
 	assessmentRepo := postgres.NewAssessmentRepository(db)
 	companyRepo := postgres.NewCompanyRepository(db)
 	staffRepo := postgres.NewStaffRepository(db)
+	responseRepo := postgres.NewResponseRepository(db)
 
 	// Initialize services
 	scoringService := services.NewScoringService(assessmentRepo)
-	assessmentService := services.NewAssessmentService(assessmentRepo, companyRepo, staffRepo)
+	assessmentService := services.NewAssessmentService(assessmentRepo, companyRepo, staffRepo, responseRepo, scoringService)
 
 	// Initialize handlers
 	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
@@ -79,6 +80,12 @@ func main() {
 	auth := router.Group("/auth")
 	{
 		auth.POST("/login", authHandler.Login)
+	}
+
+	// Public API endpoints (no authentication required)
+	public := router.Group("/api/v1/assessments/public")
+	{
+		public.POST("/:token/submit", assessmentHandler.SubmitAssessment)
 	}
 
 	// Protected API endpoints (require authentication)

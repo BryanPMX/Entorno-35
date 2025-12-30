@@ -195,3 +195,67 @@ func (h *AssessmentHandler) CreateAssessmentLink(c *gin.Context) {
 	})
 }
 
+// SubmitAssessmentRequest represents the request body for submitting assessment responses
+type SubmitAssessmentRequest struct {
+	Responses []services.ResponseDTO `json:"responses" binding:"required,min=1"`
+}
+
+// SubmitAssessmentResponse represents the response for submitting assessment responses
+type SubmitAssessmentResponse struct {
+	Message       string    `json:"message"`
+	AssessmentID  uuid.UUID `json:"assessment_id"`
+	SubmittedAt   time.Time `json:"submitted_at"`
+}
+
+// SubmitAssessment submits responses for an assessment via public token
+// POST /api/v1/assessments/public/:token/submit
+// This is a public endpoint (no authentication required)
+func (h *AssessmentHandler) SubmitAssessment(c *gin.Context) {
+	// Extract token from URL
+	token := c.Param("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "token is required"})
+		return
+	}
+
+	// Parse request body
+	var req SubmitAssessmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Convert to service request
+	serviceReq := services.SubmitAssessmentRequest{
+		Responses: req.Responses,
+	}
+
+	// Submit assessment (this will save responses, mark link as used, and trigger scoring)
+	err := h.assessmentService.SubmitAssessment(token, serviceReq)
+	if err != nil {
+		errMsg := err.Error()
+
+		// Check for specific error types (client errors - 400)
+		if errMsg == "invalid or expired assessment link: assessment link not found" ||
+			errMsg == "assessment link has expired" ||
+			errMsg == "assessment link has already been used" ||
+			errMsg == "assessment link is not associated with an assessment" ||
+			errMsg == "assessment is not in pending status" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
+			return
+		}
+
+		// All other errors are server errors - 500
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})
+		return
+	}
+
+	// Return success response
+	// Note: Assessment ID can be retrieved if needed via link lookup, but for public endpoint
+	// we keep it simple and just return success
+	c.JSON(http.StatusOK, SubmitAssessmentResponse{
+		Message:     "Assessment submitted successfully",
+		SubmittedAt: time.Now(),
+	})
+}
+
