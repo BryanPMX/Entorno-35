@@ -8,9 +8,9 @@ bin/
 dist/
 
 # Go compiled binaries (without extension)
-api
-cmd/*/api
-cmd/*/seeder
+/api
+/cmd/*/api
+/cmd/*/seeder
 
 # Test binary, built with `go test -c`
 *.test
