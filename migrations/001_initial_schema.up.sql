@@ -106,23 +106,6 @@ CREATE INDEX idx_questions_domain_id ON questions(domain_id);
 CREATE INDEX idx_questions_dimension_id ON questions(dimension_id);
 CREATE INDEX idx_questions_guide_number ON questions(guide_type, question_number);
 
--- Assessment Links table
-CREATE TABLE assessment_links (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    token VARCHAR(255) NOT NULL UNIQUE,
-    staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
-    assessment_id UUID REFERENCES assessments(id) ON DELETE SET NULL,
-    expires_at TIMESTAMP NOT NULL,
-    accessed_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_assessment_links_token ON assessment_links(token);
-CREATE INDEX idx_assessment_links_staff_id ON assessment_links(staff_id);
-CREATE INDEX idx_assessment_links_assessment_id ON assessment_links(assessment_id);
-CREATE INDEX idx_assessment_links_expires_at ON assessment_links(expires_at);
-
 -- Assessments table (created before assessment_links due to FK reference)
 CREATE TABLE assessments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -165,10 +148,22 @@ CREATE INDEX idx_responses_assessment_id ON responses(assessment_id);
 CREATE INDEX idx_responses_question_id ON responses(question_id);
 CREATE INDEX idx_responses_assessment_question ON responses(assessment_id, question_id);
 
--- Add foreign key reference from assessment_links to assessments (after assessments table is created)
-ALTER TABLE assessment_links 
-    ADD CONSTRAINT fk_assessment_links_assessment 
-    FOREIGN KEY (assessment_id) REFERENCES assessments(id) ON DELETE SET NULL;
+-- Assessment Links table (created after assessments due to FK reference)
+CREATE TABLE assessment_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token VARCHAR(255) NOT NULL UNIQUE,
+    staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+    assessment_id UUID REFERENCES assessments(id) ON DELETE SET NULL,
+    expires_at TIMESTAMP NOT NULL,
+    accessed_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_assessment_links_token ON assessment_links(token);
+CREATE INDEX idx_assessment_links_staff_id ON assessment_links(staff_id);
+CREATE INDEX idx_assessment_links_assessment_id ON assessment_links(assessment_id);
+CREATE INDEX idx_assessment_links_expires_at ON assessment_links(expires_at);
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
