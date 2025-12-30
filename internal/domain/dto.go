@@ -1,5 +1,11 @@
 package domain
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 // QuestionJSON represents the structure of questions in the JSON file
 type QuestionJSON struct {
 	Number      int    `json:"number"`
@@ -26,5 +32,47 @@ type QuestionsDataJSON struct {
 	GuideI   GuideJSON `json:"guide_i"`
 	GuideII  GuideJSON `json:"guide_ii"`
 	GuideIII GuideJSON `json:"guide_iii"`
+}
+
+// IndividualReportDTO represents the data structure for an individual assessment report
+type IndividualReportDTO struct {
+	AssessmentID    uuid.UUID            `json:"assessment_id"`
+	Period          int                  `json:"period"`
+	GuideType       GuideType            `json:"guide_type"`
+	StaffName       string               `json:"staff_name"`
+	Department      string               `json:"department,omitempty"`
+	Shift           string               `json:"shift,omitempty"`
+	TotalScore      float64              `json:"total_score"`
+	RiskLevel       RiskLevel            `json:"risk_level"`
+	CategoryScores  map[string]float64   `json:"category_scores"`
+	DomainScores    map[string]float64   `json:"domain_scores"`
+	RequiresMedical bool                 `json:"requires_medical_attention"`
+	CompletedAt     *time.Time           `json:"completed_at,omitempty"`
+	Recommendations []string             `json:"recommendations,omitempty"`
+}
+
+// RiskDistribution represents the count of assessments by risk level
+type RiskDistribution struct {
+	RiskLevel RiskLevel `json:"risk_level"`
+	Count     int64     `json:"count"`
+}
+
+// DepartmentRiskHeatmap represents risk distribution by department
+type DepartmentRiskHeatmap struct {
+	Department string     `json:"department"`
+	RiskLevel  RiskLevel  `json:"risk_level"`
+	Count      int64      `json:"count"`
+}
+
+// GeneralReportDTO represents the data structure for a company-wide general report
+type GeneralReportDTO struct {
+	CompanyID            uuid.UUID              `json:"company_id"`
+	CompanyName          string                  `json:"company_name"`
+	Period               *int                    `json:"period,omitempty"`
+	TotalStaff            int64                   `json:"total_staff"`
+	CompletedAssessments int64                   `json:"completed_assessments"`
+	ParticipationRate    float64                 `json:"participation_rate"` // percentage
+	RiskDistribution     []RiskDistribution      `json:"risk_distribution"`
+	DepartmentHeatmap    []DepartmentRiskHeatmap `json:"department_heatmap"`
 }
 

@@ -1,6 +1,26 @@
 # Integration Tests
 
-Integration tests that require a running PostgreSQL database and API server.
+Integration tests that require a running PostgreSQL database.
+
+## Test Organization
+
+### Structure
+- `main_test.go` - Shared test setup (TestMain, database connection, JWT service)
+- `report_e2e_test.go` - E2E tests for the Reporting Engine ("The Compliance Audit")
+- `staff_import_test.go` - Staff CSV import functionality tests
+
+### Running Tests
+
+```bash
+# Run all integration tests
+go test -tags=integration -v ./tests/integration/...
+
+# Run specific test
+go test -tags=integration -v ./tests/integration/... -run TestReportE2E
+
+# Run with coverage
+go test -tags=integration -v ./tests/integration/... -cover
+```
 
 ## Prerequisites
 
@@ -10,96 +30,95 @@ Integration tests that require a running PostgreSQL database and API server.
    # Or use existing PostgreSQL instance
    ```
 
-2. **API Server**: Must be running (optional, but recommended for full integration)
+2. **Environment Variables**:
    ```bash
-   go run cmd/api/main.go
+   export DB_URL=postgres://user:pass@localhost:5432/entorno35_test?sslmode=disable
+   export JWT_SECRET=your-jwt-secret-key  # Optional, defaults to test secret
+   export API_BASE_URL=http://localhost:8080  # Optional, for HTTP endpoint tests
    ```
 
-## Configuration
-
-Set environment variables:
-
-```bash
-# Database connection (defaults to localhost test database)
-export DB_URL=postgres://entorno35:entorno35@localhost:5432/entorno35_test?sslmode=disable
-
-# JWT secret (defaults to test secret)
-export JWT_SECRET=your-jwt-secret-key
-
-# API base URL (defaults to http://localhost:8080)
-export API_BASE_URL=http://localhost:8080
-```
-
-## Running Tests
-
-### Run All Integration Tests
-
-```bash
-go test -tags=integration ./tests/integration/... -v
-```
-
-### Run Specific Test
-
-```bash
-go test -tags=integration ./tests/integration/... -run TestStaffImport_HappyPath -v
-```
-
-### Run with Coverage
-
-```bash
-go test -tags=integration ./tests/integration/... -cover
-```
-
-## Test Database Setup
+## Test Database
 
 Tests use a separate test database (`entorno35_test`) to avoid conflicts with development data.
 
-**Important**: Tests create test companies and clean them up after execution. However, if tests are interrupted, you may need to manually clean up:
+**Important**: Tests create test companies and clean them up after execution using `CleanupTestCompany()`. However, if tests are interrupted, you may need to manually clean up:
 
 ```sql
-DELETE FROM staff WHERE company_id IN (
-    SELECT id FROM companies WHERE name LIKE 'Test Company%'
+DELETE FROM responses WHERE assessment_id IN (
+    SELECT id FROM assessments WHERE company_id IN (
+        SELECT id FROM companies WHERE name LIKE 'Test%'
+    )
 );
-DELETE FROM companies WHERE name LIKE 'Test Company%';
+DELETE FROM assessments WHERE company_id IN (
+    SELECT id FROM companies WHERE name LIKE 'Test%'
+);
+DELETE FROM staff WHERE company_id IN (
+    SELECT id FROM companies WHERE name LIKE 'Test%'
+);
+DELETE FROM companies WHERE name LIKE 'Test%';
 ```
 
 ## Test Cases
 
-### TestStaffImport_HappyPath
-- Tests successful import of 2,500 valid rows (forces batch processing with batch size 1000)
-- Verifies all records are inserted correctly across multiple batches
-- Validates data integrity and batch processing behavior
-- Queries database directly to confirm persistence
+### Report E2E Tests (`TestReportE2E_TheComplianceAudit`)
 
-### TestStaffImport_SpanishCharacters
-- Tests UTF-8 encoding with Spanish characters (á, é, í, ó, ú, ñ, Ñ)
-- Verifies special characters are stored correctly in database
-- Tests apostrophes in names (O'Brien)
+**"The Compliance Audit"** - Comprehensive E2E test for the Reporting Engine:
 
-### TestStaffImport_DuplicateHandling
-- Tests idempotency (same CSV uploaded twice)
-- Verifies ON CONFLICT behavior (duplicates are skipped)
-- Ensures database count doesn't double
+1. **Setup (`setupAuditData`)**:
+   - Creates a unique test company
+   - Creates 2 staff members:
+     - Staff A: IT Department, High Risk responses
+     - Staff B: HR Department, Low Risk responses
+   - Creates assessments for both staff
+   - Submits responses (simulates completed tests)
+   - Calculates scores using the scoring service
 
-### TestStaffImport_MixedValidInvalid
-- Tests partial success with error reporting (10 valid rows + 1 invalid row)
-- Validates that invalid rows are skipped while valid rows are processed
-- Verifies error messages are returned for invalid rows
-- Ensures only valid rows are inserted into the database
+2. **Test A: Individual Report**:
+   - Tests `GET /api/v1/reports/individual/:assessment_id`
+   - Asserts HTTP 200
+   - Asserts risk level matches expected (Alto/Muy Alto for high risk)
+   - **Critical**: Asserts recommendations array is NOT empty (NOM-035 requirement)
+   - Asserts domain scores are populated
 
-### TestStaffImport_TenantIsolation
-- Tests multi-tenant isolation
-- Verifies Company A cannot see Company B's staff
-- Validates company_id filtering works correctly
+3. **Test B: General Report (Aggregation)**:
+   - Tests `GET /api/v1/reports/general`
+   - Asserts HTTP 200
+   - Asserts participation rate reflects 2 users (100%)
+   - Asserts department heatmap contains "IT" and "HR"
+   - Asserts risk distribution counts match seeded data
 
-### TestStaffImport_UnauthorizedAccess
-- Tests that requests without authentication are rejected
-- Verifies 401 Unauthorized response
+4. **Test C: HTTP Endpoints** (optional):
+   - Tests actual HTTP endpoints if API server is running
+   - Validates JSON response structure
+
+5. **Teardown**:
+   - Hard deletes test company and all related data (cascading)
+   - Ensures cleanup even if test fails
+
+### Staff Import Tests
+
+See individual test functions in `staff_import_test.go`:
+- `TestStaffImport_HappyPath` - Large batch import (2,500 rows)
+- `TestStaffImport_SpanishCharacters` - UTF-8 encoding
+- `TestStaffImport_DuplicateHandling` - Idempotency
+- `TestStaffImport_MixedValidInvalid` - Partial success
+- `TestStaffImport_TenantIsolation` - Multi-tenant security
+- `TestStaffImport_UnauthorizedAccess` - Authentication
+
+## Shared Test Infrastructure
+
+### Global Variables (from `main_test.go`)
+- `TestDB` - Global GORM database connection
+- `JWTService` - JWT service for authentication
+- `BaseURL` - API base URL (optional)
+
+### Helper Functions
+- `CreateAuthToken(companyID string)` - Generate JWT token
+- `CleanupTestCompany(t *testing.T, companyID string)` - Hard delete test company
 
 ## Notes
 
 - Tests are marked with `//go:build integration` to separate them from unit tests
-- Tests require a real PostgreSQL database (not SQLite) to test ON CONFLICT and transactions
+- Tests require a real PostgreSQL database (not SQLite) to test JSONB queries and complex aggregations
 - Tests clean up after themselves, but may leave data if interrupted
-- Tests can run against a local API server or use direct database access
-
+- HTTP endpoint tests are optional and will skip if API server is not running

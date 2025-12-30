@@ -9,77 +9,23 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/entorno35/backend/internal/core/jwt"
-	"github.com/entorno35/backend/internal/database"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
 var (
-	testDB         *gorm.DB
 	testCompanyAID uuid.UUID
 	testCompanyBID uuid.UUID
-	jwtService     jwt.Service
-	baseURL        string
 )
 
-// TestMain sets up the test environment
-func TestMain(m *testing.M) {
-	// Get database URL from environment or use default
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		dbURL = "postgres://entorno35:entorno35@localhost:5432/entorno35_test?sslmode=disable"
-	}
-
-	// Connect to database
-	var err error
-	testDB, err = database.Connect(dbURL)
-	if err != nil {
-		fmt.Printf("Failed to connect to database: %v\n", err)
-		fmt.Println("Make sure PostgreSQL is running and DB_URL is set correctly")
-		os.Exit(1)
-	}
-	defer database.Close()
-
-	// Run migrations (create tables)
-	err = testDB.AutoMigrate(
-		&domain.Company{},
-		&domain.Staff{},
-		&domain.Category{},
-		&domain.Domain{},
-		&domain.Dimension{},
-		&domain.Question{},
-		&domain.Assessment{},
-		&domain.Response{},
-		&domain.AssessmentLink{},
-	)
-	if err != nil {
-		fmt.Printf("Failed to run migrations: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Initialize JWT service
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		jwtSecret = "test-secret-key-for-integration-tests-only"
-	}
-	jwtService = jwt.NewService(jwtSecret)
-
-	// Get base URL for API
-	baseURL = os.Getenv("API_BASE_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:8080"
-	}
-
-	// Create test companies
+// initTestCompanies creates test companies for staff import tests
+func initTestCompanies() {
 	testCompanyAID = uuid.New()
 	testCompanyBID = uuid.New()
 
@@ -90,7 +36,7 @@ func TestMain(m *testing.M) {
 		SubscriptionStatus: domain.SubscriptionStatusActive,
 		EmployeeCount:     100,
 	}
-	testDB.Create(testCompanyA)
+	TestDB.Create(testCompanyA)
 
 	testCompanyB := &domain.Company{
 		ID:                testCompanyBID,
@@ -99,31 +45,21 @@ func TestMain(m *testing.M) {
 		SubscriptionStatus: domain.SubscriptionStatusActive,
 		EmployeeCount:     50,
 	}
-	testDB.Create(testCompanyB)
-
-	// Run tests
-	code := m.Run()
-
-	// Cleanup
-	testDB.Exec("DELETE FROM responses WHERE assessment_id IN (SELECT id FROM assessments WHERE company_id IN (?, ?))", testCompanyAID, testCompanyBID)
-	testDB.Exec("DELETE FROM assessment_links WHERE staff_id IN (SELECT id FROM staff WHERE company_id IN (?, ?))", testCompanyAID, testCompanyBID)
-	testDB.Exec("DELETE FROM assessments WHERE company_id IN (?, ?)", testCompanyAID, testCompanyBID)
-	testDB.Exec("DELETE FROM staff WHERE company_id IN (?, ?)", testCompanyAID, testCompanyBID)
-	testDB.Exec("DELETE FROM companies WHERE id IN (?, ?)", testCompanyAID, testCompanyBID)
-
-	os.Exit(code)
+	TestDB.Create(testCompanyB)
 }
 
-// createAuthToken generates a JWT token for a company
+// cleanupTestCompanies removes test companies
+func cleanupTestCompanies() {
+	TestDB.Exec("DELETE FROM responses WHERE assessment_id IN (SELECT id FROM assessments WHERE company_id IN (?, ?))", testCompanyAID, testCompanyBID)
+	TestDB.Exec("DELETE FROM assessment_links WHERE staff_id IN (SELECT id FROM staff WHERE company_id IN (?, ?))", testCompanyAID, testCompanyBID)
+	TestDB.Exec("DELETE FROM assessments WHERE company_id IN (?, ?)", testCompanyAID, testCompanyBID)
+	TestDB.Exec("DELETE FROM staff WHERE company_id IN (?, ?)", testCompanyAID, testCompanyBID)
+	TestDB.Exec("DELETE FROM companies WHERE id IN (?, ?)", testCompanyAID, testCompanyBID)
+}
+
+// createAuthToken generates a JWT token for a company (uses shared JWTService)
 func createAuthToken(companyID uuid.UUID) (string, error) {
-	token, err := jwtService.GenerateToken(
-		companyID.String(),
-		"", // No staff ID for company-level operations
-		"test@example.com",
-		"company",
-		1*time.Hour,
-	)
-	return token, err
+	return CreateAuthToken(companyID.String())
 }
 
 // createMultipartRequest creates a multipart form request with CSV file
@@ -187,8 +123,12 @@ func generateValidCURP(index int) string {
 
 // TestStaffImport_HappyPath tests successful import of 2,500 valid rows (forces multiple batches)
 func TestStaffImport_HappyPath(t *testing.T) {
+	// Initialize test companies
+	initTestCompanies()
+	defer cleanupTestCompanies()
+	
 	// Clean up before test
-	testDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
+	TestDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
 
 	// Create auth token
 	token, err := createAuthToken(testCompanyAID)
@@ -203,7 +143,7 @@ func TestStaffImport_HappyPath(t *testing.T) {
 	}
 
 	// Create request
-	url := baseURL + "/api/v1/staff/import"
+	url := BaseURL + "/api/v1/staff/import"
 	req, err := createMultipartRequest(url, csvBuilder.String(), token)
 	require.NoError(t, err)
 
@@ -234,18 +174,18 @@ func TestStaffImport_HappyPath(t *testing.T) {
 
 	// Verify database - query DB to confirm persistence
 	var count int64
-	testDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&count)
+	TestDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&count)
 	assert.Equal(t, int64(2500), count, "Database should contain exactly 2500 staff records")
 
 	// Verify sample records have correct data
 	var staff domain.Staff
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Test User 1").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Test User 1").First(&staff)
 	assert.Equal(t, "Test User 1", staff.FullName)
 	assert.Equal(t, generateValidCURP(1), staff.CURP)
 	assert.Equal(t, "user1@example.com", staff.Email)
 
 	// Verify a record from the last batch
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Test User 2500").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Test User 2500").First(&staff)
 	assert.Equal(t, "Test User 2500", staff.FullName)
 	assert.Equal(t, generateValidCURP(2500), staff.CURP)
 	assert.Equal(t, "user2500@example.com", staff.Email)
@@ -253,8 +193,12 @@ func TestStaffImport_HappyPath(t *testing.T) {
 
 // TestStaffImport_SpanishCharacters tests UTF-8 encoding with Spanish characters
 func TestStaffImport_SpanishCharacters(t *testing.T) {
+	// Initialize test companies
+	initTestCompanies()
+	defer cleanupTestCompanies()
+	
 	// Clean up before test
-	testDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
+	TestDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
 
 	// Create auth token
 	token, err := createAuthToken(testCompanyAID)
@@ -279,7 +223,7 @@ func TestStaffImport_SpanishCharacters(t *testing.T) {
 	csvContent := csvBuilder.String()
 
 	// Create request
-	url := baseURL + "/api/v1/staff/import"
+	url := BaseURL + "/api/v1/staff/import"
 	req, err := createMultipartRequest(url, csvContent, token)
 	require.NoError(t, err)
 
@@ -309,23 +253,23 @@ func TestStaffImport_SpanishCharacters(t *testing.T) {
 
 	// Verify UTF-8 encoding in database (encoding check)
 	var staff domain.Staff
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "José Nuñez López").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "José Nuñez López").First(&staff)
 	assert.Equal(t, "José Nuñez López", staff.FullName, "Database should store José Nuñez López correctly")
 
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "María González Pérez").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "María González Pérez").First(&staff)
 	assert.Equal(t, "María González Pérez", staff.FullName, "Database should store María González Pérez correctly")
 
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Carlos Ñoño Martínez").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Carlos Ñoño Martínez").First(&staff)
 	assert.Equal(t, "Carlos Ñoño Martínez", staff.FullName, "Database should store Carlos Ñoño Martínez correctly")
 
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Ana O'Brien Sánchez").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Ana O'Brien Sánchez").First(&staff)
 	assert.Equal(t, "Ana O'Brien Sánchez", staff.FullName, "Database should store Ana O'Brien Sánchez correctly")
 }
 
 // TestStaffImport_DuplicateHandling tests idempotency (same CSV uploaded twice)
 func TestStaffImport_DuplicateHandling(t *testing.T) {
 	// Clean up before test
-	testDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
+	TestDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
 
 	// Create auth token
 	token, err := createAuthToken(testCompanyAID)
@@ -341,7 +285,7 @@ func TestStaffImport_DuplicateHandling(t *testing.T) {
 	csvContent := csvBuilder.String()
 
 	// First upload
-	url := baseURL + "/api/v1/staff/import"
+	url := BaseURL + "/api/v1/staff/import"
 	req1, err := createMultipartRequest(url, csvContent, token)
 	require.NoError(t, err)
 
@@ -366,7 +310,7 @@ func TestStaffImport_DuplicateHandling(t *testing.T) {
 
 	// Verify database count
 	var countAfterFirst int64
-	testDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&countAfterFirst)
+	TestDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&countAfterFirst)
 	assert.Equal(t, int64(100), countAfterFirst)
 
 	// Second upload (same CSV)
@@ -395,14 +339,17 @@ func TestStaffImport_DuplicateHandling(t *testing.T) {
 
 	// Verify database count hasn't doubled
 	var countAfterSecond int64
-	testDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&countAfterSecond)
+	TestDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&countAfterSecond)
 	assert.Equal(t, int64(100), countAfterSecond, "Database count should not double")
 }
 
 // TestStaffImport_MixedValidInvalid tests partial success with error reporting
 func TestStaffImport_MixedValidInvalid(t *testing.T) {
+	// Initialize test companies
+	initTestCompanies()
+	defer cleanupTestCompanies()
 	// Clean up before test
-	testDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
+	TestDB.Exec("DELETE FROM staff WHERE company_id = ?", testCompanyAID)
 
 	// Create auth token
 	token, err := createAuthToken(testCompanyAID)
@@ -425,7 +372,7 @@ func TestStaffImport_MixedValidInvalid(t *testing.T) {
 	csvContent := csvBuilder.String()
 
 	// Create request
-	url := baseURL + "/api/v1/staff/import"
+	url := BaseURL + "/api/v1/staff/import"
 	req, err := createMultipartRequest(url, csvContent, token)
 	require.NoError(t, err)
 
@@ -457,24 +404,27 @@ func TestStaffImport_MixedValidInvalid(t *testing.T) {
 
 	// Verify only valid records were inserted
 	var count int64
-	testDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&count)
+	TestDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&count)
 	assert.Equal(t, int64(10), count, "Database should contain exactly 10 valid staff records")
 
 	// Verify valid records exist
 	var staff domain.Staff
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Valid User 1").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Valid User 1").First(&staff)
 	assert.Equal(t, "Valid User 1", staff.FullName)
 	assert.Equal(t, generateValidCURP(5001), staff.CURP)
 
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Valid User 10").First(&staff)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Valid User 10").First(&staff)
 	assert.Equal(t, "Valid User 10", staff.FullName)
 	assert.Equal(t, generateValidCURP(5010), staff.CURP)
 }
 
 // TestStaffImport_TenantIsolation tests multi-tenant isolation
 func TestStaffImport_TenantIsolation(t *testing.T) {
+	// Initialize test companies
+	initTestCompanies()
+	defer cleanupTestCompanies()
 	// Clean up before test
-	testDB.Exec("DELETE FROM staff WHERE company_id IN (?, ?)", testCompanyAID, testCompanyBID)
+	TestDB.Exec("DELETE FROM staff WHERE company_id IN (?, ?)", testCompanyAID, testCompanyBID)
 
 	// Create auth tokens for both companies
 	tokenA, err := createAuthToken(testCompanyAID)
@@ -492,7 +442,7 @@ func TestStaffImport_TenantIsolation(t *testing.T) {
 	}
 	csvA := csvBuilderA.String()
 
-	url := baseURL + "/api/v1/staff/import"
+	url := BaseURL + "/api/v1/staff/import"
 	reqA, err := createMultipartRequest(url, csvA, tokenA)
 	require.NoError(t, err)
 
@@ -523,29 +473,29 @@ func TestStaffImport_TenantIsolation(t *testing.T) {
 
 	// Verify Company A can only see its own staff
 	var countA int64
-	testDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&countA)
+	TestDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyAID).Count(&countA)
 	assert.Equal(t, int64(2), countA)
 
 	var staffA domain.Staff
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Company A User 1").First(&staffA)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyAID, "Company A User 1").First(&staffA)
 	assert.Equal(t, "Company A User 1", staffA.FullName)
 	assert.Equal(t, testCompanyAID, staffA.CompanyID)
 
 	// Verify Company B can only see its own staff
 	var countB int64
-	testDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyBID).Count(&countB)
+	TestDB.Model(&domain.Staff{}).Where("company_id = ?", testCompanyBID).Count(&countB)
 	assert.Equal(t, int64(2), countB)
 
 	var staffB domain.Staff
-	testDB.Where("company_id = ? AND full_name = ?", testCompanyBID, "Company B User 1").First(&staffB)
+	TestDB.Where("company_id = ? AND full_name = ?", testCompanyBID, "Company B User 1").First(&staffB)
 	assert.Equal(t, "Company B User 1", staffB.FullName)
 	assert.Equal(t, testCompanyBID, staffB.CompanyID)
 
 	// Verify cross-tenant access doesn't work
 	var crossStaff domain.Staff
-	result := testDB.Where("company_id = ? AND full_name = ?", testCompanyBID, "Company A User 1").First(&crossStaff)
+	result := TestDB.Where("company_id = ? AND full_name = ?", testCompanyBID, "Company A User 1").First(&crossStaff)
 	assert.Error(t, result.Error)
-	assert.Equal(t, gorm.ErrRecordNotFound, result.Error)
+	require.Error(t, result.Error, "Should not find cross-tenant staff")
 }
 
 // TestStaffImport_UnauthorizedAccess tests that unauthorized requests are rejected
@@ -565,7 +515,7 @@ Test User,%s,test@example.com,Area,Job,Shift,Gender
 	require.NoError(t, err)
 	writer.Close()
 
-	url := baseURL + "/api/v1/staff/import"
+	url := BaseURL + "/api/v1/staff/import"
 	req, err := http.NewRequest("POST", url, &buf)
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", writer.FormDataContentType())

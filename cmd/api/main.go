@@ -55,17 +55,20 @@ func main() {
 	companyRepo := postgres.NewCompanyRepository(db)
 	staffRepo := postgres.NewStaffRepository(db)
 	responseRepo := postgres.NewResponseRepository(db)
+	reportRepo := postgres.NewReportRepository(db)
 
 	// Initialize services
 	scoringService := services.NewScoringService(assessmentRepo)
 	assessmentService := services.NewAssessmentService(assessmentRepo, companyRepo, staffRepo, responseRepo, scoringService)
 	staffService := services.NewStaffService(staffRepo)
+	reportService := services.NewReportService(reportRepo)
 
 	// Initialize handlers
 	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
 	scoringHandler := http.NewScoringHandler(scoringService)
 	assessmentHandler := http.NewAssessmentHandler(assessmentService)
 	staffHandler := http.NewStaffHandler(staffService)
+	reportHandler := http.NewReportHandler(reportService)
 
 	// Initialize router
 	router := gin.Default()
@@ -114,6 +117,13 @@ func main() {
 			staff.PUT("/:id", staffHandler.UpdateStaff)
 			staff.DELETE("/:id", staffHandler.DeleteStaff)
 			staff.POST("/import", staffHandler.ImportStaff)
+		}
+
+		// Report endpoints
+		reports := api.Group("/reports")
+		{
+			reports.GET("/individual/:assessment_id", reportHandler.GetIndividualReport)
+			reports.GET("/general", reportHandler.GetGeneralReport)
 		}
 	}
 

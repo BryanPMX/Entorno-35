@@ -10,6 +10,9 @@ HTTP adapters translate HTTP requests into domain operations and format domain r
 
 - **AuthHandler**: Authentication endpoints (login)
 - **ScoringHandler**: Scoring endpoints (calculate assessment scores)
+- **AssessmentHandler**: Assessment management endpoints (create, list, retrieve)
+- **StaffHandler**: Staff management endpoints (CRUD, CSV import)
+- **ReportHandler**: Report generation endpoints (individual and general reports)
 
 ## Design Principles
 

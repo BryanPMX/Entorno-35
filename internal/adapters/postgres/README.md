@@ -22,6 +22,11 @@ PostgreSQL implementations of repository interfaces following Hexagonal Architec
 - `GetResponsesByAssessmentID`: Fetch responses with questions fully loaded (for scoring)
 - `UpdateResult`: Update assessment with scoring results
 
+### ReportRepository
+
+- `GetIndividualReport`: Fetch individual assessment report with staff demographics and recalculated scores
+- `GetGeneralReport`: Fetch company-wide aggregated report with risk distribution and department heatmap
+
 ## Testing
 
 Unit tests use SQLite in-memory database for fast, isolated testing:

@@ -23,6 +23,19 @@ type AuthRepository interface {
 
 **Implementation**: `internal/adapters/postgres/auth_repo.go`
 
+### ReportRepository
+
+Interface for report repository operations:
+
+```go
+type ReportRepository interface {
+    GetIndividualReport(assessmentID uuid.UUID, companyID uuid.UUID) (*domain.IndividualReportDTO, error)
+    GetGeneralReport(companyID uuid.UUID, period *int) (*domain.GeneralReportDTO, error)
+}
+```
+
+**Implementation**: `internal/adapters/postgres/report_repo.go`
+
 ## Error Re-exports
 
 Repository errors are re-exported from adapters to allow handlers to depend on ports package only:
