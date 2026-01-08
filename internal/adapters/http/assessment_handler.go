@@ -202,9 +202,8 @@ type SubmitAssessmentRequest struct {
 
 // SubmitAssessmentResponse represents the response for submitting assessment responses
 type SubmitAssessmentResponse struct {
-	Message       string    `json:"message"`
-	AssessmentID  uuid.UUID `json:"assessment_id"`
-	SubmittedAt   time.Time `json:"submitted_at"`
+	Message     string    `json:"message"`
+	SubmittedAt time.Time `json:"submitted_at"`
 }
 
 // SubmitAssessment submits responses for an assessment via public token

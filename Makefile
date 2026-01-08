@@ -13,7 +13,7 @@ build: ## Build the application
 run: ## Run the application
 	@echo "Running backend..."
 	@if [ -f .env ]; then \
-		export $$(cat .env | grep -v '^#' | xargs) && cd cmd/api && go run main.go; \
+		set -o allexport; source .env; set +o allexport; cd cmd/api && go run main.go; \
 	else \
 		cd cmd/api && go run main.go; \
 	fi
