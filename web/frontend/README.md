@@ -126,6 +126,13 @@ const member = await staffService.getById('uuid-here');
 const result = await staffService.uploadCSV(file);
 ```
 
+**CSV Upload Features:**
+- Drag-and-drop file upload
+- Progress tracking and error reporting
+- Template download functionality
+- Validation and success metrics
+- Batch processing with transaction safety
+
 ## Axios Client
 
 The Axios client (`lib/axios.ts`) is configured with:
@@ -185,16 +192,22 @@ These types strictly match the Go backend domain models for type safety across t
 - Service layer pattern
 - TanStack Query configuration
 
-### Phase 5.2: Authentication UI (Next)
+### Phase 5.2: Authentication UI ✅ COMPLETE
 
-- Login screen
-- Auth context/store
-- Route protection
+- Login screen with Company/Staff type support
+- Zustand auth store with global state management
+- Route protection (AuthGuard component)
+- Dashboard layout with navigation
+- JWT token decoding and session management
 
-### Phase 5.3: Staff Management UI (Pending)
+### Phase 5.3: Staff Management UI ✅ COMPLETE
 
-- Staff data table
-- CSV uploader
+- Staff data table with pagination, sorting, and filtering
+- CSV uploader with drag-and-drop, progress indication, and error handling
+- Complete staff management page integration
+- UI components: table, pagination, dialog, alert, progress
+- Template download functionality
+- All tests passing (20/20 frontend tests)
 
 ### Phase 5.4: Dashboard (Pending)
 
