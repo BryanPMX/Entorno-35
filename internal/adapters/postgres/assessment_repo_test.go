@@ -14,23 +14,88 @@ import (
 )
 
 // setupTestDB creates an in-memory SQLite database for testing
+// Note: This test suite currently uses SQLite instead of PostgreSQL for simplicity.
+// JSONB fields are handled as TEXT in SQLite for testing purposes.
+// In production, PostgreSQL with proper JSONB support is used.
 func setupTestDB(t *testing.T) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	require.NoError(t, err)
 
-	// Auto-migrate domain models
-	err = db.AutoMigrate(
-		&domain.Company{},
-		&domain.Staff{},
-		&domain.Category{},
-		&domain.Domain{},
-		&domain.Dimension{},
-		&domain.Question{},
-		&domain.Assessment{},
-		&domain.Response{},
-	)
+	// Create tables manually to handle JSONB fields in SQLite
+	// In production PostgreSQL, these would be proper JSONB columns
+	err = db.Exec(`
+		CREATE TABLE companies (
+			id TEXT PRIMARY KEY,
+			rfc TEXT UNIQUE NOT NULL,
+			name TEXT NOT NULL,
+			address TEXT,
+			subscription_status TEXT NOT NULL DEFAULT 'inactive',
+			employee_count INTEGER NOT NULL DEFAULT 0,
+			subscription_start_date DATE,
+			subscription_end_date DATE,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			deleted_at DATETIME
+		);
+
+		CREATE TABLE staff (
+			id TEXT PRIMARY KEY,
+			company_id TEXT NOT NULL,
+			curp TEXT NOT NULL,
+			full_name TEXT NOT NULL,
+			email TEXT,
+			demographics TEXT, -- JSON stored as TEXT in SQLite
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			deleted_at DATETIME,
+			FOREIGN KEY (company_id) REFERENCES companies(id)
+		);
+
+		CREATE TABLE assessments (
+			id TEXT PRIMARY KEY,
+			staff_id TEXT NOT NULL,
+			company_id TEXT NOT NULL,
+			period INTEGER NOT NULL,
+			guide_type TEXT NOT NULL,
+			status TEXT NOT NULL DEFAULT 'pending',
+			total_score REAL,
+			risk_level TEXT,
+			requires_medical_attention BOOLEAN DEFAULT FALSE,
+			completed_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			deleted_at DATETIME,
+			FOREIGN KEY (staff_id) REFERENCES staff(id),
+			FOREIGN KEY (company_id) REFERENCES companies(id)
+		);
+
+		CREATE TABLE responses (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			assessment_id TEXT NOT NULL,
+			question_id INTEGER NOT NULL,
+			selected_value INTEGER NOT NULL CHECK (selected_value >= 0 AND selected_value <= 4),
+			calculated_score INTEGER NOT NULL,
+			answered_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (assessment_id) REFERENCES assessments(id)
+		);
+
+		CREATE TABLE assessment_links (
+			id TEXT PRIMARY KEY,
+			token TEXT UNIQUE NOT NULL,
+			staff_id TEXT NOT NULL,
+			assessment_id TEXT,
+			expires_at DATETIME NOT NULL,
+			accessed_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (staff_id) REFERENCES staff(id),
+			FOREIGN KEY (assessment_id) REFERENCES assessments(id)
+		);
+	`).Error
 	require.NoError(t, err)
 
 	return db
