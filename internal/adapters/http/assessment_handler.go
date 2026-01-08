@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/entorno35/backend/internal/core/services"
@@ -239,7 +240,7 @@ func (h *AssessmentHandler) SubmitAssessment(c *gin.Context) {
 			errMsg == "assessment link has expired" ||
 			errMsg == "assessment link has already been used" ||
 			errMsg == "assessment link is not associated with an assessment" ||
-			errMsg == "assessment is not in pending status" {
+			strings.Contains(errMsg, "assessment is not in pending status") {
 			c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
 			return
 		}
