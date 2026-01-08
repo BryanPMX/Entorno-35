@@ -12,6 +12,7 @@ import (
 	"github.com/entorno35/backend/internal/core/jwt"
 	"github.com/entorno35/backend/internal/core/services"
 	"github.com/entorno35/backend/internal/database"
+	"github.com/entorno35/backend/internal/domain"
 	"github.com/entorno35/backend/internal/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,23 @@ func main() {
 			log.Printf("Warning: failed to close database connection: %v", closeErr)
 		}
 	}()
+
+	// Run database migrations (create/update schema)
+	log.Println("Running database migrations...")
+	if err := database.Migrate(
+		&domain.Company{},
+		&domain.Staff{},
+		&domain.Category{},
+		&domain.Domain{},
+		&domain.Dimension{},
+		&domain.Question{},
+		&domain.Assessment{},
+		&domain.Response{},
+		&domain.AssessmentLink{},
+	); err != nil {
+		log.Fatalf("Failed to run database migrations: %v", err)
+	}
+	log.Println("Database migrations completed successfully")
 
 	// Initialize services
 	jwtService := jwt.NewService(cfg.JWT.Secret)

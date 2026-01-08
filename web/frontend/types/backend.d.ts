@@ -62,7 +62,8 @@ export interface Demographics {
 export interface Staff {
   id: string; // UUID
   company_id: string; // UUID
-  curp: string;
+  curp?: string; // Made optional
+  employee_id: string; // Auto-generated for staff without CURPs
   full_name: string;
   email?: string;
   demographics: Demographics;
