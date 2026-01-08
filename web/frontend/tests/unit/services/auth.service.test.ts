@@ -84,6 +84,7 @@ describe('AuthService', () => {
         identifier: 'TESTCURP12345678901',
         type: 'STAFF',
         company_id: '550e8400-e29b-41d4-a716-446655440000',
+        password: 'testpassword123',
       };
 
       vi.mocked(axiosClient.post).mockResolvedValue({
@@ -96,7 +97,7 @@ describe('AuthService', () => {
       expect(localStorage.getItem('token')).toBe(mockToken);
     });
 
-    it('should handle STAFF login with company_id', async () => {
+    it('should handle STAFF login with company_id and password', async () => {
       const mockResponse: AuthResponse = {
         token: 'staff-token',
       };
@@ -105,6 +106,7 @@ describe('AuthService', () => {
         identifier: 'TESTCURP12345678901',
         type: 'STAFF',
         company_id: '550e8400-e29b-41d4-a716-446655440000',
+        password: 'staffpassword456',
       };
 
       vi.mocked(axiosClient.post).mockResolvedValue({
