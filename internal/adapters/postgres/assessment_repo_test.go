@@ -46,6 +46,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			curp TEXT NOT NULL,
 			full_name TEXT NOT NULL,
 			email TEXT,
+			password_hash TEXT, -- Bcrypt hashed password for staff authentication
 			demographics TEXT, -- JSON stored as TEXT in SQLite
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -13,9 +13,9 @@ build: ## Build the application
 run: ## Run the application
 	@echo "Running backend..."
 	@if [ -f .env ]; then \
-		bash -c 'set -a; source .env; set +a; cd cmd/api && exec go run main.go'; \
+		bash -c 'set -a; source .env; set +a; cd cmd/api && exec go run test_makefile.go'; \
 	else \
-		cd cmd/api && go run main.go; \
+		cd cmd/api && go run test_makefile.go; \
 	fi
 
 test: ## Run tests
