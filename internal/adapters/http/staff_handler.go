@@ -299,7 +299,7 @@ func (h *StaffHandler) ImportStaff(c *gin.Context) {
 // AnalyzeCSV analyzes a CSV file and suggests column mappings
 // POST /api/v1/staff/csv/analyze
 func (h *StaffHandler) AnalyzeCSV(c *gin.Context) {
-	companyID, exists := middleware.GetCompanyID(c)
+	_, exists := middleware.RequireCompanyID(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "company authentication required"})
 		return
@@ -339,7 +339,7 @@ func (h *StaffHandler) AnalyzeCSV(c *gin.Context) {
 // PreviewCSVImport previews a CSV import with column mappings
 // POST /api/v1/staff/csv/preview
 func (h *StaffHandler) PreviewCSVImport(c *gin.Context) {
-	companyID, exists := middleware.GetCompanyID(c)
+	_, exists := middleware.RequireCompanyID(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "company authentication required"})
 		return

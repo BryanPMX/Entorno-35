@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/entorno35/backend/internal/core/csv"
+	csvdetect "github.com/entorno35/backend/internal/core/csv"
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/google/uuid"
@@ -39,14 +39,14 @@ type ImportRecord struct {
 // StaffService handles staff-related business logic
 type StaffService struct {
 	staffRepo       ports.StaffRepository
-	csvDetector     *csv.DetectionService
+	csvDetector     *csvdetect.DetectionService
 }
 
 // NewStaffService creates a new staff service
 func NewStaffService(staffRepo ports.StaffRepository) *StaffService {
 	return &StaffService{
 		staffRepo:   staffRepo,
-		csvDetector: csv.NewDetectionService(),
+		csvDetector: csvdetect.NewDetectionService(),
 	}
 }
 
@@ -107,12 +107,12 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 }
 
 // AnalyzeCSV analyzes a CSV file and returns column mapping suggestions
-func (s *StaffService) AnalyzeCSV(reader io.Reader) (*csv.DetectionResult, error) {
+func (s *StaffService) AnalyzeCSV(reader io.Reader) (*csvdetect.DetectionResult, error) {
 	return s.csvDetector.AnalyzeCSV(reader)
 }
 
 // PreviewCSVImport previews a CSV import with the given column mappings
-func (s *StaffService) PreviewCSVImport(reader io.Reader, mappings []csv.ColumnMapping, companyID uuid.UUID) (*ImportPreview, error) {
+func (s *StaffService) PreviewCSVImport(reader io.Reader, mappings []csvdetect.ColumnMapping, companyID uuid.UUID) (*ImportPreview, error) {
 	// Reset reader to beginning
 	if seeker, ok := reader.(io.Seeker); ok {
 		seeker.Seek(0, io.SeekStart)
@@ -469,7 +469,6 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 			staff.CURP = &curp
 		} else {
 			staff.CURP = nil
-		}
 		}
 
 		validStaff = append(validStaff, staff)

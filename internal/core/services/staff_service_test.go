@@ -78,7 +78,8 @@ María González López,EFGH567890MNOPQR02,maria.gonzalez@example.com,Recursos H
 	staffList := call.Arguments[0].([]*domain.Staff)
 
 	require.Len(t, staffList, 2)
-	assert.Equal(t, "ABCD123456HIJKLM01", staffList[0].CURP)
+	require.NotNil(t, staffList[0].CURP)
+	assert.Equal(t, "ABCD123456HIJKLM01", *staffList[0].CURP)
 	assert.Equal(t, "Juan Pérez García", staffList[0].FullName)
 	assert.Equal(t, "juan.perez@example.com", staffList[0].Email)
 	assert.Equal(t, "Producción", staffList[0].Demographics.Department)
@@ -196,7 +197,7 @@ Juan Pérez,  abcd123456hijklm01  ,email@example.com,Area,Job,Shift,Gender
 `
 
 	mockRepo.On("BulkCreate", mock.MatchedBy(func(staff []*domain.Staff) bool {
-		return len(staff) == 1 && staff[0].CURP == "ABCD123456HIJKLM01"
+		return len(staff) == 1 && staff[0].CURP != nil && *staff[0].CURP == "ABCD123456HIJKLM01"
 	})).Return(1, nil)
 
 	result, err := service.ImportFromCSV(strings.NewReader(csvData), companyID)
