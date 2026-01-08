@@ -7,18 +7,17 @@ import (
 
 	"github.com/entorno35/backend/internal/adapters/postgres"
 	"github.com/entorno35/backend/internal/core/jwt"
+	"github.com/entorno35/backend/internal/core/password"
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/gin-gonic/gin"
 )
-
-// Note: For MVP, we validate identifier (RFC/CURP) exists without password verification
-// In production, add password field to Staff model and verify using password.Hasher
 
 // LoginRequest represents the login request payload
 type LoginRequest struct {
 	Identifier string `json:"identifier" binding:"required"` // RFC for COMPANY, CURP for STAFF
 	Type       string `json:"type" binding:"required"`       // "COMPANY" or "STAFF"
 	CompanyID  string `json:"company_id,omitempty"`          // Required for STAFF type
+	Password   string `json:"password,omitempty"`            // Required for STAFF type
 }
 
 // LoginResponse represents the login response payload
@@ -85,9 +84,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			return
 		}
 	} else {
-		// STAFF type - requires company_id
+		// STAFF type - requires company_id and password
 		if req.CompanyID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "company_id is required for STAFF type"})
+			return
+		}
+		if req.Password == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "password is required for STAFF type"})
 			return
 		}
 
@@ -99,6 +102,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 				statusCode = http.StatusUnauthorized
 			}
 			c.JSON(statusCode, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Verify password
+		if staff.PasswordHash == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "staff account not configured with password"})
+			return
+		}
+
+		hasher := password.NewDefaultHasher()
+		if err := hasher.Verify(staff.PasswordHash, req.Password); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid password"})
 			return
 		}
 

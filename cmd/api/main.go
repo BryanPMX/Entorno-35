@@ -36,7 +36,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if closeErr := database.Close(); closeErr != nil {
+			log.Printf("Warning: failed to close database connection: %v", closeErr)
+		}
+	}()
 
 	// Initialize services
 	jwtService := jwt.NewService(cfg.JWT.Secret)
@@ -45,9 +49,10 @@ func main() {
 	tokenExpiry := 24 * time.Hour
 	if cfg.JWT.Expiry != "" {
 		parsedExpiry, err := time.ParseDuration(cfg.JWT.Expiry)
-		if err == nil {
-			tokenExpiry = parsedExpiry
+		if err != nil {
+			log.Fatalf("Invalid JWT_EXPIRY duration '%s': %v. Use Go duration format (e.g., '24h', '7200s', '2h30m')", cfg.JWT.Expiry, err)
 		}
+		tokenExpiry = parsedExpiry
 	}
 
 	// Initialize repositories

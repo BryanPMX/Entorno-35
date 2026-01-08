@@ -10,7 +10,8 @@ Authenticates a user (company or staff) and returns a JWT token.
 {
   "identifier": "string",  // RFC for COMPANY, CURP for STAFF
   "type": "COMPANY" | "STAFF",
-  "company_id": "uuid"     // Required for STAFF type
+  "company_id": "uuid",    // Required for STAFF type
+  "password": "string"     // Required for STAFF type
 }
 ```
 
@@ -33,7 +34,8 @@ curl -X POST http://localhost:8080/auth/login \
   -d '{
     "identifier": "CURP12345678901234",
     "type": "STAFF",
-    "company_id": "550e8400-e29b-41d4-a716-446655440000"
+    "company_id": "550e8400-e29b-41d4-a716-446655440000",
+    "password": "staffpassword123"
   }'
 ```
 
@@ -71,6 +73,7 @@ or
 1. **identifier**: Required, must be valid RFC (for COMPANY) or CURP (for STAFF)
 2. **type**: Required, must be "COMPANY" or "STAFF"
 3. **company_id**: Required when type is "STAFF"
+4. **password**: Required when type is "STAFF"
 
 ### Business Rules
 
@@ -82,12 +85,12 @@ or
 2. **Staff Authentication**:
    - Company must exist and be active
    - Staff must exist (by CURP) within the specified company
+   - Password must be provided and match the stored hash
    - Returns token with both company_id and staff_id
 
 ### Security Notes
 
-**MVP Implementation**: Currently validates identifier existence only (RFC/CURP).  
-**Production**: Should add password field to Staff model and verify using `password.Hasher`.
+Staff authentication now uses bcrypt password hashing for secure credential verification.
 
 ### Testing with Seeded Data
 

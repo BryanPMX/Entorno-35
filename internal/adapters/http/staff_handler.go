@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/entorno35/backend/internal/core/services"
 	"github.com/entorno35/backend/internal/domain"
@@ -102,8 +103,10 @@ func (h *StaffHandler) CreateStaff(c *gin.Context) {
 
 	staff, err := h.staffService.CreateStaff(serviceReq, companyID)
 	if err != nil {
-		if err.Error() == "CURP must be exactly 18 characters, got 0" || 
-		   err.Error() == "failed to create staff: failed to create staff: ERROR: duplicate key value violates unique constraint \"staff_company_id_curp_key\" (SQLSTATE 23505)" {
+		// Check for client errors (validation, duplicates) vs server errors
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "CURP must be exactly 18 characters") ||
+			strings.Contains(errMsg, "duplicate key value violates unique constraint") {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -143,9 +146,9 @@ func (h *StaffHandler) ListStaff(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data":  staff,
-		"total": total,
-		"limit": req.Limit,
+		"data":   staff,
+		"total":  total,
+		"limit":  req.Limit,
 		"offset": req.Offset,
 	})
 }
@@ -292,4 +295,3 @@ func (h *StaffHandler) ImportStaff(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
-

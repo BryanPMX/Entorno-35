@@ -206,6 +206,7 @@ type Staff struct {
 	CURP         string            `gorm:"type:varchar(18);not null" json:"curp"`
 	FullName     string            `gorm:"type:varchar(255);not null" json:"full_name"`
 	Email        string            `gorm:"type:varchar(255)" json:"email,omitempty"`
+	PasswordHash string            `gorm:"type:varchar(255)" json:"-"` // Not exposed in JSON
 	Demographics DemographicsJSONB `gorm:"type:jsonb" json:"demographics"`
 	CreatedAt    time.Time         `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time         `gorm:"autoUpdateTime" json:"updated_at"`

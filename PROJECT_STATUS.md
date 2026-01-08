@@ -1,9 +1,10 @@
 # Project Status - Entorno35
 
-**Last Updated**: 2025-12-30  
-**Current Phase**: Phase 5 - Frontend Implementation - IN PROGRESS (Phase 5.1 & 5.2 Complete)
+**Last Updated**: 2026-01-08
+**Current Phase**: Phase 5 - Backend Fixes & Frontend Implementation - IN PROGRESS (Phase 5.1 & 5.2 Complete, Critical Fixes Applied)
 
 **Recent Updates:**
+- ✅ **Critical Backend Fixes Completed**: Assessment repository tests fixed, public assessment endpoint verified, staff password authentication implemented
 - Backend CORS middleware configured for frontend connectivity
 - Makefile updated to automatically load .env file variables
 
@@ -57,7 +58,7 @@
 ### Phase 5: Frontend Implementation - IN PROGRESS
 
 #### Phase 5 Branches:
-1. **`phase-5/frontend-architecture`** - COMPLETED ✅ (Merged to develop)
+1. **`phase-5/frontend-architecture`** -
    - Next.js 14+ project initialization (App Router, TypeScript, Tailwind, ESLint)
    - TanStack Query (React Query) configuration for race condition prevention
    - Axios client with interceptors (automatic token injection, 401 handling)
@@ -69,7 +70,7 @@
    - AuthService unit tests with mocks
    - Diagnostics page for backend connectivity verification
 
-2. **`phase-5/auth-ui`** - COMPLETED ✅ (On branch, ready to merge)
+2. **`phase-5/auth-ui`** - COMPLETED
    - Login screen component with form validation (Company/Staff types)
    - Auth context/store (Zustand) with global state management
    - Route protection middleware (AuthGuard component)
@@ -236,30 +237,92 @@ feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
   - Test infrastructure organized in `tests/integration/` with shared `main_test.go`
 
 ### Known Issues
-- Assessment repository tests (3 failures) - SQLite compatibility issue with PostgreSQL JSONB types
-  - Not blocking - tests use SQLite, production uses PostgreSQL
-  - Can be addressed by using PostgreSQL test database
+- **RESOLVED**: Assessment repository tests (3 failures) - Fixed SQLite compatibility issue with PostgreSQL JSONB types
+  - Solution: Modified test setup to use manual table creation with TEXT fields instead of JSONB
+  - All assessment repository tests now passing
+
+---
+
+## Critical Backend Fixes
+
+### 1. Assessment Repository Tests Fix
+**Issue**: 3 failing tests due to SQLite JSONB incompatibility
+**Solution**: Modified `assessment_repo_test.go` to use manual table creation with TEXT fields instead of GORM's JSONB auto-migration
+**Result**: All assessment repository tests now pass
+**Impact**: CI/CD pipeline unblocked, test coverage maintained
+
+### 2. Public Assessment Endpoint Verification
+**Issue**: Missing public endpoint for staff to submit assessments
+**Solution**: Verified existing `POST /api/v1/assessments/public/:token/submit` endpoint is fully implemented and functional
+**Features**:
+- Token-based authentication (no JWT required)
+- Link expiration validation
+- One-time usage enforcement
+- Automatic scoring calculation
+- Transaction-safe response saving
+
+### 3. Staff Password Authentication Implementation
+**Issue**: Staff login only validated CURP existence (no password security)
+**Solution**: Complete password authentication system implemented
+**Changes**:
+- Added `password_hash` field to Staff model
+- Created database migration (002_add_staff_password)
+- Updated login endpoint to require passwords for staff
+- Added bcrypt password verification
+- Updated API documentation
+
+**Security Enhancement**: Staff accounts now require secure password authentication
+
+### 4. JWT Configuration Validation Fix
+**Issue**: Invalid JWT_EXPIRY values were silently ignored, using default 24h expiry
+**Solution**: Fail-fast validation with clear error messages for invalid duration strings
+**Changes**:
+- Modified JWT expiry parsing in `cmd/api/main.go` to validate duration strings
+- Added clear error message with examples of valid Go duration format
+- Prevents silent misconfiguration in production
+
+**Security Fix**: Configuration errors now fail fast instead of being silently ignored
 
 ---
 
 ## Next Steps
 
-1. **Phase 5.3: Staff Management UI** (Pending - next to implement)
+### Immediate Priorities (Next Sprint)
+
+1. **Run Database Migration** (URGENT)
+   - Execute `002_add_staff_password.up.sql` migration on production database
+   - Set up staff passwords for existing users
+   - Test staff login with password authentication
+
+2. **Phase 5.3: Staff Management UI** (Next to implement)
    - Staff data table with pagination and sorting
    - CSV uploader with progress indication
+   - Password management for new staff accounts
 
-3. **Phase 5.4: Dashboard** (Pending)
+### Medium-term (2-3 Sprints)
+
+3. **Phase 5.4: Dashboard & Analytics**
    - Admin dashboard with heatmaps/charts
    - Assessment creation wizard
+   - Risk distribution visualizations
 
-4. **Phase 5.5: Public Assessment View** (Pending)
+4. **Phase 5.5: Public Assessment Interface**
    - Minimalist interface for staff to take assessments
+   - Integration with existing token-based submission
 
-5. **Production Preparation** (Future)
-   - Performance optimization
-   - Security audit
-   - Deployment configuration
-   - Monitoring and logging
+### Production Preparation (3-6 Months)
+
+5. **Infrastructure & Security**
+   - Performance optimization and load testing
+   - Security audit and penetration testing
+   - Production deployment configuration
+   - Monitoring and logging setup
+   - Backup and disaster recovery procedures
+
+6. **Compliance & Documentation**
+   - NOM-035 compliance verification
+   - User documentation and training materials
+   - Support and maintenance procedures
 
 ---
 
@@ -295,4 +358,4 @@ feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
 
 ---
 
-**Status**: Phase 5.1 & 5.2 complete. Frontend architecture established with authentication UI and route protection. Ready for Phase 5.3 (Staff Management UI)
+**Status**: Backend critical fixes completed ✅. All assessment tests passing. Staff password authentication implemented. Frontend Phase 5.1 & 5.2 complete. Ready for database migration and Phase 5.3 (Staff Management UI) implementation.
