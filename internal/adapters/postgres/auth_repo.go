@@ -79,3 +79,50 @@ func (r *authRepository) GetStaffByCURP(curp string, companyID string) (*domain.
 	return &staff, nil
 }
 
+// GetStaffByIdentifier retrieves a staff member by either CURP or employee_id and company ID
+// Supports hybrid authentication for staff with or without CURPs
+func (r *authRepository) GetStaffByIdentifier(identifier string, companyID string) (*domain.Staff, error) {
+	var staff domain.Staff
+
+	// First, verify company exists and is active
+	var company domain.Company
+	result := r.db.Where("id = ?", companyID).First(&company)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrCompanyNotFound
+		}
+		return nil, fmt.Errorf("failed to fetch company: %w", result.Error)
+	}
+
+	if company.SubscriptionStatus != domain.SubscriptionStatusActive {
+		return nil, ErrCompanyInactive
+	}
+
+	// Try to find staff by CURP first (if identifier looks like a CURP - 18 characters)
+	if len(identifier) == 18 {
+		result = r.db.Where("curp = ? AND company_id = ?", identifier, companyID).First(&staff)
+		if result.Error == nil {
+			// Found by CURP
+			staff.Company = company
+			return &staff, nil
+		}
+		// If CURP lookup failed but error is not "not found", return the error
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("failed to fetch staff by CURP: %w", result.Error)
+		}
+	}
+
+	// Try to find staff by employee_id
+	result = r.db.Where("employee_id = ? AND company_id = ?", identifier, companyID).First(&staff)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrStaffNotFound
+		}
+		return nil, fmt.Errorf("failed to fetch staff by employee ID: %w", result.Error)
+	}
+
+	// Set company for reference
+	staff.Company = company
+
+	return &staff, nil
+}

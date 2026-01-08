@@ -12,5 +12,10 @@ type AuthRepository interface {
 	// GetStaffByCURP retrieves a staff member by CURP and company ID
 	// Returns error if staff not found
 	GetStaffByCURP(curp string, companyID string) (*domain.Staff, error)
+
+	// GetStaffByIdentifier retrieves a staff member by either CURP or employee_id and company ID
+	// Supports hybrid authentication for staff with or without CURPs
+	// Returns error if staff not found
+	GetStaffByIdentifier(identifier string, companyID string) (*domain.Staff, error)
 }
 

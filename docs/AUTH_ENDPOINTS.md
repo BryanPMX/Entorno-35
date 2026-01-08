@@ -8,7 +8,7 @@ Authenticates a user (company or staff) and returns a JWT token.
 
 ```json
 {
-  "identifier": "string",  // RFC for COMPANY, CURP for STAFF
+  "identifier": "string",  // RFC for COMPANY, CURP or employee_id for STAFF
   "type": "COMPANY" | "STAFF",
   "company_id": "uuid",    // Required for STAFF type
   "password": "string"     // Required for STAFF type
@@ -27,12 +27,24 @@ curl -X POST http://localhost:8080/auth/login \
   }'
 ```
 
-**Staff Login:**
+**Staff Login (with CURP):**
 ```bash
 curl -X POST http://localhost:8080/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "identifier": "CURP12345678901234",
+    "type": "STAFF",
+    "company_id": "550e8400-e29b-41d4-a716-446655440000",
+    "password": "staffpassword123"
+  }'
+```
+
+**Staff Login (with Employee ID):**
+```bash
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "identifier": "CMP001-0001",
     "type": "STAFF",
     "company_id": "550e8400-e29b-41d4-a716-446655440000",
     "password": "staffpassword123"
