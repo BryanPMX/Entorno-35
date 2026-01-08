@@ -273,6 +273,16 @@ feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
 
 **Security Enhancement**: Staff accounts now require secure password authentication
 
+### 4. JWT Configuration Validation Fix
+**Issue**: Invalid JWT_EXPIRY values were silently ignored, using default 24h expiry
+**Solution**: Fail-fast validation with clear error messages for invalid duration strings
+**Changes**:
+- Modified JWT expiry parsing in `cmd/api/main.go` to validate duration strings
+- Added clear error message with examples of valid Go duration format
+- Prevents silent misconfiguration in production
+
+**Security Fix**: Configuration errors now fail fast instead of being silently ignored
+
 ---
 
 ## Next Steps

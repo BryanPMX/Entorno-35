@@ -111,8 +111,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			return
 		}
 
-		hasher := password.NewHasher()
-		if !hasher.VerifyPassword(req.Password, staff.PasswordHash) {
+		hasher := password.NewDefaultHasher()
+		if err := hasher.Verify(staff.PasswordHash, req.Password); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid password"})
 			return
 		}

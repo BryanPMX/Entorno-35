@@ -45,9 +45,10 @@ func main() {
 	tokenExpiry := 24 * time.Hour
 	if cfg.JWT.Expiry != "" {
 		parsedExpiry, err := time.ParseDuration(cfg.JWT.Expiry)
-		if err == nil {
-			tokenExpiry = parsedExpiry
+		if err != nil {
+			log.Fatalf("Invalid JWT_EXPIRY duration '%s': %v. Use Go duration format (e.g., '24h', '7200s', '2h30m')", cfg.JWT.Expiry, err)
 		}
+		tokenExpiry = parsedExpiry
 	}
 
 	// Initialize repositories
