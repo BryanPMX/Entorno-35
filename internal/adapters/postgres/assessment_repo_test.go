@@ -110,11 +110,11 @@ func TestAssessmentRepository_GetByID(t *testing.T) {
 	companyID := uuid.New()
 	staffID := uuid.New()
 	company := domain.Company{
-		ID:                companyID,
-		RFC:               "TEST123456789",
-		Name:              "Test Company",
+		ID:                 companyID,
+		RFC:                "TEST123456789",
+		Name:               "Test Company",
 		SubscriptionStatus: domain.SubscriptionStatusActive,
-		EmployeeCount:     10,
+		EmployeeCount:      10,
 	}
 	db.Create(&company)
 
@@ -156,20 +156,20 @@ func TestAssessmentRepository_GetByIDAndCompany(t *testing.T) {
 	staffID := uuid.New()
 
 	company := domain.Company{
-		ID:                companyID,
-		RFC:               "TEST123456789",
-		Name:              "Test Company",
+		ID:                 companyID,
+		RFC:                "TEST123456789",
+		Name:               "Test Company",
 		SubscriptionStatus: domain.SubscriptionStatusActive,
-		EmployeeCount:     10,
+		EmployeeCount:      10,
 	}
 	db.Create(&company)
 
 	otherCompany := domain.Company{
-		ID:                otherCompanyID,
-		RFC:               "OTHER123456789",
-		Name:              "Other Company",
+		ID:                 otherCompanyID,
+		RFC:                "OTHER123456789",
+		Name:               "Other Company",
 		SubscriptionStatus: domain.SubscriptionStatusActive,
-		EmployeeCount:     10,
+		EmployeeCount:      10,
 	}
 	db.Create(&otherCompany)
 
@@ -214,11 +214,11 @@ func TestAssessmentRepository_UpdateResult(t *testing.T) {
 	assessmentID := uuid.New()
 
 	company := domain.Company{
-		ID:                companyID,
-		RFC:               "TEST123456789",
-		Name:              "Test Company",
+		ID:                 companyID,
+		RFC:                "TEST123456789",
+		Name:               "Test Company",
 		SubscriptionStatus: domain.SubscriptionStatusActive,
-		EmployeeCount:     10,
+		EmployeeCount:      10,
 	}
 	db.Create(&company)
 
@@ -264,4 +264,3 @@ func TestAssessmentRepository_UpdateResult(t *testing.T) {
 	assert.Equal(t, domain.AssessmentStatusCompleted, updated.Status)
 	assert.NotNil(t, updated.CompletedAt)
 }
-
