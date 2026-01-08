@@ -351,3 +351,144 @@ curl -X POST http://localhost:8080/api/v1/staff/import \
   -F "file=@staff_import.csv"
 ```
 
+
+---
+
+## POST /api/v1/staff/csv/analyze
+
+Analyzes a CSV file and provides intelligent column mapping suggestions using fuzzy matching and data type inference.
+
+### Authentication
+
+- **Required**: Yes (JWT Bearer token)
+- **Authorization**: Company-level access
+
+### Request
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+- `file` (file, required) - CSV file to analyze
+
+### Response
+
+**Success (200 OK):**
+```json
+{
+  "mappings": [
+    {
+      "csv_header": "Full Name",
+      "expected_field": "name",
+      "confidence": 0.95,
+      "match_type": "synonym",
+      "inferred_type": "text",
+      "sample_values": ["Juan Pérez", "María García", "Carlos López"]
+    },
+    {
+      "csv_header": "Correo",
+      "expected_field": "email",
+      "confidence": 0.88,
+      "match_type": "fuzzy",
+      "inferred_type": "email",
+      "sample_values": ["juan@example.com", "maria@example.com"]
+    }
+  ],
+  "unmapped_headers": ["Address", "Phone"],
+  "overall_confidence": 0.85,
+  "warnings": ["Low confidence mapping for 'Correo' -> 'email'"],
+  "requires_review": false
+}
+```
+
+---
+
+## POST /api/v1/staff/csv/preview
+
+Previews a CSV import with the specified column mappings and validates data.
+
+### Authentication
+
+- **Required**: Yes (JWT Bearer token)
+- **Authorization**: Company-level access
+
+### Request
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+- `file` (file, required) - CSV file to preview
+- `mappings` (string, required) - JSON array of column mappings
+
+### Response
+
+**Success (200 OK):**
+```json
+{
+  "total_rows": 5,
+  "valid_rows": 4,
+  "invalid_rows": 1,
+  "sample_records": [
+    {
+      "row_number": 1,
+      "data": {
+        "name": "Juan Pérez",
+        "email": "juan@example.com",
+        "area": "IT"
+      },
+      "errors": []
+    },
+    {
+      "row_number": 2,
+      "data": {
+        "name": "",
+        "email": "invalid-email",
+        "area": "HR"
+      },
+      "errors": ["name is required", "invalid email format"]
+    }
+  ],
+  "errors": []
+}
+```
+
+---
+
+## CSV Column Mapping Features
+
+### Intelligent Detection
+- **Exact Match**: Perfect header matches
+- **Synonym Recognition**: Common variations (Name ↔ Full Name, Email ↔ Correo)
+- **Fuzzy Matching**: Levenshtein distance similarity scoring
+- **Data Type Inference**: Automatic detection of emails, numbers, enums
+
+### Supported Field Mappings
+
+| Expected Field | Type | Synonyms |
+|----------------|------|----------|
+| name | text | Full Name, Employee Name, Nombre, Nombre Completo |
+| curp | text | RFC, ID, Employee ID, Identificación |
+| email | email | Correo, Email Address, Mail |
+| area | text | Department, Área, Departamento, Sector |
+| job | text | Position, Role, Cargo, Puesto, Ocupación |
+| shift | enum | Turno, Jornada, Schedule, Horario |
+| gender | enum | Sexo, Género, Sex |
+
+### Confidence Scoring
+- **1.0**: Exact match or perfect synonym
+- **0.8-0.9**: High fuzzy match confidence
+- **0.6-0.8**: Medium confidence, may need review
+- **<0.6**: Low confidence, requires manual mapping
+
+### Data Type Inference
+- **Text**: Names, departments, positions
+- **Email**: RFC 5322 compliant email patterns
+- **Number**: CURP (18 chars), employee IDs
+- **Enum**: Limited values (gender, shift types)

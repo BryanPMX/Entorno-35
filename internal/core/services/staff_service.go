@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/entorno35/backend/internal/core/csv"
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/google/uuid"
@@ -19,15 +20,33 @@ type ImportResult struct {
 	Errors         []string `json:"errors"`
 }
 
+// ImportPreview represents a preview of CSV import with validation
+type ImportPreview struct {
+	TotalRows     int            `json:"total_rows"`
+	ValidRows     int            `json:"valid_rows"`
+	InvalidRows   int            `json:"invalid_rows"`
+	SampleRecords []ImportRecord `json:"sample_records"`
+	Errors        []string       `json:"errors"`
+}
+
+// ImportRecord represents a single record from CSV import
+type ImportRecord struct {
+	RowNumber int               `json:"row_number"`
+	Data      map[string]string `json:"data"`
+	Errors    []string          `json:"errors"`
+}
+
 // StaffService handles staff-related business logic
 type StaffService struct {
-	staffRepo ports.StaffRepository
+	staffRepo       ports.StaffRepository
+	csvDetector     *csv.DetectionService
 }
 
 // NewStaffService creates a new staff service
 func NewStaffService(staffRepo ports.StaffRepository) *StaffService {
 	return &StaffService{
-		staffRepo: staffRepo,
+		staffRepo:   staffRepo,
+		csvDetector: csv.NewDetectionService(),
 	}
 }
 
@@ -85,6 +104,108 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 	}
 
 	return staff, nil
+}
+
+// AnalyzeCSV analyzes a CSV file and returns column mapping suggestions
+func (s *StaffService) AnalyzeCSV(reader io.Reader) (*csv.DetectionResult, error) {
+	return s.csvDetector.AnalyzeCSV(reader)
+}
+
+// PreviewCSVImport previews a CSV import with the given column mappings
+func (s *StaffService) PreviewCSVImport(reader io.Reader, mappings []csv.ColumnMapping, companyID uuid.UUID) (*ImportPreview, error) {
+	// Reset reader to beginning
+	if seeker, ok := reader.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
+
+	csvReader := csv.NewReader(reader)
+
+	// Skip headers
+	_, err := csvReader.Read()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CSV headers: %w", err)
+	}
+
+	// Create field mapping
+	fieldMap := make(map[int]string) // column index -> field name
+	for _, mapping := range mappings {
+		// Find column index for this CSV header
+		// This is a simplified version - in practice, you'd need to pass headers
+		fieldMap[len(fieldMap)] = mapping.ExpectedField
+	}
+
+	preview := &ImportPreview{
+		TotalRows:     0,
+		ValidRows:     0,
+		InvalidRows:   0,
+		SampleRecords: []ImportRecord{},
+		Errors:        []string{},
+	}
+
+	// Process sample rows
+	for i := 0; i < 5; i++ { // Preview first 5 rows
+		row, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CSV row: %w", err)
+		}
+
+		preview.TotalRows++
+		record := s.parseCSVRow(row, fieldMap, preview.TotalRows)
+
+		if len(record.Errors) == 0 {
+			preview.ValidRows++
+		} else {
+			preview.InvalidRows++
+		}
+
+		preview.SampleRecords = append(preview.SampleRecords, record)
+	}
+
+	return preview, nil
+}
+
+// parseCSVRow parses a single CSV row according to the field mapping
+func (s *StaffService) parseCSVRow(row []string, fieldMap map[int]string, rowNum int) ImportRecord {
+	record := ImportRecord{
+		RowNumber: rowNum,
+		Data:      make(map[string]string),
+		Errors:    []string{},
+	}
+
+	// Map columns to fields
+	for colIndex, fieldName := range fieldMap {
+		if colIndex < len(row) {
+			record.Data[fieldName] = strings.TrimSpace(row[colIndex])
+		}
+	}
+
+	// Validate the record
+	s.validateImportRecord(&record)
+
+	return record
+}
+
+// validateImportRecord validates a single import record
+func (s *StaffService) validateImportRecord(record *ImportRecord) {
+	// Check required fields
+	if record.Data["name"] == "" {
+		record.Errors = append(record.Errors, "name is required")
+	}
+
+	// Validate CURP if provided
+	if curp := record.Data["curp"]; curp != "" && len(curp) != 18 {
+		record.Errors = append(record.Errors, "CURP must be exactly 18 characters")
+	}
+
+	// Validate email if provided
+	if email := record.Data["email"]; email != "" {
+		if !strings.Contains(email, "@") {
+			record.Errors = append(record.Errors, "invalid email format")
+		}
+	}
 }
 
 // generateEmployeeID generates a unique employee ID for staff without CURPs

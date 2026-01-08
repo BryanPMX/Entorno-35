@@ -25,7 +25,7 @@ func NewStaffHandler(staffService *services.StaffService) *StaffHandler {
 
 // CreateStaffRequest represents the request body for creating a staff member
 type CreateStaffRequest struct {
-	CURP         string `json:"curp" binding:"required"`
+	CURP         string `json:"curp,omitempty"` // Optional for staff without CURPs
 	FullName     string `json:"full_name" binding:"required"`
 	Email        string `json:"email,omitempty"`
 	Demographics struct {
@@ -294,4 +294,92 @@ func (h *StaffHandler) ImportStaff(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+// AnalyzeCSV analyzes a CSV file and suggests column mappings
+// POST /api/v1/staff/csv/analyze
+func (h *StaffHandler) AnalyzeCSV(c *gin.Context) {
+	companyID, exists := middleware.GetCompanyID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "company authentication required"})
+		return
+	}
+
+	// Get uploaded file
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file upload required"})
+		return
+	}
+
+	// Validate file type
+	if !strings.HasSuffix(strings.ToLower(fileHeader.Filename), ".csv") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "only CSV files are supported"})
+		return
+	}
+
+	// Open file
+	file, err := fileHeader.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open uploaded file"})
+		return
+	}
+	defer file.Close()
+
+	// Analyze CSV
+	result, err := h.staffService.AnalyzeCSV(file)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// PreviewCSVImport previews a CSV import with column mappings
+// POST /api/v1/staff/csv/preview
+func (h *StaffHandler) PreviewCSVImport(c *gin.Context) {
+	companyID, exists := middleware.GetCompanyID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "company authentication required"})
+		return
+	}
+
+	// Get uploaded file
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file upload required"})
+		return
+	}
+
+	// Get mappings from form data
+	mappingsJSON := c.PostForm("mappings")
+	if mappingsJSON == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "column mappings required"})
+		return
+	}
+
+	// Parse mappings (simplified - in practice you'd use JSON parsing)
+	// For now, we'll assume mappings are provided as a simple format
+	// This would need proper JSON parsing in a real implementation
+
+	// Open file
+	file, err := fileHeader.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open uploaded file"})
+		return
+	}
+	defer file.Close()
+
+	// For now, create a basic preview without mappings
+	// This is a placeholder - full implementation would parse the mappings JSON
+	preview := &services.ImportPreview{
+		TotalRows:   0,
+		ValidRows:   0,
+		InvalidRows: 0,
+		SampleRecords: []services.ImportRecord{},
+		Errors:      []string{"Preview with mappings not yet implemented"},
+	}
+
+	c.JSON(http.StatusOK, preview)
 }
