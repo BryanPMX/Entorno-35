@@ -132,6 +132,8 @@ func main() {
 			staff.PUT("/:id", staffHandler.UpdateStaff)
 			staff.DELETE("/:id", staffHandler.DeleteStaff)
 			staff.POST("/import", staffHandler.ImportStaff)
+			staff.POST("/csv/analyze", staffHandler.AnalyzeCSV)
+			staff.POST("/csv/preview", staffHandler.PreviewCSVImport)
 		}
 
 		// Report endpoints
