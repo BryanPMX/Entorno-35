@@ -31,13 +31,13 @@ type CreateAssessmentRequest struct {
 
 // CreateAssessmentResponse represents the response for creating an assessment
 type CreateAssessmentResponse struct {
-	ID        uuid.UUID           `json:"id"`
-	StaffID   uuid.UUID           `json:"staff_id"`
-	CompanyID uuid.UUID           `json:"company_id"`
-	Period    int                 `json:"period"`
-	GuideType domain.GuideType    `json:"guide_type"`
+	ID        uuid.UUID               `json:"id"`
+	StaffID   uuid.UUID               `json:"staff_id"`
+	CompanyID uuid.UUID               `json:"company_id"`
+	Period    int                     `json:"period"`
+	GuideType domain.GuideType        `json:"guide_type"`
 	Status    domain.AssessmentStatus `json:"status"`
-	CreatedAt string              `json:"created_at"`
+	CreatedAt string                  `json:"created_at"`
 }
 
 // CreateAssessment creates a new assessment
@@ -108,8 +108,8 @@ func (h *AssessmentHandler) GetAssessment(c *gin.Context) {
 
 // ListAssessmentsRequest represents query parameters for listing assessments
 type ListAssessmentsRequest struct {
-	StaffID *uuid.UUID            `form:"staff_id"`
-	Period  *int                  `form:"period"`
+	StaffID *uuid.UUID               `form:"staff_id"`
+	Period  *int                     `form:"period"`
 	Status  *domain.AssessmentStatus `form:"status"`
 }
 
@@ -257,4 +257,3 @@ func (h *AssessmentHandler) SubmitAssessment(c *gin.Context) {
 		SubmittedAt: time.Now(),
 	})
 }
-

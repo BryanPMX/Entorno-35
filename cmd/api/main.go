@@ -36,7 +36,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if closeErr := database.Close(); closeErr != nil {
+			log.Printf("Warning: failed to close database connection: %v", closeErr)
+		}
+	}()
 
 	// Initialize services
 	jwtService := jwt.NewService(cfg.JWT.Secret)
