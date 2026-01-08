@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 /**
  * Assessments Page
- * 
+ *
  * Placeholder page for assessments functionality.
- * Will be implemented in Phase 5.4
+ * Will be implemented in Phase 5.5 (Public Assessment Interface)
  */
 export default function AssessmentsPage() {
   return (
@@ -27,7 +27,7 @@ export default function AssessmentsPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600">
-            Assessment management functionality will be implemented in Phase 5.4
+            Assessment management functionality will be implemented in Phase 5.5
           </p>
         </CardContent>
       </Card>

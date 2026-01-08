@@ -80,8 +80,10 @@ func (h *ReportHandler) GetGeneralReport(c *gin.Context) {
 
 	// Parse period from query string if provided
 	var period *int
+	var periodInt int
 	if periodStr := c.Query("period"); periodStr != "" {
-		periodInt, err := strconv.Atoi(periodStr)
+		var err error
+		periodInt, err = strconv.Atoi(periodStr)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid period format"})
 			return
@@ -102,4 +104,3 @@ func (h *ReportHandler) GetGeneralReport(c *gin.Context) {
 
 	c.JSON(http.StatusOK, report)
 }
-

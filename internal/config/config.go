@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 )
 
@@ -101,18 +102,31 @@ func (c *Config) DatabaseURL() (string, error) {
 		return "", fmt.Errorf("database port (DB_PORT) is required")
 	}
 
-	dsn := "postgres://" + c.Database.User + ":" + c.Database.Password + "@" +
-		c.Database.Host + ":" + c.Database.Port + "/" + c.Database.Name +
-		"?sslmode=" + c.Database.SSLMode
+	// URL-encode user, password, and database name to handle special characters
+	// This prevents DSN malformation and security vulnerabilities
+	encodedUser := url.QueryEscape(c.Database.User)
+	encodedPassword := url.QueryEscape(c.Database.Password)
+	encodedDBName := url.QueryEscape(c.Database.Name)
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		encodedUser,
+		encodedPassword,
+		c.Database.Host,
+		c.Database.Port,
+		encodedDBName,
+		url.QueryEscape(c.Database.SSLMode),
+	)
 	return dsn, nil
 }
 
 // RedisURL returns the Redis connection URL
 func (c *Config) RedisURL() string {
 	if c.Redis.Password != "" {
-		return "redis://:" + c.Redis.Password + "@" + c.Redis.Host + ":" + c.Redis.Port
+		// URL-encode password to handle special characters
+		encodedPassword := url.QueryEscape(c.Redis.Password)
+		return fmt.Sprintf("redis://:%s@%s:%s", encodedPassword, c.Redis.Host, c.Redis.Port)
 	}
-	return "redis://" + c.Redis.Host + ":" + c.Redis.Port
+	return fmt.Sprintf("redis://%s:%s", c.Redis.Host, c.Redis.Port)
 }
 
 func getEnv(key, defaultValue string) string {

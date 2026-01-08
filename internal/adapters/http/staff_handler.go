@@ -1,9 +1,11 @@
 package http
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
+	csvdetect "github.com/entorno35/backend/internal/core/csv"
 	"github.com/entorno35/backend/internal/core/services"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/entorno35/backend/internal/middleware"
@@ -299,10 +301,9 @@ func (h *StaffHandler) ImportStaff(c *gin.Context) {
 // AnalyzeCSV analyzes a CSV file and suggests column mappings
 // POST /api/v1/staff/csv/analyze
 func (h *StaffHandler) AnalyzeCSV(c *gin.Context) {
-	_, exists := middleware.RequireCompanyID(c)
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "company authentication required"})
-		return
+	_, ok := middleware.RequireCompanyID(c)
+	if !ok {
+		return // RequireCompanyID already sent the error response and aborted
 	}
 
 	// Get uploaded file
@@ -339,10 +340,9 @@ func (h *StaffHandler) AnalyzeCSV(c *gin.Context) {
 // PreviewCSVImport previews a CSV import with column mappings
 // POST /api/v1/staff/csv/preview
 func (h *StaffHandler) PreviewCSVImport(c *gin.Context) {
-	_, exists := middleware.RequireCompanyID(c)
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "company authentication required"})
-		return
+	companyID, ok := middleware.RequireCompanyID(c)
+	if !ok {
+		return // RequireCompanyID already sent the error response and aborted
 	}
 
 	// Get uploaded file
@@ -359,9 +359,12 @@ func (h *StaffHandler) PreviewCSVImport(c *gin.Context) {
 		return
 	}
 
-	// Parse mappings (simplified - in practice you'd use JSON parsing)
-	// For now, we'll assume mappings are provided as a simple format
-	// This would need proper JSON parsing in a real implementation
+	// Parse mappings JSON
+	var mappings []csvdetect.ColumnMapping
+	if err := json.Unmarshal([]byte(mappingsJSON), &mappings); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid column mappings JSON"})
+		return
+	}
 
 	// Open file
 	file, err := fileHeader.Open()
@@ -371,14 +374,11 @@ func (h *StaffHandler) PreviewCSVImport(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// For now, create a basic preview without mappings
-	// This is a placeholder - full implementation would parse the mappings JSON
-	preview := &services.ImportPreview{
-		TotalRows:   0,
-		ValidRows:   0,
-		InvalidRows: 0,
-		SampleRecords: []services.ImportRecord{},
-		Errors:      []string{"Preview with mappings not yet implemented"},
+	// Preview the CSV import with mappings
+	preview, err := h.staffService.PreviewCSVImport(file, mappings, companyID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, preview)

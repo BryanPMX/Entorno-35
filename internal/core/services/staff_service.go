@@ -120,18 +120,22 @@ func (s *StaffService) PreviewCSVImport(reader io.Reader, mappings []csvdetect.C
 
 	csvReader := csv.NewReader(reader)
 
-	// Skip headers
-	_, err := csvReader.Read()
+	// Read headers first
+	headers, err := csvReader.Read()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read CSV headers: %w", err)
 	}
 
-	// Create field mapping
+	// Create field mapping based on headers and mappings
 	fieldMap := make(map[int]string) // column index -> field name
 	for _, mapping := range mappings {
 		// Find column index for this CSV header
-		// This is a simplified version - in practice, you'd need to pass headers
-		fieldMap[len(fieldMap)] = mapping.ExpectedField
+		for colIndex, header := range headers {
+			if strings.TrimSpace(strings.ToLower(header)) == strings.TrimSpace(strings.ToLower(mapping.CSVHeader)) {
+				fieldMap[colIndex] = mapping.ExpectedField
+				break
+			}
+		}
 	}
 
 	preview := &ImportPreview{
