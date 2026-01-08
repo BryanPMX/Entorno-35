@@ -94,8 +94,12 @@ func main() {
 	staffHandler := http.NewStaffHandler(staffService)
 	reportHandler := http.NewReportHandler(reportService)
 
-	// Initialize router
-	router := gin.Default()
+	// Initialize router with custom middleware (avoid double CORS)
+	router := gin.New()
+
+	// Add default middleware manually
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
 	// Configure CORS middleware
 	corsConfig := cors.DefaultConfig()
