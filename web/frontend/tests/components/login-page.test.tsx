@@ -90,7 +90,7 @@ describe('LoginPage', () => {
       // Assert: Validation error for company_id appears
       await waitFor(() => {
         expect(
-          screen.getByText(/company id is required for staff login/i)
+          screen.getByText(/company id and password are required for staff login/i)
         ).toBeInTheDocument();
       });
 
@@ -159,6 +159,9 @@ describe('LoginPage', () => {
       const companyIdInput = screen.getByLabelText(/company id/i);
       await user.type(companyIdInput, '550e8400-e29b-41d4-a716-446655440000');
 
+      const passwordInput = screen.getByLabelText(/password/i);
+      await user.type(passwordInput, 'testpassword123');
+
       // Submit form
       const signInButton = screen.getByRole('button', { name: /sign in/i });
       await user.click(signInButton);
@@ -171,6 +174,7 @@ describe('LoginPage', () => {
           identifier: 'TESTCURP12345678901234',
           type: 'STAFF',
           company_id: '550e8400-e29b-41d4-a716-446655440000',
+          password: 'testpassword123',
         });
       });
 
@@ -225,6 +229,9 @@ describe('LoginPage', () => {
       const companyIdInput = screen.getByLabelText(/company id/i);
       await user.type(companyIdInput, '550e8400-e29b-41d4-a716-446655440000');
 
+      const passwordInput = screen.getByLabelText(/password/i);
+      await user.type(passwordInput, 'testpassword123');
+
       // Submit form
       const signInButton = screen.getByRole('button', { name: /sign in/i });
       await user.click(signInButton);
@@ -235,6 +242,7 @@ describe('LoginPage', () => {
         expect(vi.mocked(authService.login)).toHaveBeenCalledWith(
           expect.objectContaining({
             type: 'STAFF',
+            password: 'testpassword123',
           })
         );
       });

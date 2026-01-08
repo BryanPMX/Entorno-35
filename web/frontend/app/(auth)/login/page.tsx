@@ -32,17 +32,19 @@ const loginSchema = z
     identifier: z.string().min(1, "Identifier is required"),
     type: z.enum(["COMPANY", "STAFF"]),
     company_id: z.string().optional(),
+    password: z.string().optional(),
   })
   .refine(
     (data) => {
-      // company_id is required when type is STAFF
+      // company_id and password are required when type is STAFF
       if (data.type === "STAFF") {
-        return data.company_id && data.company_id.trim().length > 0;
+        return data.company_id && data.company_id.trim().length > 0 &&
+               data.password && data.password.trim().length > 0;
       }
       return true;
     },
     {
-      message: "Company ID is required for staff login",
+      message: "Company ID and password are required for staff login",
       path: ["company_id"],
     }
   );
@@ -66,6 +68,7 @@ export default function LoginPage() {
       identifier: "",
       type: "COMPANY",
       company_id: "",
+      password: "",
     },
   });
 
@@ -77,8 +80,11 @@ export default function LoginPage() {
       const loginRequest = {
         identifier: values.identifier.trim(),
         type: values.type,
-        ...(values.type === "STAFF" && values.company_id
-          ? { company_id: values.company_id.trim() }
+        ...(values.type === "STAFF" && values.company_id && values.password
+          ? {
+              company_id: values.company_id.trim(),
+              password: values.password.trim(),
+            }
           : {}),
       };
 
@@ -126,6 +132,7 @@ export default function LoginPage() {
                           onClick={() => {
                             field.onChange("COMPANY");
                             form.setValue("company_id", "");
+                            form.setValue("password", "");
                           }}
                           className="flex-1"
                         >
@@ -181,6 +188,30 @@ export default function LoginPage() {
                       <FormControl>
                         <Input
                           placeholder="550e8400-e29b-41d4-a716-446655440000"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <p className="text-sm text-gray-500">
+                        Required for staff login
+                      </p>
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Password Field (only for STAFF) */}
+              {loginType === "STAFF" && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter your password"
                           {...field}
                         />
                       </FormControl>
