@@ -94,8 +94,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			return
 		}
 
-		// Find staff by CURP and company ID
-		staff, err := h.authRepo.GetStaffByCURP(req.Identifier, req.CompanyID)
+		// Find staff by CURP or employee_id and company ID
+		staff, err := h.authRepo.GetStaffByIdentifier(req.Identifier, req.CompanyID)
 		if err != nil {
 			statusCode := http.StatusInternalServerError
 			if errors.Is(err, postgres.ErrStaffNotFound) || errors.Is(err, postgres.ErrCompanyInactive) || errors.Is(err, postgres.ErrCompanyNotFound) {

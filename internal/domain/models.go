@@ -203,7 +203,8 @@ func (c *Company) BeforeCreate(tx *gorm.DB) error {
 type Staff struct {
 	ID           uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	CompanyID    uuid.UUID         `gorm:"type:uuid;not null;index" json:"company_id"`
-	CURP         string            `gorm:"type:varchar(18);not null" json:"curp"`
+	CURP         *string           `gorm:"type:varchar(18)" json:"curp,omitempty"` // Made nullable for staff without CURPs
+	EmployeeID   string            `gorm:"type:varchar(50);unique" json:"employee_id"` // Auto-generated for staff without CURPs
 	FullName     string            `gorm:"type:varchar(255);not null" json:"full_name"`
 	Email        string            `gorm:"type:varchar(255)" json:"email,omitempty"`
 	PasswordHash string            `gorm:"type:varchar(255)" json:"-"` // Not exposed in JSON
@@ -229,6 +230,19 @@ func (s *Staff) BeforeCreate(tx *gorm.DB) error {
 		s.ID = uuid.New()
 	}
 	return nil
+}
+
+// IsCURPAvailable returns true if the staff member has a CURP
+func (s *Staff) IsCURPAvailable() bool {
+	return s.CURP != nil && *s.CURP != ""
+}
+
+// GetIdentifier returns the primary identifier (CURP if available, otherwise employee_id)
+func (s *Staff) GetIdentifier() string {
+	if s.IsCURPAvailable() {
+		return *s.CURP
+	}
+	return s.EmployeeID
 }
 
 // DemographicsJSONB represents the flexible demographics data structure

@@ -43,7 +43,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		CREATE TABLE staff (
 			id TEXT PRIMARY KEY,
 			company_id TEXT NOT NULL,
-			curp TEXT NOT NULL,
+			curp TEXT, -- Nullable for staff without CURPs
+			employee_id TEXT, -- Auto-generated for staff without CURPs
 			full_name TEXT NOT NULL,
 			email TEXT,
 			password_hash TEXT, -- Bcrypt hashed password for staff authentication
@@ -118,10 +119,11 @@ func TestAssessmentRepository_GetByID(t *testing.T) {
 	}
 	db.Create(&company)
 
+	testCURP := "TESTCURP12345678901"
 	staff := domain.Staff{
 		ID:        staffID,
 		CompanyID: companyID,
-		CURP:      "TESTCURP12345678901",
+		CURP:      &testCURP,
 		FullName:  "Test Staff",
 	}
 	db.Create(&staff)
@@ -173,10 +175,11 @@ func TestAssessmentRepository_GetByIDAndCompany(t *testing.T) {
 	}
 	db.Create(&otherCompany)
 
+	testCURP := "TESTCURP12345678901"
 	staff := domain.Staff{
 		ID:        staffID,
 		CompanyID: companyID,
-		CURP:      "TESTCURP12345678901",
+		CURP:      &testCURP,
 		FullName:  "Test Staff",
 	}
 	db.Create(&staff)
@@ -222,10 +225,11 @@ func TestAssessmentRepository_UpdateResult(t *testing.T) {
 	}
 	db.Create(&company)
 
+	testCURP := "TESTCURP12345678901"
 	staff := domain.Staff{
 		ID:        staffID,
 		CompanyID: companyID,
-		CURP:      "TESTCURP12345678901",
+		CURP:      &testCURP,
 		FullName:  "Test Staff",
 	}
 	db.Create(&staff)

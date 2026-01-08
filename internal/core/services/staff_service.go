@@ -33,7 +33,7 @@ func NewStaffService(staffRepo ports.StaffRepository) *StaffService {
 
 // CreateStaffRequest represents the request to create a staff member
 type CreateStaffRequest struct {
-	CURP         string                    `json:"curp" binding:"required"`
+	CURP         string                    `json:"curp,omitempty"` // Optional for staff without CURPs
 	FullName     string                    `json:"full_name" binding:"required"`
 	Email        string                    `json:"email,omitempty"`
 	Demographics domain.DemographicsJSONB `json:"demographics,omitempty"`
@@ -48,17 +48,36 @@ type UpdateStaffRequest struct {
 
 // CreateStaff creates a new staff member
 func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) (*domain.Staff, error) {
-	// Validate CURP format (must be 18 characters)
-	if len(req.CURP) != 18 {
-		return nil, fmt.Errorf("CURP must be exactly 18 characters, got %d", len(req.CURP))
+	// Normalize input
+	curp := strings.TrimSpace(req.CURP)
+	fullName := strings.TrimSpace(req.FullName)
+	email := strings.TrimSpace(req.Email)
+
+	// Validate CURP if provided
+	if curp != "" && len(curp) != 18 {
+		return nil, fmt.Errorf("CURP must be exactly 18 characters, got %d", len(curp))
 	}
 
 	staff := &domain.Staff{
 		CompanyID:    companyID,
-		CURP:         strings.ToUpper(strings.TrimSpace(req.CURP)), // Normalize to uppercase and trim
-		FullName:     strings.TrimSpace(req.FullName),
-		Email:        strings.TrimSpace(req.Email),
+		FullName:     fullName,
+		Email:        email,
 		Demographics: req.Demographics,
+	}
+
+	// Handle CURP vs Employee ID logic
+	if curp != "" {
+		// CURP provided - use it as primary identifier
+		normalizedCURP := strings.ToUpper(curp)
+		staff.CURP = &normalizedCURP
+	} else {
+		// No CURP provided - auto-generate employee ID
+		employeeID, err := s.generateEmployeeID(companyID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate employee ID: %w", err)
+		}
+		staff.EmployeeID = employeeID
+		staff.CURP = nil // Explicitly set to nil
 	}
 
 	if err := s.staffRepo.Create(staff); err != nil {
@@ -66,6 +85,49 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 	}
 
 	return staff, nil
+}
+
+// generateEmployeeID generates a unique employee ID for staff without CURPs
+// Format: CMP{COMPANY_ID}-{SEQUENCE} (e.g., CMP001-0001, CMP001-0002)
+func (s *StaffService) generateEmployeeID(companyID uuid.UUID) (string, error) {
+	// Get the short company ID (first 3 characters of UUID)
+	companyShortID := companyID.String()[:3]
+
+	// Find the highest existing employee ID for this company
+	// This is a simplified approach - in production, you might want a dedicated sequence table
+	prefix := fmt.Sprintf("CMP%s-", strings.ToUpper(companyShortID))
+
+	// Query existing employee IDs with this prefix
+	// For now, we'll use a simple approach - in production, consider using database sequences
+	maxSequence := 0
+
+	// Get all staff for this company and find the highest employee ID sequence
+	staffList, _, err := s.staffRepo.ListByCompany(companyID, 1000, 0) // Get first 1000 records
+	if err != nil {
+		return "", fmt.Errorf("failed to query existing staff: %w", err)
+	}
+
+	// Find the highest sequence number for this company's prefix
+	for _, staff := range staffList {
+		if strings.HasPrefix(staff.EmployeeID, prefix) {
+			// Extract sequence number from employee ID (format: CMPXXX-NNNN)
+			parts := strings.Split(staff.EmployeeID, "-")
+			if len(parts) == 2 {
+				var seq int
+				if _, err := fmt.Sscanf(parts[1], "%d", &seq); err == nil {
+					if seq > maxSequence {
+						maxSequence = seq
+					}
+				}
+			}
+		}
+	}
+
+	// Generate next sequence number
+	nextSequence := maxSequence + 1
+
+	// Format as 4-digit zero-padded number
+	return fmt.Sprintf("%s%04d", prefix, nextSequence), nil
 }
 
 // UpdateStaff updates an existing staff member
@@ -276,10 +338,17 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 		// Create staff record
 		staff := &domain.Staff{
 			CompanyID:    companyID,
-			CURP:         curp,
 			FullName:     name,
 			Email:        email,
 			Demographics: demographics,
+		}
+
+		// Handle CURP assignment (now a *string)
+		if curp != "" {
+			staff.CURP = &curp
+		} else {
+			staff.CURP = nil
+		}
 		}
 
 		validStaff = append(validStaff, staff)
