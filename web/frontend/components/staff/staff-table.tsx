@@ -24,6 +24,19 @@ import {
 } from "@/components/ui/pagination";
 import type { PaginatedResponse, Staff } from "@/types/backend";
 
+// Helper function to extract string value from sql.NullString
+const getEmployeeIdValue = (employeeId: string | null | any): string | null => {
+  if (!employeeId) return null;
+
+  // Handle sql.NullString object format
+  if (typeof employeeId === 'object' && employeeId !== null) {
+    return employeeId.Valid ? employeeId.String : null;
+  }
+
+  // Handle string or null directly
+  return employeeId;
+};
+
 interface StaffTableProps {
   staffData: PaginatedResponse<Staff> | null;
   isLoading: boolean;
@@ -157,7 +170,7 @@ export function StaffTable({
                         {staff.full_name}
                       </TableCell>
                       <TableCell className="font-mono text-sm">
-                        {staff.curp || staff.employee_id}
+                        {staff.curp || getEmployeeIdValue(staff.employee_id) || "—"}
                       </TableCell>
                       <TableCell>{staff.email || "—"}</TableCell>
                       <TableCell>

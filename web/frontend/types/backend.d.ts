@@ -90,7 +90,7 @@ export interface Staff {
   id: string; // UUID
   company_id: string; // UUID
   curp?: string; // Made optional
-  employee_id?: string; // Auto-generated for staff without CURPs, optional
+  employee_id?: string | null; // sql.NullString - use string when Valid=true, null when Valid=false
   full_name: string;
   email?: string;
   demographics: Demographics;
