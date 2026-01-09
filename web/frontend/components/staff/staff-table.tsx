@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ChevronUp, ChevronDown, Upload, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { StaffCreateDialog } from "./staff-create-dialog";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -29,7 +30,6 @@ interface StaffTableProps {
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
   onCsvUpload: () => void;
-  onCreateStaff: () => void;
   currentPage: number;
   limit: number;
 }
@@ -43,12 +43,12 @@ export function StaffTable({
   onPageChange,
   onLimitChange,
   onCsvUpload,
-  onCreateStaff,
   currentPage,
   limit,
 }: StaffTableProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -100,7 +100,7 @@ export function StaffTable({
           </div>
         </div>
         <div className="flex space-x-2">
-          <Button onClick={onCreateStaff} variant="default">
+          <Button onClick={() => setIsCreateDialogOpen(true)} variant="default">
             <Users className="h-4 w-4 mr-2" />
             Add Staff Member
           </Button>
@@ -241,6 +241,10 @@ export function StaffTable({
           )}
         </CardContent>
       </Card>
+
+      <StaffCreateDialog
+        onStaffCreated={() => setIsCreateDialogOpen(false)}
+      />
     </div>
   );
 }
