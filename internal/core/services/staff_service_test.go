@@ -403,3 +403,95 @@ func generateCURP(index int) string {
 	return curp
 }
 
+func TestStaffService_CreateStaff_DuplicateEmployeeIDRetry(t *testing.T) {
+	mockRepo := new(MockStaffRepository)
+	service := NewStaffService(mockRepo)
+	companyID := uuid.New()
+
+	req := CreateStaffRequest{
+		FullName: "Test User",
+		Email:    "test@example.com",
+		// No CURP provided, so employee ID will be generated
+	}
+
+	// Mock the first Create call to fail with duplicate employee ID error
+	mockRepo.On("Create", mock.AnythingOfType("*domain.Staff")).Return(fmt.Errorf("failed to create staff: ERROR: duplicate key value violates unique constraint \"uni_staff_employee_id\" (SQLSTATE 23505)")).Once()
+
+	// Mock the second Create call to succeed
+	mockRepo.On("Create", mock.AnythingOfType("*domain.Staff")).Return(nil).Once()
+
+	// Mock ListByCompany calls for employee ID generation
+	mockRepo.On("ListByCompany", companyID, 1000, 0).Return([]domain.Staff{}, int64(0), nil).Twice()
+
+	staff, err := service.CreateStaff(req, companyID)
+
+	require.NoError(t, err)
+	assert.NotNil(t, staff)
+	assert.Equal(t, "Test User", staff.FullName)
+	assert.Equal(t, "test@example.com", staff.Email)
+	assert.NotEmpty(t, staff.EmployeeID) // Should have generated an employee ID
+	assert.Nil(t, staff.CURP)           // Should not have CURP
+
+	// Verify Create was called twice (first failed, second succeeded)
+	mockRepo.AssertNumberOfCalls(t, "Create", 2)
+	// Verify ListByCompany was called twice (once for each employee ID generation attempt)
+	mockRepo.AssertNumberOfCalls(t, "ListByCompany", 2)
+}
+
+func TestStaffService_CreateStaff_DuplicateEmployeeIDMaxRetries(t *testing.T) {
+	mockRepo := new(MockStaffRepository)
+	service := NewStaffService(mockRepo)
+	companyID := uuid.New()
+
+	req := CreateStaffRequest{
+		FullName: "Test User",
+		Email:    "test@example.com",
+		// No CURP provided, so employee ID will be generated
+	}
+
+	// Mock all Create calls to fail with duplicate employee ID error (maxRetries = 3)
+	mockRepo.On("Create", mock.AnythingOfType("*domain.Staff")).Return(fmt.Errorf("failed to create staff: ERROR: duplicate key value violates unique constraint \"uni_staff_employee_id\" (SQLSTATE 23505)")).Times(3)
+
+	// Mock ListByCompany calls for employee ID generation attempts
+	// Called once initially + 3 retries = 4 total calls
+	mockRepo.On("ListByCompany", companyID, 1000, 0).Return([]domain.Staff{}, int64(0), nil).Times(4)
+
+	staff, err := service.CreateStaff(req, companyID)
+
+	assert.Error(t, err)
+	assert.Nil(t, staff)
+	assert.Contains(t, err.Error(), "failed to create staff after 3 attempts due to employee ID conflicts")
+
+	// Verify Create was called 3 times (all failed)
+	mockRepo.AssertNumberOfCalls(t, "Create", 3)
+	// Verify ListByCompany was called 4 times (once initially + 3 retries)
+	mockRepo.AssertNumberOfCalls(t, "ListByCompany", 4)
+}
+
+func TestStaffService_CreateStaff_WithCURP_NoRetry(t *testing.T) {
+	mockRepo := new(MockStaffRepository)
+	service := NewStaffService(mockRepo)
+	companyID := uuid.New()
+
+	req := CreateStaffRequest{
+		CURP:     "ABCD123456HIJKLM01",
+		FullName: "Test User",
+		Email:    "test@example.com",
+	}
+
+	// Mock Create to fail with duplicate employee ID error (but this shouldn't happen with CURP)
+	mockRepo.On("Create", mock.AnythingOfType("*domain.Staff")).Return(fmt.Errorf("failed to create staff: ERROR: duplicate key value violates unique constraint \"uni_staff_employee_id\" (SQLSTATE 23505)")).Once()
+
+	staff, err := service.CreateStaff(req, companyID)
+
+	// Should fail immediately without retry since CURP is provided
+	assert.Error(t, err)
+	assert.Nil(t, staff)
+	assert.Contains(t, err.Error(), "duplicate key value violates unique constraint")
+
+	// Verify Create was called only once (no retries for CURP-based staff)
+	mockRepo.AssertNumberOfCalls(t, "Create", 1)
+	// Verify ListByCompany was never called (no employee ID generation)
+	mockRepo.AssertNotCalled(t, "ListByCompany")
+}
+

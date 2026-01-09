@@ -99,11 +99,35 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 		staff.CURP = nil // Explicitly set to nil
 	}
 
-	if err := s.staffRepo.Create(staff); err != nil {
+	// Attempt to create staff, with retry logic for employee ID conflicts
+	maxRetries := 3
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		err := s.staffRepo.Create(staff)
+		if err == nil {
+			// Success
+			return staff, nil
+		}
+
+		// Check if this is a duplicate employee_id error
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") &&
+		   strings.Contains(err.Error(), "uni_staff_employee_id") {
+			// This is a duplicate employee ID error - regenerate and retry
+			if curp == "" { // Only retry if we're using auto-generated employee IDs
+				newEmployeeID, genErr := s.generateEmployeeID(companyID)
+				if genErr != nil {
+					return nil, fmt.Errorf("failed to regenerate employee ID: %w", genErr)
+				}
+				staff.EmployeeID = newEmployeeID
+				continue // Retry with new employee ID
+			}
+		}
+
+		// Not a duplicate employee ID error, or we've exhausted retries
 		return nil, fmt.Errorf("failed to create staff: %w", err)
 	}
 
-	return staff, nil
+	// If we get here, we've exhausted all retries
+	return nil, fmt.Errorf("failed to create staff after %d attempts due to employee ID conflicts", maxRetries)
 }
 
 // AnalyzeCSV analyzes a CSV file and returns column mapping suggestions
