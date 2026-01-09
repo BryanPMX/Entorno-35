@@ -51,18 +51,18 @@ export default function AssessmentReportPage() {
 
   const getRiskBadge = (riskLevel: string) => {
     const riskConfig = {
-      nulo: { label: "Nulo", color: "bg-green-100 text-green-800", description: "Very Low Risk" },
-      bajo: { label: "Bajo", color: "bg-blue-100 text-blue-800", description: "Low Risk" },
-      medio: { label: "Medio", color: "bg-yellow-100 text-yellow-800", description: "Medium Risk" },
-      alto: { label: "Alto", color: "bg-orange-100 text-orange-800", description: "High Risk" },
-      muy_alto: { label: "Muy Alto", color: "bg-red-100 text-red-800", description: "Very High Risk" },
+      nulo: { label: "Nulo", color: "bg-emerald-100 text-emerald-800 border-emerald-200", description: "Very Low Risk" },
+      bajo: { label: "Bajo", color: "bg-sky-100 text-sky-800 border-sky-200", description: "Low Risk" },
+      medio: { label: "Medio", color: "bg-amber-100 text-amber-800 border-amber-200", description: "Medium Risk" },
+      alto: { label: "Alto", color: "bg-orange-100 text-orange-800 border-orange-200", description: "High Risk" },
+      muy_alto: { label: "Muy Alto", color: "bg-red-100 text-red-800 border-red-200", description: "Very High Risk" },
     };
 
     const config = riskConfig[riskLevel as keyof typeof riskConfig];
     if (!config) return <Badge variant="outline">{riskLevel}</Badge>;
 
     return (
-      <Badge className={`${config.color} border-0 text-sm px-3 py-1`}>
+      <Badge className={`${config.color} border text-sm px-3 py-1 font-medium`}>
         {config.label}
       </Badge>
     );
@@ -86,12 +86,12 @@ export default function AssessmentReportPage() {
   // Use backend-provided risk levels instead of recalculating
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
-      case "nulo": return "bg-green-500";
-      case "bajo": return "bg-blue-500";
-      case "medio": return "bg-yellow-500";
+      case "nulo": return "bg-emerald-500";
+      case "bajo": return "bg-sky-500";
+      case "medio": return "bg-amber-500";
       case "alto": return "bg-orange-500";
-      case "muy_alto": return "bg-red-500";
-      default: return "bg-gray-500";
+      case "muy_alto": return "bg-red-600";
+      default: return "bg-gray-400";
     }
   };
 
@@ -288,27 +288,44 @@ export default function AssessmentReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {Object.entries(report.category_scores).map(([category, score]) => {
+              <div className="space-y-6">
+                {Object.entries(report.category_scores).map(([category, score], index) => {
                   const riskLevel = report.category_risk_levels?.[category] || "nulo";
                   const maxScore = report.category_max_scores?.[category] || 20; // Fallback to 20 if not provided
+                  const percentage = Math.min((score / maxScore) * 100, 100);
+
                   return (
-                    <div key={category} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-medium">{category}</div>
-                          {getRiskBadge(riskLevel)}
+                    <div key={category} className="space-y-3">
+                      {/* Header with category name and risk badge */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-medium text-gray-600 w-6">{index + 1}.</span>
+                          <span className="font-semibold text-gray-900">{category}</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                          <div
-                            className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(riskLevel)}`}
-                            style={{ width: `${Math.min((score / maxScore) * 100, 100)}%` }}
-                          ></div>
-                        </div>
+                        {getRiskBadge(riskLevel)}
                       </div>
-                      <div className="ml-4 text-right">
-                        <div className="font-semibold">{score.toFixed(1)}</div>
-                        <div className="text-xs text-gray-500">/{maxScore}</div>
+
+                      {/* Progress bar and score */}
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-1">
+                          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                            <div
+                              className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline space-x-1 min-w-0">
+                          <span className="text-lg font-bold text-gray-900 tabular-nums">
+                            {score.toFixed(1)}
+                          </span>
+                          <span className="text-sm font-medium text-gray-500">
+                            /{maxScore}
+                          </span>
+                          <span className="text-xs text-gray-400 ml-1">
+                            ({percentage.toFixed(0)}%)
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -326,27 +343,44 @@ export default function AssessmentReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {Object.entries(report.domain_scores).map(([domain, score]) => {
+              <div className="space-y-6">
+                {Object.entries(report.domain_scores).map(([domain, score], index) => {
                   const riskLevel = report.domain_risk_levels?.[domain] || "nulo";
                   const maxScore = report.domain_max_scores?.[domain] || 15; // Fallback to 15 if not provided
+                  const percentage = Math.min((score / maxScore) * 100, 100);
+
                   return (
-                    <div key={domain} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-medium">{domain}</div>
-                          {getRiskBadge(riskLevel)}
+                    <div key={domain} className="space-y-3">
+                      {/* Header with domain name and risk badge */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-medium text-gray-600 w-6">{index + 1}.</span>
+                          <span className="font-semibold text-gray-900">{domain}</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                          <div
-                            className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(riskLevel)}`}
-                            style={{ width: `${Math.min((score / maxScore) * 100, 100)}%` }}
-                          ></div>
-                        </div>
+                        {getRiskBadge(riskLevel)}
                       </div>
-                      <div className="ml-4 text-right">
-                        <div className="font-semibold">{score.toFixed(1)}</div>
-                        <div className="text-xs text-gray-500">/{maxScore}</div>
+
+                      {/* Progress bar and score */}
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-1">
+                          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                            <div
+                              className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline space-x-1 min-w-0">
+                          <span className="text-lg font-bold text-gray-900 tabular-nums">
+                            {score.toFixed(1)}
+                          </span>
+                          <span className="text-sm font-medium text-gray-500">
+                            /{maxScore}
+                          </span>
+                          <span className="text-xs text-gray-400 ml-1">
+                            ({percentage.toFixed(0)}%)
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );
