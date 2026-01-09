@@ -112,6 +112,16 @@ type ListAssessmentsRequest struct {
 	StaffID *uuid.UUID               `form:"staff_id"`
 	Period  *int                     `form:"period"`
 	Status  *domain.AssessmentStatus `form:"status"`
+	Limit   int                      `form:"limit,default=50"`
+	Offset  int                      `form:"offset,default=0"`
+}
+
+// ListAssessmentsResponse represents the paginated response for listing assessments
+type ListAssessmentsResponse struct {
+	Data   []domain.Assessment `json:"data"`
+	Total  int                 `json:"total"`
+	Limit  int                 `json:"limit"`
+	Offset int                 `json:"offset"`
 }
 
 // ListAssessments retrieves assessments with optional filters
@@ -128,13 +138,20 @@ func (h *AssessmentHandler) ListAssessments(c *gin.Context) {
 		return
 	}
 
-	assessments, err := h.assessmentService.ListAssessments(companyID, req.StaffID, req.Period, req.Status)
+	assessments, total, err := h.assessmentService.ListAssessments(companyID, req.StaffID, req.Period, req.Status, req.Limit, req.Offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, assessments)
+	response := ListAssessmentsResponse{
+		Data:   assessments,
+		Total:  total,
+		Limit:  req.Limit,
+		Offset: req.Offset,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // CreateAssessmentLinkRequest represents the request body for creating an assessment link

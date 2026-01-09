@@ -146,14 +146,14 @@ func (s *AssessmentService) GetAssessment(assessmentID uuid.UUID, companyID uuid
 	return assessment, nil
 }
 
-// ListAssessments retrieves assessments for a company with optional filters
-func (s *AssessmentService) ListAssessments(companyID uuid.UUID, staffID *uuid.UUID, period *int, status *domain.AssessmentStatus) ([]domain.Assessment, error) {
-	assessments, err := s.assessmentRepo.ListByCompany(companyID, staffID, period, status)
+// ListAssessments retrieves assessments for a company with optional filters and pagination
+func (s *AssessmentService) ListAssessments(companyID uuid.UUID, staffID *uuid.UUID, period *int, status *domain.AssessmentStatus, limit int, offset int) ([]domain.Assessment, int, error) {
+	assessments, total, err := s.assessmentRepo.ListByCompanyPaginated(companyID, staffID, period, status, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list assessments: %w", err)
+		return nil, 0, fmt.Errorf("failed to list assessments: %w", err)
 	}
 
-	return assessments, nil
+	return assessments, total, nil
 }
 
 // ResponseDTO represents a response in the submission request

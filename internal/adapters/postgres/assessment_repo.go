@@ -161,6 +161,45 @@ func (r *assessmentRepository) ListByCompany(companyID uuid.UUID, staffID *uuid.
 	return assessments, nil
 }
 
+// ListByCompanyPaginated retrieves assessments for a company with pagination and filters
+func (r *assessmentRepository) ListByCompanyPaginated(companyID uuid.UUID, staffID *uuid.UUID, period *int, status *domain.AssessmentStatus, limit int, offset int) ([]domain.Assessment, int, error) {
+	var assessments []domain.Assessment
+	var total int64
+
+	query := r.db.Model(&domain.Assessment{}).Where("company_id = ?", companyID)
+
+	if staffID != nil {
+		query = query.Where("staff_id = ?", *staffID)
+	}
+
+	if period != nil {
+		query = query.Where("period = ?", *period)
+	}
+
+	if status != nil {
+		query = query.Where("status = ?", *status)
+	}
+
+	// Get total count
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count assessments: %w", err)
+	}
+
+	// Get paginated results
+	result := query.
+		Preload("Staff").
+		Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&assessments)
+
+	if result.Error != nil {
+		return nil, 0, fmt.Errorf("failed to list assessments: %w", result.Error)
+	}
+
+	return assessments, int(total), nil
+}
+
 // CreateLink creates a new assessment link with secure token
 func (r *assessmentRepository) CreateLink(link *domain.AssessmentLink) error {
 	result := r.db.Create(link)

@@ -26,6 +26,9 @@ type AssessmentRepository interface {
 	// ListByCompany retrieves all assessments for a company with optional filters
 	ListByCompany(companyID uuid.UUID, staffID *uuid.UUID, period *int, status *domain.AssessmentStatus) ([]domain.Assessment, error)
 
+	// ListByCompanyPaginated retrieves assessments for a company with pagination and filters
+	ListByCompanyPaginated(companyID uuid.UUID, staffID *uuid.UUID, period *int, status *domain.AssessmentStatus, limit int, offset int) ([]domain.Assessment, int, error)
+
 	// CreateLink creates a new assessment link with secure token
 	CreateLink(link *domain.AssessmentLink) error
 
