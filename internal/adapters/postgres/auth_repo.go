@@ -46,6 +46,15 @@ func (r *authRepository) GetCompanyByRFC(rfc string) (*domain.Company, error) {
 	return &company, nil
 }
 
+// CreateCompany creates a new company in the database
+func (r *authRepository) CreateCompany(company *domain.Company) error {
+	result := r.db.Create(company)
+	if result.Error != nil {
+		return fmt.Errorf("failed to create company: %w", result.Error)
+	}
+	return nil
+}
+
 // GetStaffByCURP retrieves a staff member by CURP and company ID
 func (r *authRepository) GetStaffByCURP(curp string, companyID string) (*domain.Staff, error) {
 	var staff domain.Staff

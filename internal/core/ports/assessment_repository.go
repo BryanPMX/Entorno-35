@@ -40,4 +40,7 @@ type AssessmentRepository interface {
 
 	// GetQuestionsByGuideType retrieves all questions for a specific guide type
 	GetQuestionsByGuideType(guideType domain.GuideType) ([]domain.Question, error)
+
+	// GetQuestionsByGuideTypeWithRelations retrieves all questions for a specific guide type with relationships preloaded
+	GetQuestionsByGuideTypeWithRelations(guideType domain.GuideType) ([]domain.Question, error)
 }

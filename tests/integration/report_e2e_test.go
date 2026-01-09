@@ -188,7 +188,7 @@ func seedMinimalQuestions(t *testing.T) {
 // - Negative polarity: select 0 -> calculated score 4 (after inversion: 4-0=4)
 func createHighRiskResponses(t *testing.T, assessmentID uuid.UUID, questions []domain.Question) []domain.Response {
 	responses := make([]domain.Response, 0, len(questions))
-	
+
 	for _, question := range questions {
 		var selectedValue int
 		var calculatedScore int
@@ -226,7 +226,7 @@ func createHighRiskResponses(t *testing.T, assessmentID uuid.UUID, questions []d
 // - Negative polarity: select 4 -> calculated score 0 (after inversion: 4-4=0)
 func createLowRiskResponses(t *testing.T, assessmentID uuid.UUID, questions []domain.Question) []domain.Response {
 	responses := make([]domain.Response, 0, len(questions))
-	
+
 	for _, question := range questions {
 		var selectedValue int
 		var calculatedScore int
@@ -266,7 +266,7 @@ func timePtr(t time.Time) *time.Time {
 func TestReportE2E_TheComplianceAudit(t *testing.T) {
 	// Setup: Create test data
 	companyID, _, _, assessmentAID, _ := setupAuditData(t)
-	
+
 	// Teardown: Always clean up, even if test fails
 	defer func() {
 		CleanupTestCompany(t, companyID.String())
@@ -295,14 +295,14 @@ func TestReportE2E_TheComplianceAudit(t *testing.T) {
 		// Assert scoring fields
 		assert.Greater(t, report.TotalScore, float64(0), "Total score should be greater than 0")
 		assert.NotNil(t, report.RiskLevel, "Risk level should be set")
-		
+
 		// For high risk test, we expect at least "alto" risk level
 		// Guide III thresholds: nulo < 50, bajo 50-74, medio 75-98, alto 99-139, muy_alto >= 140
 		// With 30 questions * 4 points = 120 points, we should get "alto" risk
 		assert.GreaterOrEqual(t, report.TotalScore, float64(99), "Total score should be >= 99 for 'alto' risk level in Guide III")
-		assert.True(t, report.RiskLevel == domain.RiskLevelAlto || report.RiskLevel == domain.RiskLevelMuyAlto, 
+		assert.True(t, report.RiskLevel == domain.RiskLevelAlto || report.RiskLevel == domain.RiskLevelMuyAlto,
 			"Risk level should be 'alto' or 'muy_alto' for high risk test (got: %s, score: %.2f)", report.RiskLevel, report.TotalScore)
-		
+
 		// Critical NOM-035 requirement: Recommendations must be present for high risk
 		assert.NotEmpty(t, report.Recommendations, "Recommendations array should NOT be empty for high risk (Critical NOM-035 requirement)")
 		assert.Greater(t, len(report.Recommendations), 0, "Should have at least one recommendation")
@@ -368,13 +368,13 @@ func TestReportE2E_TheComplianceAudit(t *testing.T) {
 
 		// Assert department heatmap
 		assert.NotNil(t, report.DepartmentHeatmap, "Department heatmap should not be nil")
-		
+
 		// Verify heatmap contains both departments
 		departments := make(map[string]bool)
 		for _, heatmap := range report.DepartmentHeatmap {
 			departments[heatmap.Department] = true
 		}
-		
+
 		assert.True(t, departments["IT"], "Heatmap should contain IT department")
 		assert.True(t, departments["HR"], "Heatmap should contain HR department")
 
@@ -453,4 +453,3 @@ func TestReportE2E_TheComplianceAudit(t *testing.T) {
 		assert.Equal(t, companyID, generalReport.CompanyID, "Company ID should match")
 	})
 }
-

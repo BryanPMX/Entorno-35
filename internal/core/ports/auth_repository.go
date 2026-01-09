@@ -9,6 +9,9 @@ type AuthRepository interface {
 	// Returns error if company not found or subscription is inactive
 	GetCompanyByRFC(rfc string) (*domain.Company, error)
 
+	// CreateCompany creates a new company (for demo auto-creation)
+	CreateCompany(company *domain.Company) error
+
 	// GetStaffByCURP retrieves a staff member by CURP and company ID
 	// Returns error if staff not found
 	GetStaffByCURP(curp string, companyID string) (*domain.Staff, error)

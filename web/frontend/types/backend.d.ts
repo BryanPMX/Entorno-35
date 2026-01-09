@@ -109,6 +109,10 @@ export interface Assessment {
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
   deleted_at?: string; // ISO timestamp (soft delete)
+
+  // Relationships
+  staff?: Staff;
+  company?: Company;
 }
 
 // ============================================================================

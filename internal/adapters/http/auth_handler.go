@@ -9,6 +9,7 @@ import (
 	"github.com/entorno35/backend/internal/core/jwt"
 	"github.com/entorno35/backend/internal/core/password"
 	"github.com/entorno35/backend/internal/core/ports"
+	"github.com/entorno35/backend/internal/domain"
 	"github.com/gin-gonic/gin"
 )
 
@@ -59,16 +60,30 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	var token string
 
 	if req.Type == "COMPANY" {
-		// Find company by RFC
+		// Find company by RFC, or create it if it doesn't exist (for demo purposes)
 		company, err := h.authRepo.GetCompanyByRFC(req.Identifier)
 		if err != nil {
-			statusCode := http.StatusInternalServerError
-			// Map repository errors to appropriate HTTP status codes
-			if errors.Is(err, postgres.ErrCompanyNotFound) || errors.Is(err, postgres.ErrCompanyInactive) {
-				statusCode = http.StatusUnauthorized
+			// If company not found, auto-create it for demo purposes
+			if errors.Is(err, postgres.ErrCompanyNotFound) {
+				company = &domain.Company{
+					RFC:                req.Identifier,
+					Name:              "Demo Company - " + req.Identifier,
+					SubscriptionStatus: domain.SubscriptionStatusActive,
+					EmployeeCount:     50, // Default for demo
+				}
+				// Create company in database
+				if createErr := h.authRepo.CreateCompany(company); createErr != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create demo company"})
+					return
+				}
+			} else if errors.Is(err, postgres.ErrCompanyInactive) {
+				statusCode := http.StatusUnauthorized
+				c.JSON(statusCode, gin.H{"error": err.Error()})
+				return
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
 			}
-			c.JSON(statusCode, gin.H{"error": err.Error()})
-			return
 		}
 
 		// Generate token for company (no staff ID)

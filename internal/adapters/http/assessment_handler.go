@@ -159,9 +159,20 @@ func (h *AssessmentHandler) CreateAssessmentLink(c *gin.Context) {
 		return
 	}
 
-	staffID, ok := middleware.RequireStaffID(c)
+	// Allow both company admins and staff to create assessment links
+	authCtx, ok := middleware.RequireAuth(c)
 	if !ok {
 		return
+	}
+
+	// For staff users, use their own ID; for company users, verify they can create links for their staff
+	var requesterID uuid.UUID
+	if authCtx.StaffID != nil {
+		// Staff user creating link for themselves
+		requesterID = *authCtx.StaffID
+	} else {
+		// Company admin creating link - use their own ID for authorization
+		requesterID = authCtx.CompanyID
 	}
 
 	var req CreateAssessmentLinkRequest
@@ -173,13 +184,18 @@ func (h *AssessmentHandler) CreateAssessmentLink(c *gin.Context) {
 	// Use assessment ID from URL
 	expiresIn := time.Duration(req.ExpiresInDays) * 24 * time.Hour
 
-	link, err := h.assessmentService.CreateAssessmentLink(
-		services.CreateAssessmentLinkRequest{
-			AssessmentID: assessmentID,
-			ExpiresIn:    expiresIn,
-		},
-		staffID,
-	)
+	// Prepare request with company ID if it's a company admin
+	linkReq := services.CreateAssessmentLinkRequest{
+		AssessmentID: assessmentID,
+		ExpiresIn:    expiresIn,
+	}
+
+	if authCtx.StaffID == nil {
+		// Company admin - pass company ID for authorization
+		linkReq.CompanyID = &authCtx.CompanyID
+	}
+
+	link, err := h.assessmentService.CreateAssessmentLink(linkReq, requesterID)
 	if err != nil {
 		if err.Error() == "assessment does not belong to staff member" {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})

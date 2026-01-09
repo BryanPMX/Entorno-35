@@ -226,3 +226,22 @@ func (r *assessmentRepository) GetQuestionsByGuideType(guideType domain.GuideTyp
 
 	return questions, nil
 }
+
+// GetQuestionsByGuideTypeWithRelations retrieves all questions for a specific guide type with relationships preloaded
+func (r *assessmentRepository) GetQuestionsByGuideTypeWithRelations(guideType domain.GuideType) ([]domain.Question, error) {
+	var questions []domain.Question
+
+	result := r.db.
+		Preload("Category").
+		Preload("Domain").
+		Preload("Dimension").
+		Where("guide_type = ?", guideType).
+		Order("order_index ASC").
+		Find(&questions)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to fetch questions with relations for guide type %s: %w", guideType, result.Error)
+	}
+
+	return questions, nil
+}

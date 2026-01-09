@@ -92,18 +92,29 @@ func (s *AssessmentService) CreateAssessment(req CreateAssessmentRequest, compan
 type CreateAssessmentLinkRequest struct {
 	AssessmentID uuid.UUID
 	ExpiresIn    time.Duration // e.g., 7 * 24 * time.Hour for 7 days
+	CompanyID    *uuid.UUID    // Optional: for company admin authorization
 }
 
 // CreateAssessmentLink creates a secure link for staff to access an assessment
-func (s *AssessmentService) CreateAssessmentLink(req CreateAssessmentLinkRequest, staffID uuid.UUID) (*domain.AssessmentLink, error) {
-	// Verify assessment exists and belongs to the staff member
+func (s *AssessmentService) CreateAssessmentLink(req CreateAssessmentLinkRequest, requesterID uuid.UUID) (*domain.AssessmentLink, error) {
+	// Verify assessment exists
 	assessment, err := s.assessmentRepo.GetByID(req.AssessmentID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch assessment: %w", err)
 	}
 
-	if assessment.StaffID != staffID {
-		return nil, fmt.Errorf("assessment does not belong to staff member")
+	// Check authorization: either the requester is the staff member, or they're a company admin for this company
+	isAuthorized := false
+	if assessment.StaffID == requesterID {
+		// Staff member creating link for themselves
+		isAuthorized = true
+	} else if req.CompanyID != nil && assessment.CompanyID == *req.CompanyID {
+		// Company admin creating link for their staff
+		isAuthorized = true
+	}
+
+	if !isAuthorized {
+		return nil, fmt.Errorf("unauthorized: assessment does not belong to requester")
 	}
 
 	// Generate secure token (UUID)
@@ -112,7 +123,7 @@ func (s *AssessmentService) CreateAssessmentLink(req CreateAssessmentLinkRequest
 	// Create link
 	link := &domain.AssessmentLink{
 		Token:        token,
-		StaffID:      staffID,
+		StaffID:      assessment.StaffID, // Always use the actual staff member's ID
 		AssessmentID: &req.AssessmentID,
 		ExpiresAt:    time.Now().Add(req.ExpiresIn),
 	}
@@ -263,8 +274,8 @@ func (s *AssessmentService) GetPublicAssessment(token string) (*domain.Assessmen
 		return nil, nil, fmt.Errorf("assessment is not in pending status (current status: %s)", assessment.Status)
 	}
 
-	// Get questions for the assessment's guide type
-	questions, err := s.assessmentRepo.GetQuestionsByGuideType(assessment.GuideType)
+	// Get questions for the assessment's guide type with relationships preloaded
+	questions, err := s.assessmentRepo.GetQuestionsByGuideTypeWithRelations(assessment.GuideType)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch questions: %w", err)
 	}
