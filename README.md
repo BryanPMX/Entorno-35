@@ -16,11 +16,14 @@ NOM-035-STPS-2018 is a Mexican federal standard that requires employers to ident
 
 - Complete NOM-035 question catalog (138 questions across 3 guides)
 - Automated risk level calculation (Nulo, Bajo, Medio, Alto, Muy Alto)
-- PDF export for individual assessment reports
+- High-fidelity PDF export with professional NOM-035 compliant formatting
+- Typeform-like assessment experience with smooth animations and transitions
+- Complete keyboard accessibility (arrow keys, number selection, Enter confirmation)
+- Real-time auto-save indicators and progress tracking
 - CSV staff import with CURP validation
-- Mobile-responsive assessment interface
-- Professional analytics dashboard
-- Secure token-based assessments
+- Mobile-responsive assessment interface with focus mode layout
+- Professional analytics dashboard with interactive visualizations
+- Secure token-based assessments with expiration handling
 - Multi-company support with tenant isolation
 
 ## Project Architecture
@@ -205,13 +208,14 @@ Detailed endpoint documentation is available in `docs/`:
 
 This project implements a complete NOM-035 compliance solution with:
 
-- **Backend API**: RESTful Go service with PostgreSQL
-- **Frontend Application**: Modern React/Next.js interface
+- **Backend API**: RESTful Go service with PostgreSQL and professional PDF generation
+- **Frontend Application**: Modern React/Next.js interface with advanced UX
 - **Assessment Engine**: Automated scoring and risk calculation
-- **Reporting System**: Individual and company-wide analytics with PDF export
+- **Reporting System**: Individual and company-wide analytics with high-fidelity PDF export
+- **User Experience**: Typeform-like assessment interface with full accessibility
 - **Security**: JWT authentication with multi-tenant isolation
 
-All core features are implemented and tested. The platform is production-ready for NOM-035-STPS-2018 compliance automation.
+All core features are implemented and tested. The platform features enterprise-grade UX with professional PDF reporting and is production-ready for NOM-035-STPS-2018 compliance automation.
 
 For detailed development progress and roadmap, see `PROJECT_STATUS.md`.
 

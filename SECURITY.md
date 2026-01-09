@@ -64,5 +64,5 @@ make migrate-up
 ---
 
 **Last Updated**: 2026-01-09
-**Security Status**: All security issues resolved - No hardcoded secrets, proper environment variable usage
+**Security Status**: All security issues resolved - No hardcoded secrets, proper environment variable usage, PDF generation with secure file handling
 
