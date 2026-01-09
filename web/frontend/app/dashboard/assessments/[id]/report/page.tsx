@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target } from "lucide-react";
+import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,25 @@ export default function AssessmentReportPage() {
   const params = useParams();
   const router = useRouter();
   const assessmentId = params.id as string;
+
+  const handleDownloadPDF = async () => {
+    if (!report) return;
+
+    try {
+      const pdfBlob = await reportService.downloadIndividualReportPDF(assessmentId);
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `NOM035_Report_${report.staff_name}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      // You might want to show a toast notification here
+    }
+  };
 
   // Fetch individual report data
   const { data: report, isLoading, error } = useQuery({
@@ -140,14 +159,23 @@ export default function AssessmentReportPage() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <Button
-                variant="ghost"
-                onClick={() => router.back()}
-                className="mb-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Assessments
-              </Button>
+              <div className="flex items-center space-x-4 mb-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => router.back()}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Assessments
+                </Button>
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={!report}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
               <h1 className="text-3xl font-bold text-gray-900">Assessment Report</h1>
               <p className="text-gray-600 mt-2">
                 NOM-035 Psychosocial Risk Assessment Results

@@ -76,6 +76,24 @@ class ReportService {
     );
     return response.data;
   }
+
+  /**
+   * Download Individual Report PDF
+   * Downloads a PDF version of an individual assessment report
+   *
+   * @param assessmentId - Assessment UUID
+   * @returns Promise resolving to PDF blob
+   * @throws AxiosError on API failure
+   */
+  async downloadIndividualReportPDF(assessmentId: string): Promise<Blob> {
+    const response = await axiosClient.get(
+      `/api/v1/reports/individual/${assessmentId}/pdf`,
+      {
+        responseType: 'blob',
+      }
+    );
+    return response.data;
+  }
 }
 
 // Export singleton instance

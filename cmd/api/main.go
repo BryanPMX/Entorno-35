@@ -163,6 +163,7 @@ func main() {
 		reports := api.Group("/reports")
 		{
 			reports.GET("/individual/:assessment_id", reportHandler.GetIndividualReport)
+			reports.GET("/individual/:assessment_id/pdf", reportHandler.GetIndividualReportPDF)
 			reports.GET("/general", reportHandler.GetGeneralReport)
 		}
 	}
