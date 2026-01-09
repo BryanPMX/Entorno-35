@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { assessmentService } from "@/services/assessment.service";
 import type { Question } from "@/types/backend";
 
@@ -239,41 +240,47 @@ export default function AssessmentExamPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Progress Bar */}
-      <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 -mx-6 px-6 py-4">
+    <div className="min-h-screen flex flex-col justify-center py-12">
+      <div className="max-w-4xl mx-auto w-full space-y-8">
+        {/* Progress Bar */}
+        <div className="max-w-2xl mx-auto">
+          <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-slate-700">
             Question {currentQuestionIndex + 1} of {questions.length}
           </span>
-          <div className="flex items-center space-x-2">
-            {saveStatus === 'saving' && (
-              <div className="flex items-center space-x-1 text-blue-600">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                <span className="text-xs">Saving...</span>
-              </div>
-            )}
-            {saveStatus === 'saved' && (
-              <div className="flex items-center space-x-1 text-green-600">
-                <Cloud className="h-3 w-3" />
-                <span className="text-xs">Saved</span>
-              </div>
-            )}
-            {saveStatus === 'error' && (
-              <div className="flex items-center space-x-1 text-red-600">
-                <AlertCircle className="h-3 w-3" />
-                <span className="text-xs">Offline - Retrying...</span>
-              </div>
-            )}
+          <div className="flex items-center space-x-3">
+            <div className="w-20 flex justify-end">
+              {saveStatus === 'saving' && (
+                <div className="flex items-center space-x-1 text-blue-600">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span className="text-xs">Saving...</span>
+                </div>
+              )}
+              {saveStatus === 'saved' && (
+                <div className="flex items-center space-x-1 text-green-600">
+                  <Cloud className="h-3 w-3" />
+                  <span className="text-xs">Saved</span>
+                </div>
+              )}
+              {saveStatus === 'error' && (
+                <div className="flex items-center space-x-1 text-red-600">
+                  <AlertCircle className="h-3 w-3" />
+                  <span className="text-xs">Offline</span>
+                </div>
+              )}
+            </div>
             <span className="text-sm text-slate-500">
               {Math.round(progress)}% Complete
             </span>
           </div>
         </div>
-        <Progress value={progress} className="h-2" />
-      </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+        </div>
 
-      {/* Question Card */}
+        {/* Question Card */}
+        <div className="max-w-2xl mx-auto">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentQuestionIndex}
@@ -294,19 +301,19 @@ export default function AssessmentExamPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="mb-4"
+                      className="flex justify-center mb-6"
                     >
-                      <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      <Badge variant="outline" className="text-xs font-medium uppercase tracking-wider">
                         {currentCategory}
-                      </span>
+                      </Badge>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
                 {/* Question Text */}
-                <div className="space-y-4">
+                <div className="text-center space-y-4">
                   <motion.h1
-                    className="text-xl font-medium text-slate-900 leading-relaxed"
+                    className="text-2xl font-medium text-slate-900 leading-tight mb-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1, duration: 0.3 }}
@@ -335,7 +342,7 @@ export default function AssessmentExamPage() {
                   <p className="text-sm font-medium text-slate-700">
                     Select your response: (Use keyboard: 1-5 or arrow keys)
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 max-w-2xl mx-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 max-w-2xl mx-auto">
                     {[
                       { value: 0, label: "Siempre", description: "Always", key: "1" },
                       { value: 1, label: "Casi Siempre", description: "Almost Always", key: "2" },
@@ -354,15 +361,15 @@ export default function AssessmentExamPage() {
                         >
                           <Button
                             variant={isSelected ? "default" : "outline"}
-                            className={`h-auto py-4 px-3 flex flex-col items-center space-y-1 text-center hover:shadow-md transition-all relative ${
-                              isPressed ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                            className={`h-auto py-6 px-4 flex flex-col items-center justify-center space-y-2 text-center hover:shadow-md transition-all relative min-h-[100px] ${
+                              isSelected ? 'ring-2 ring-primary ring-offset-2' : isPressed ? 'ring-2 ring-blue-500 ring-offset-2' : ''
                             }`}
                             onClick={() => handleAnswerSelect(option.value)}
                             disabled={isSubmitting}
                           >
-                            <span className="font-medium text-sm">{option.label}</span>
-                            <span className="text-xs opacity-75">{option.description}</span>
-                            <span className="absolute top-1 right-1 text-xs font-bold text-muted-foreground opacity-50">
+                            <span className="font-medium text-sm leading-tight">{option.label}</span>
+                            <span className="text-xs opacity-75 leading-tight">{option.description}</span>
+                            <span className="absolute top-2 right-2 text-[10px] font-mono text-muted-foreground/50">
                               {option.key}
                             </span>
                           </Button>
@@ -377,68 +384,82 @@ export default function AssessmentExamPage() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation */}
-      <motion.div
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.3 }}
-      >
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentQuestionIndex === 0 || isSubmitting}
-            className="flex items-center space-x-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Previous</span>
-          </Button>
-        </motion.div>
-
-        <div className="text-center">
-          <div className="text-sm text-slate-500 mb-1">
-            {Object.keys(responses).length} of {questions.length} answered
-          </div>
-          <div className="text-xs text-slate-400">
-            Keyboard: ← → Navigate • 1-5 Select • Enter Confirm
-          </div>
-        </div>
-
-        {isLastQuestion ? (
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              onClick={handleSubmit}
-              disabled={!canProceed || isSubmitting}
-              className="flex items-center space-x-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Submitting...</span>
-                </>
-              ) : (
-                <>
-                  <span>Submit Assessment</span>
-                  <CheckCircle className="h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </motion.div>
-        ) : (
+        {/* Navigation */}
+        <motion.div
+          className="flex items-center justify-between max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+        >
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="outline"
-              onClick={handleNext}
-              disabled={!canProceed || isSubmitting}
+              onClick={handlePrevious}
+              disabled={currentQuestionIndex === 0 || isSubmitting}
               className="flex items-center space-x-2"
             >
-              <span>Next</span>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
+              <span>Previous</span>
             </Button>
           </motion.div>
-        )}
-      </motion.div>
+
+          <div className="text-center text-sm text-slate-500">
+            {Object.keys(responses).length} of {questions.length} answered
+          </div>
+
+          {isLastQuestion ? (
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                onClick={handleSubmit}
+                disabled={!canProceed || isSubmitting}
+                className="flex items-center space-x-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Submit Assessment</span>
+                    <CheckCircle className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                onClick={handleNext}
+                disabled={!canProceed || isSubmitting}
+                className="flex items-center space-x-2"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          )}
+        </motion.div>
+
+        {/* Keyboard Legend */}
+        <div className="flex items-center justify-center space-x-6 mt-6 text-xs text-muted-foreground">
+          <div className="flex items-center space-x-1">
+            <ChevronLeft className="w-3 h-3" />
+            <ChevronRight className="w-3 h-3" />
+            <span>Navigate</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span className="font-mono">1-5</span>
+            <span>Select</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span className="font-mono">Enter</span>
+            <span>Confirm</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
       {/* Submit Error */}
       {submitMutation.isError && (
