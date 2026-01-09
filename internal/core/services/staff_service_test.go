@@ -495,3 +495,62 @@ func TestStaffService_CreateStaff_WithCURP_NoRetry(t *testing.T) {
 	mockRepo.AssertNotCalled(t, "ListByCompany")
 }
 
+func TestStaffService_CreateStaff_WithCURP_SetsEmployeeIDToNil(t *testing.T) {
+	mockRepo := new(MockStaffRepository)
+	service := NewStaffService(mockRepo)
+	companyID := uuid.New()
+
+	req := CreateStaffRequest{
+		CURP:     "ABCD123456HIJKLM01",
+		FullName: "Test User",
+		Email:    "test@example.com",
+	}
+
+	mockRepo.On("Create", mock.MatchedBy(func(staff *domain.Staff) bool {
+		// Verify that CURP is set and EmployeeID is nil
+		return staff.CURP != nil && *staff.CURP == "ABCD123456HIJKLM01" && staff.EmployeeID == nil
+	})).Return(nil)
+
+	staff, err := service.CreateStaff(req, companyID)
+
+	require.NoError(t, err)
+	assert.NotNil(t, staff)
+	assert.Equal(t, "Test User", staff.FullName)
+	assert.Equal(t, "test@example.com", staff.Email)
+	assert.NotNil(t, staff.CURP)
+	assert.Equal(t, "ABCD123456HIJKLM01", *staff.CURP)
+	assert.Nil(t, staff.EmployeeID) // EmployeeID should be nil for CURP users
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestStaffService_CreateStaff_WithoutCURP_SetsEmployeeID(t *testing.T) {
+	mockRepo := new(MockStaffRepository)
+	service := NewStaffService(mockRepo)
+	companyID := uuid.New()
+
+	req := CreateStaffRequest{
+		FullName: "Test User",
+		Email:    "test@example.com",
+		// No CURP provided
+	}
+
+	mockRepo.On("ListByCompany", companyID, 1000, 0).Return([]domain.Staff{}, int64(0), nil)
+	mockRepo.On("Create", mock.MatchedBy(func(staff *domain.Staff) bool {
+		// Verify that EmployeeID is set and CURP is nil
+		return staff.EmployeeID != nil && strings.HasPrefix(*staff.EmployeeID, "CMP") && staff.CURP == nil
+	})).Return(nil)
+
+	staff, err := service.CreateStaff(req, companyID)
+
+	require.NoError(t, err)
+	assert.NotNil(t, staff)
+	assert.Equal(t, "Test User", staff.FullName)
+	assert.Equal(t, "test@example.com", staff.Email)
+	assert.Nil(t, staff.CURP)
+	assert.NotNil(t, staff.EmployeeID)
+	assert.True(t, strings.HasPrefix(*staff.EmployeeID, "CMP"), "EmployeeID should start with CMP")
+
+	mockRepo.AssertExpectations(t)
+}
+
