@@ -238,6 +238,16 @@ These types strictly match the Go backend domain models for type safety across t
 - Automatic filename generation and browser download
 - Secure JWT-authenticated PDF access
 
+### Phase 6.1: High-Fidelity PDF Reports ✅ COMPLETE
+
+- Brand header with dark slate banner and CONFIDENTIAL labeling
+- Professional typography hierarchy (16pt title, 12pt subtitle, 10pt body)
+- Visual risk thermometer with color-coded markers (Green/Yellow/Red)
+- Professional data tables with zebra striping for category/domain scores
+- Recommendations checklist with warning icons for high-risk assessments
+- Footer with Entorno35 branding and page numbering
+- UTF-8 support with DejaVu Sans fonts for Spanish characters
+
 ## Scripts
 
 - `npm run dev` - Start development server

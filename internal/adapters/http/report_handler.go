@@ -1,29 +1,28 @@
 package http
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/entorno35/backend/internal/core/services"
-	"github.com/entorno35/backend/internal/domain"
 	"github.com/entorno35/backend/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jung-kurt/gofpdf"
 )
 
 // ReportHandler handles report-related HTTP requests
 type ReportHandler struct {
-	reportService *services.ReportService
+	reportService   *services.ReportService
+	reportPDFService *services.ReportPDFService
 }
 
 // NewReportHandler creates a new report handler
 func NewReportHandler(reportService *services.ReportService) *ReportHandler {
 	return &ReportHandler{
-		reportService: reportService,
+		reportService:   reportService,
+		reportPDFService: services.NewReportPDFService(),
 	}
 }
 
@@ -96,8 +95,12 @@ func (h *ReportHandler) GetIndividualReportPDF(c *gin.Context) {
 		return
 	}
 
-	// Generate PDF
-	pdf, err := h.generateIndividualReportPDF(report)
+	// Get company name for the header
+	companyName := "Entorno35" // Default fallback
+	// TODO: Get actual company name from company service when available
+
+	// Generate PDF using the professional PDF service
+	pdf, err := h.reportPDFService.GenerateIndividualReportPDF(report, companyName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate PDF"})
 		return
@@ -111,129 +114,6 @@ func (h *ReportHandler) GetIndividualReportPDF(c *gin.Context) {
 
 	// Send PDF data
 	c.Data(http.StatusOK, "application/pdf", pdf)
-}
-
-// generateIndividualReportPDF creates a professional PDF report
-func (h *ReportHandler) generateIndividualReportPDF(report *domain.IndividualReportDTO) ([]byte, error) {
-	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.AddPage()
-
-	// Set font
-	pdf.SetFont("Helvetica", "", 12)
-
-	lineHeight := 7.0
-
-	// Header
-	pdf.SetFont("Helvetica", "B", 20)
-	pdf.Cell(0, lineHeight*2, "NOM-035 Psychosocial Risk Assessment Report")
-	pdf.Ln(lineHeight * 2.5)
-
-	pdf.SetFont("Helvetica", "", 12)
-	pdf.Cell(0, lineHeight, "Guía II - Identificación y análisis de los factores de riesgo psicosocial")
-	pdf.Ln(lineHeight * 1.5)
-
-	// Assessment Info Section
-	pdf.SetFont("Helvetica", "B", 14)
-	pdf.Cell(0, lineHeight, "Assessment Information")
-	pdf.Ln(lineHeight * 1.2)
-
-	pdf.SetFont("Helvetica", "", 10)
-	pdf.Cell(0, lineHeight, fmt.Sprintf("Staff Member: %s", report.StaffName))
-	pdf.Ln(lineHeight)
-
-	if report.Department != "" {
-		pdf.Cell(0, lineHeight, fmt.Sprintf("Department: %s", report.Department))
-		pdf.Ln(lineHeight)
-	}
-
-	if report.Shift != "" {
-		pdf.Cell(0, lineHeight, fmt.Sprintf("Shift: %s", report.Shift))
-		pdf.Ln(lineHeight)
-	}
-
-	pdf.Cell(0, lineHeight, fmt.Sprintf("Period: %d", report.Period))
-	pdf.Ln(lineHeight)
-
-	if report.CompletedAt != nil {
-		pdf.Cell(0, lineHeight, fmt.Sprintf("Completed: %s", report.CompletedAt.Format("2006-01-02 15:04:05")))
-		pdf.Ln(lineHeight)
-	}
-
-	pdf.Ln(lineHeight)
-
-	// Risk Assessment Section
-	pdf.SetFont("Helvetica", "B", 14)
-	pdf.Cell(0, lineHeight, "Risk Assessment Results")
-	pdf.Ln(lineHeight * 1.2)
-
-	pdf.SetFont("Helvetica", "", 12)
-	pdf.Cell(0, lineHeight, fmt.Sprintf("Total Score: %.0f/100", report.TotalScore))
-	pdf.Ln(lineHeight)
-
-	pdf.Cell(0, lineHeight, fmt.Sprintf("Risk Level: %s", report.RiskLevel))
-	pdf.Ln(lineHeight)
-
-	if report.RequiresMedical {
-		pdf.SetFont("Helvetica", "B", 10)
-		pdf.SetTextColor(255, 0, 0) // Red color
-		pdf.Cell(0, lineHeight, "⚠️  MEDICAL ATTENTION REQUIRED")
-		pdf.SetTextColor(0, 0, 0) // Reset to black
-		pdf.Ln(lineHeight)
-	}
-
-	pdf.Ln(lineHeight)
-
-	// Category Scores Section
-	pdf.SetFont("Helvetica", "B", 14)
-	pdf.Cell(0, lineHeight, "Category Scores")
-	pdf.Ln(lineHeight * 1.2)
-
-	pdf.SetFont("Helvetica", "", 10)
-	for category, score := range report.CategoryScores {
-		pdf.Cell(0, lineHeight, fmt.Sprintf("%s: %.1f/20", category, score))
-		pdf.Ln(lineHeight)
-	}
-
-	pdf.Ln(lineHeight)
-
-	// Domain Scores Section
-	pdf.SetFont("Helvetica", "B", 14)
-	pdf.Cell(0, lineHeight, "Domain Scores")
-	pdf.Ln(lineHeight * 1.2)
-
-	pdf.SetFont("Helvetica", "", 10)
-	for domain, score := range report.DomainScores {
-		pdf.Cell(0, lineHeight, fmt.Sprintf("%s: %.1f/15", domain, score))
-		pdf.Ln(lineHeight)
-	}
-
-	pdf.Ln(lineHeight)
-
-	// Recommendations Section
-	pdf.SetFont("Helvetica", "B", 14)
-	pdf.Cell(0, lineHeight, "Recommendations")
-	pdf.Ln(lineHeight * 1.2)
-
-	pdf.SetFont("Helvetica", "", 10)
-	for i, rec := range report.Recommendations {
-		pdf.MultiCell(0, lineHeight, fmt.Sprintf("%d. %s", i+1, rec), "", "", false)
-		pdf.Ln(lineHeight * 0.5)
-	}
-
-	// Footer
-	pdf.SetY(-30)
-	pdf.SetFont("Helvetica", "I", 8)
-	pdf.Cell(0, lineHeight, fmt.Sprintf("Generated on: %s", time.Now().Format("2006-01-02 15:04:05")))
-	pdf.Ln(lineHeight)
-	pdf.Cell(0, lineHeight, "NOM-035-STPS-2018 Compliance Report - Entorno35 Platform")
-
-	var buf bytes.Buffer
-	err := pdf.Output(&buf)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
 }
 
 // GetGeneralReportRequest represents query parameters for general report
