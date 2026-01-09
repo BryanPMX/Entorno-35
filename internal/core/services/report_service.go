@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/entorno35/backend/internal/core/ports"
-	"github.com/entorno35/backend/internal/core/scoring"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/google/uuid"
 )
@@ -142,27 +141,45 @@ func (s *ReportService) getMaxScoresForGuide(guideType domain.GuideType) (map[st
 	categoryMaxScores := make(map[string]float64)
 	domainMaxScores := make(map[string]float64)
 
-	// Get the scoring rules
-	rules := scoring.LoadScoringRules()
-
 	switch guideType {
 	case domain.GuideTypeII:
-		// Guide II category maximums (from risk thresholds, "muy alto" upper bound)
-		for category, thresholds := range rules.GuideII.Categories {
-			categoryMaxScores[category] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		// Guide II maximum scores (reasonable upper bounds for each category/domain)
+		categoryMaxScores = map[string]float64{
+			"Ambiente de trabajo":                        5,  // Max reasonable score
+			"Factores propios de la actividad":          40, // Based on risk thresholds
+			"Organización del tiempo de trabajo":        12, // Based on risk thresholds
+			"Liderazgo y relaciones en el trabajo":      38, // Based on risk thresholds
 		}
-		// Guide II domain maximums
-		for domain, thresholds := range rules.GuideII.Domains {
-			domainMaxScores[domain] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		domainMaxScores = map[string]float64{
+			"Condiciones en el ambiente de trabajo":    5,  // Max reasonable score
+			"Carga de trabajo":                         24, // Based on risk thresholds
+			"Falta de control sobre el trabajo":        14, // Based on risk thresholds
+			"Jornada de trabajo":                       6,  // Based on risk thresholds
+			"Interferencia en la relación trabajo-familia": 6,  // Based on risk thresholds
+			"Liderazgo":                                11, // Based on risk thresholds
+			"Relaciones en el trabajo":                 14, // Based on risk thresholds
+			"Violencia":                                16, // Based on risk thresholds
 		}
 	case domain.GuideTypeIII:
-		// Guide III category maximums
-		for category, thresholds := range rules.GuideIII.Categories {
-			categoryMaxScores[category] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		// Guide III maximum scores (reasonable upper bounds for each category/domain)
+		categoryMaxScores = map[string]float64{
+			"Ambiente de trabajo":                        14, // Based on risk thresholds
+			"Factores propios de la actividad":          60, // Based on risk thresholds
+			"Organización del tiempo de trabajo":        13, // Based on risk thresholds
+			"Liderazgo y relaciones en el trabajo":      58, // Based on risk thresholds
+			"Entorno organizacional":                    23, // Based on risk thresholds
 		}
-		// Guide III domain maximums
-		for domain, thresholds := range rules.GuideIII.Domains {
-			domainMaxScores[domain] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		domainMaxScores = map[string]float64{
+			"Condiciones en el ambiente de trabajo":    14, // Based on risk thresholds
+			"Carga de trabajo":                         37, // Based on risk thresholds
+			"Falta de control sobre el trabajo":        25, // Based on risk thresholds
+			"Jornada de trabajo":                       6,  // Based on risk thresholds
+			"Interferencia en la relación trabajo-familia": 10, // Based on risk thresholds
+			"Liderazgo":                                20, // Based on risk thresholds
+			"Relaciones en el trabajo":                 21, // Based on risk thresholds
+			"Violencia":                                16, // Based on risk thresholds
+			"Reconocimiento del desempeño":             18, // Based on risk thresholds
+			"Insuficiente sentido de pertenencia e inestabilidad": 10, // Based on risk thresholds
 		}
 	}
 
