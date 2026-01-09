@@ -32,7 +32,9 @@ export interface IndividualReportDTO {
   total_score: number;
   risk_level: string;
   category_scores: Record<string, number>;
+  category_risk_levels: Record<string, string>;
   domain_scores: Record<string, number>;
+  domain_risk_levels: Record<string, string>;
   requires_medical_attention: boolean;
   completed_at?: string;
   recommendations: string[];

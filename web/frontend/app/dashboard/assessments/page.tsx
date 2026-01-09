@@ -47,21 +47,63 @@ export default function AssessmentsPage() {
     router.push(`/dashboard/assessments/${assessmentId}/report`);
   };
 
+  const copyToClipboard = async (text: string): Promise<boolean> => {
+    // Try modern clipboard API first
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        console.warn("Clipboard API failed:", error);
+      }
+    }
+
+    // Fallback: Use textarea method
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+
+      return successful;
+    } catch (error) {
+      console.error("Fallback clipboard method failed:", error);
+      return false;
+    }
+  };
+
   const handleGenerateLink = async (assessmentId: string) => {
     try {
       const linkData = await assessmentService.createLink(assessmentId, 7); // 7 days expiry
 
-      // Copy link to clipboard
+      // Copy link to clipboard with fallback
       const fullLink = `${window.location.origin}/assessment/${linkData.token}`;
-      await navigator.clipboard.writeText(fullLink);
+      const copied = await copyToClipboard(fullLink);
 
-      toast.success("Assessment link copied to clipboard!", {
-        description: "The secure link has been generated and copied to your clipboard.",
-      });
+      if (copied) {
+        toast.success("Assessment link copied to clipboard!", {
+          description: "The secure link has been generated and copied to your clipboard.",
+        });
+      } else {
+        // Fallback: Show link that user can copy manually
+        toast.success("Assessment link generated!", {
+          description: `Copy this link: ${fullLink}`,
+          duration: 10000, // Show for 10 seconds
+        });
+      }
 
       refetch(); // Refresh to show any status changes
     } catch (error) {
-      toast.error("Failed to generate assessment link");
+      toast.error("Failed to generate assessment link", {
+        description: "Please try again or contact support if the issue persists.",
+      });
       console.error("Link generation error:", error);
     }
   };

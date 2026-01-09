@@ -81,20 +81,16 @@ export default function AssessmentReportPage() {
     return `${score}/${maxScore}`;
   };
 
-  const getScoreColor = (score: number, maxScore: number = 100) => {
-    const percentage = (score / maxScore) * 100;
-    if (percentage < 25) return "bg-green-500";
-    if (percentage < 50) return "bg-blue-500";
-    if (percentage < 75) return "bg-yellow-500";
-    return "bg-red-500";
-  };
-
-  const getRiskColor = (score: number, maxScore: number = 100) => {
-    const percentage = (score / maxScore) * 100;
-    if (percentage < 25) return "bg-green-500";
-    if (percentage < 50) return "bg-blue-500";
-    if (percentage < 75) return "bg-yellow-500";
-    return "bg-red-500";
+  // Use backend-provided risk levels instead of recalculating
+  const getRiskColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case "nulo": return "bg-green-500";
+      case "bajo": return "bg-blue-500";
+      case "medio": return "bg-yellow-500";
+      case "alto": return "bg-orange-500";
+      case "muy_alto": return "bg-red-500";
+      default: return "bg-gray-500";
+    }
   };
 
   if (isLoading) {
@@ -253,7 +249,7 @@ export default function AssessmentReportPage() {
 
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
-                  className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(report.total_score)}`}
+                  className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(report.risk_level)}`}
                   style={{ width: `${Math.min((report.total_score / 100) * 100, 100)}%` }}
                 ></div>
               </div>
@@ -279,23 +275,29 @@ export default function AssessmentReportPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Object.entries(report.category_scores).map(([category, score]) => (
-                  <div key={category} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium">{category}</div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(score, 20)}`}
-                          style={{ width: `${Math.min((score / 20) * 100, 100)}%` }}
-                        ></div>
+                {Object.entries(report.category_scores).map(([category, score]) => {
+                  const riskLevel = report.category_risk_levels?.[category] || "nulo";
+                  return (
+                    <div key={category} className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-medium">{category}</div>
+                          {getRiskBadge(riskLevel)}
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                          <div
+                            className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(riskLevel)}`}
+                            style={{ width: `${Math.min((score / 20) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="ml-4 text-right">
+                        <div className="font-semibold">{score.toFixed(1)}</div>
+                        <div className="text-xs text-gray-500">/20</div>
                       </div>
                     </div>
-                    <div className="ml-4 text-right">
-                      <div className="font-semibold">{score.toFixed(1)}</div>
-                      <div className="text-xs text-gray-500">/20</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -310,23 +312,29 @@ export default function AssessmentReportPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Object.entries(report.domain_scores).map(([domain, score]) => (
-                  <div key={domain} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium">{domain}</div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(score, 15)}`}
-                          style={{ width: `${Math.min((score / 15) * 100, 100)}%` }}
-                        ></div>
+                {Object.entries(report.domain_scores).map(([domain, score]) => {
+                  const riskLevel = report.domain_risk_levels?.[domain] || "nulo";
+                  return (
+                    <div key={domain} className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-medium">{domain}</div>
+                          {getRiskBadge(riskLevel)}
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                          <div
+                            className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(riskLevel)}`}
+                            style={{ width: `${Math.min((score / 15) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="ml-4 text-right">
+                        <div className="font-semibold">{score.toFixed(1)}</div>
+                        <div className="text-xs text-gray-500">/15</div>
                       </div>
                     </div>
-                    <div className="ml-4 text-right">
-                      <div className="font-semibold">{score.toFixed(1)}</div>
-                      <div className="text-xs text-gray-500">/15</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
