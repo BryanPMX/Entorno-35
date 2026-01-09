@@ -29,6 +29,7 @@ interface StaffTableProps {
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
   onCsvUpload: () => void;
+  onCreateStaff: () => void;
   currentPage: number;
   limit: number;
 }
@@ -42,6 +43,7 @@ export function StaffTable({
   onPageChange,
   onLimitChange,
   onCsvUpload,
+  onCreateStaff,
   currentPage,
   limit,
 }: StaffTableProps) {
@@ -97,10 +99,16 @@ export function StaffTable({
             </div>
           </div>
         </div>
-        <Button onClick={onCsvUpload} className="flex items-center space-x-2">
-          <Upload className="h-4 w-4" />
-          <span>Import CSV</span>
-        </Button>
+        <div className="flex space-x-2">
+          <Button onClick={onCreateStaff} variant="default">
+            <Users className="h-4 w-4 mr-2" />
+            Add Staff Member
+          </Button>
+          <Button onClick={onCsvUpload} variant="outline" className="flex items-center space-x-2">
+            <Upload className="h-4 w-4" />
+            <span>Import CSV</span>
+          </Button>
+        </div>
       </div>
 
       {/* Staff Table */}

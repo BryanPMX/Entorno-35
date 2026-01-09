@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StaffTable } from "@/components/staff/staff-table";
 import { CsvUploadModal } from "@/components/staff/csv-upload-modal";
+import { StaffCreateDialog } from "@/components/staff/staff-create-dialog";
 import { staffService } from "@/services/staff.service";
 import type { PaginatedResponse, Staff } from "@/types/backend";
 
@@ -16,6 +17,7 @@ export default function StaffPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(50);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Fetch staff data with pagination
   const {
@@ -49,6 +51,17 @@ export default function StaffPage() {
     setIsUploadModalOpen(true);
   };
 
+  // Handle manual staff creation
+  const handleCreateStaff = () => {
+    setIsCreateDialogOpen(true);
+  };
+
+  // Handle staff creation completion
+  const handleStaffCreated = () => {
+    setIsCreateDialogOpen(false);
+    refetch(); // Refresh the staff data
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -64,6 +77,7 @@ export default function StaffPage() {
         onPageChange={handlePageChange}
         onLimitChange={handleLimitChange}
         onCsvUpload={handleCsvUpload}
+        onCreateStaff={handleCreateStaff}
         currentPage={currentPage}
         limit={limit}
       />
@@ -72,6 +86,10 @@ export default function StaffPage() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUploadComplete={handleUploadComplete}
+      />
+
+      <StaffCreateDialog
+        onStaffCreated={handleStaffCreated}
       />
     </div>
   );

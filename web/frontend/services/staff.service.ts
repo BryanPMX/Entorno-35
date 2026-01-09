@@ -1,5 +1,5 @@
 import axiosClient from "@/lib/axios";
-import type { ImportResult, PaginatedResponse, Staff } from "@/types/backend";
+import type { ImportResult, PaginatedResponse, Staff, Demographics } from "@/types/backend";
 
 /**
  * Staff Service
@@ -12,6 +12,13 @@ import type { ImportResult, PaginatedResponse, Staff } from "@/types/backend";
 export interface StaffListParams {
   limit?: number; // Default: 50, Max: 100
   offset?: number; // Default: 0
+}
+
+export interface CreateStaffRequest {
+  full_name: string;
+  email?: string;
+  curp?: string;
+  demographics?: Demographics;
 }
 
 class StaffService {
@@ -54,9 +61,30 @@ class StaffService {
   }
 
   /**
+   * Create Staff
+   * Manually creates a single staff member
+   *
+   * @param staffData - Staff creation data
+   * @returns Promise resolving to created Staff
+   * @throws AxiosError on API failure
+   */
+  async create(staffData: CreateStaffRequest): Promise<Staff> {
+    // Transform the data to match backend expectations
+    const payload = {
+      full_name: staffData.full_name,
+      email: staffData.email || undefined,
+      curp: staffData.curp || undefined,
+      demographics: staffData.demographics || undefined,
+    };
+
+    const response = await axiosClient.post<Staff>("/api/v1/staff", payload);
+    return response.data;
+  }
+
+  /**
    * Upload CSV
    * Bulk imports staff members from a CSV file
-   * 
+   *
    * @param file - CSV file to upload
    * @returns Promise resolving to ImportResult with import statistics
    * @throws AxiosError on API failure
