@@ -37,4 +37,7 @@ type AssessmentRepository interface {
 
 	// UpdateLinkAccessedAt updates the link's accessed_at timestamp (same as UpdateLinkAccess, alias for clarity)
 	UpdateLinkAccessedAt(linkID uuid.UUID) error
+
+	// GetQuestionsByGuideType retrieves all questions for a specific guide type
+	GetQuestionsByGuideType(guideType domain.GuideType) ([]domain.Question, error)
 }

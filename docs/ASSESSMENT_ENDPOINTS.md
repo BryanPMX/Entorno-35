@@ -229,6 +229,141 @@ curl -X POST http://localhost:8080/api/v1/assessments/660e8400-e29b-41d4-a716-44
 
 - Link token is a UUID
 - Link expires after the specified number of days
-- Link can be used by staff to access the assessment without authentication (public endpoint to be implemented)
+- Link can be used by staff to access the assessment without authentication (public endpoint implemented)
 - Link access is tracked via `accessed_at` timestamp
+
+---
+
+## GET /api/v1/assessments/public/:token
+
+Retrieves assessment details and questions for public access via secure token.
+
+### Authentication
+
+- **Required**: No (public endpoint using token-based access)
+
+### Request
+
+**URL Parameters:**
+- `token` (string, required) - Secure assessment link token
+
+### Response
+
+**Success (200 OK):**
+```json
+{
+  "assessment": {
+    "id": "660e8400-e29b-41d4-a716-446655440000",
+    "staff_id": "550e8400-e29b-41d4-a716-446655440000",
+    "company_id": "770e8400-e29b-41d4-a716-446655440000",
+    "period": 2025,
+    "guide_type": "II",
+    "status": "pending",
+    "requires_medical_attention": false,
+    "created_at": "2025-12-29T10:00:00Z",
+    "updated_at": "2025-12-29T10:00:00Z"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question_number": 1,
+      "guide_type": "II",
+      "type": "likert",
+      "text": "¿Con qué frecuencia te sientes agotado al final de la jornada laboral?",
+      "polarity": "POSITIVE",
+      "order_index": 0,
+      "created_at": "2025-12-29T10:00:00Z",
+      "updated_at": "2025-12-29T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid or expired token, assessment not in pending status
+- `500 Internal Server Error`: Server error
+
+### Example
+
+```bash
+curl -X GET http://localhost:8080/api/v1/assessments/public/880e8400-e29b-41d4-a716-446655440000
+```
+
+### Business Logic
+
+- Validates token exists and has not expired
+- Ensures assessment is in "pending" status
+- Returns assessment metadata and ordered question list
+- Questions are ordered by `order_index` for proper flow
+
+---
+
+## POST /api/v1/assessments/public/:token/submit
+
+Submits staff responses for a public assessment.
+
+### Authentication
+
+- **Required**: No (public endpoint using token-based access)
+
+### Request
+
+**URL Parameters:**
+- `token` (string, required) - Secure assessment link token
+
+**Body:**
+```json
+{
+  "responses": [
+    {
+      "question_id": 1,
+      "value": 3
+    },
+    {
+      "question_id": 2,
+      "value": 2
+    }
+  ]
+}
+```
+
+**Fields:**
+- `responses` (array, required) - Array of response objects
+  - `question_id` (integer, required) - Question ID
+  - `value` (integer, required) - Response value (0-4 for Likert scale)
+
+### Response
+
+**Success (200 OK):**
+```json
+{
+  "message": "Assessment submitted successfully",
+  "submitted_at": "2025-12-29T10:30:00Z"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid token, expired link, assessment not pending, etc.
+- `500 Internal Server Error`: Server error
+
+### Example
+
+```bash
+curl -X POST http://localhost:8080/api/v1/assessments/public/880e8400-e29b-41d4-a716-446655440000/submit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "responses": [
+      {"question_id": 1, "value": 3},
+      {"question_id": 2, "value": 2}
+    ]
+  }'
+```
+
+### Business Logic
+
+- Validates token and assessment status
+- Saves responses in transaction
+- Marks assessment link as used (`accessed_at`)
+- Triggers automatic scoring calculation
+- Updates assessment status to "completed"
 

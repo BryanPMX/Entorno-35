@@ -19,6 +19,26 @@ export type AssessmentStatus = "pending" | "completed" | "cancelled";
 
 export type RiskLevel = "nulo" | "bajo" | "medio" | "alto" | "muy_alto";
 
+/**
+ * Question represents a NOM-035 assessment question
+ */
+export interface Question {
+  id: number;
+  question_number: number;
+  guide_type: GuideType;
+  type: QuestionType;
+  text: string;
+  polarity?: QuestionPolarity;
+  section?: string;
+  subsection?: string;
+  category_id?: number;
+  domain_id?: number;
+  dimension_id?: number;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // ============================================================================
 // Core Models
 // ============================================================================

@@ -1,5 +1,5 @@
 import axiosClient from "@/lib/axios";
-import type { Assessment, PaginatedResponse } from "@/types/backend";
+import type { Assessment, Question, PaginatedResponse } from "@/types/backend";
 
 export interface CreateAssessmentRequest {
   staff_id: string;
@@ -88,7 +88,7 @@ class AssessmentService {
     return response.data;
   }
 
-  /**
+	/**
    * Calculate Assessment Score
    * Triggers score calculation for a completed assessment
    *
@@ -98,6 +98,35 @@ class AssessmentService {
    */
   async calculateScore(assessmentId: string): Promise<{ message: string; assessment_id: string }> {
     const response = await axiosClient.post(`/api/v1/assessments/${assessmentId}/calculate`);
+    return response.data;
+  }
+
+  /**
+   * Fetch Public Assessment by Token
+   * Retrieves assessment details and questions for public access
+   *
+   * @param token - Assessment link token
+   * @returns Promise resolving to assessment and questions
+   * @throws AxiosError on API failure
+   */
+  async fetchByToken(token: string): Promise<{ assessment: Assessment; questions: Question[] }> {
+    const response = await axiosClient.get(`/api/v1/assessments/public/${token}`);
+    return response.data;
+  }
+
+  /**
+   * Submit Assessment Responses
+   * Submits staff responses for a public assessment
+   *
+   * @param token - Assessment link token
+   * @param responses - Array of question responses
+   * @returns Promise resolving to success message
+   * @throws AxiosError on API failure
+   */
+  async submitResponses(token: string, responses: { question_id: number; value: number }[]): Promise<{ message: string; submitted_at: string }> {
+    const response = await axiosClient.post(`/api/v1/assessments/public/${token}/submit`, {
+      responses,
+    });
     return response.data;
   }
 }

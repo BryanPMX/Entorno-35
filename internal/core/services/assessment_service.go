@@ -233,3 +233,41 @@ func (s *AssessmentService) SubmitAssessment(token string, req SubmitAssessmentR
 
 	return nil
 }
+
+// GetPublicAssessment retrieves assessment details for public access via token
+func (s *AssessmentService) GetPublicAssessment(token string) (*domain.Assessment, []domain.Question, error) {
+	// 1. Validate Link: Fetch AssessmentLink by token
+	link, err := s.assessmentRepo.GetLinkByToken(token)
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid or expired assessment link: %w", err)
+	}
+
+	// Check if link is expired
+	if time.Now().After(link.ExpiresAt) {
+		return nil, nil, fmt.Errorf("assessment link has expired")
+	}
+
+	// Ensure assessment ID is set
+	if link.AssessmentID == nil {
+		return nil, nil, fmt.Errorf("assessment link is not associated with an assessment")
+	}
+	assessmentID := *link.AssessmentID
+
+	// Fetch assessment to verify it exists and is in pending status
+	assessment, err := s.assessmentRepo.GetByID(assessmentID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch assessment: %w", err)
+	}
+
+	if assessment.Status != domain.AssessmentStatusPending {
+		return nil, nil, fmt.Errorf("assessment is not in pending status (current status: %s)", assessment.Status)
+	}
+
+	// Get questions for the assessment's guide type
+	questions, err := s.assessmentRepo.GetQuestionsByGuideType(assessment.GuideType)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch questions: %w", err)
+	}
+
+	return assessment, questions, nil
+}

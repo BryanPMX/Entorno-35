@@ -57,7 +57,7 @@ export default function DashboardPage() {
 
   if (!hasData && !reportLoading) {
     return (
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
         <div>
           <h1 className="heading-1">Dashboard</h1>
           <p className="label-muted mt-2">
@@ -87,8 +87,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="hover-lift animate-in fade-in slide-in-from-bottom-4">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
+          <Card className="hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5" />
@@ -105,7 +105,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover-lift animate-in fade-in slide-in-from-bottom-4">
+          <Card className="hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '500ms' }}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
@@ -122,7 +122,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover-lift animate-in fade-in slide-in-from-bottom-4">
+          <Card className="hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '600ms' }}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5" />
@@ -144,7 +144,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="heading-1">Dashboard</h1>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4">
         {metrics.map((metric, index) => (
           <MetricCard
             key={metric.title}
@@ -180,7 +180,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '200ms' }}>
         <RiskDistributionChart
           data={reportData?.risk_distribution || []}
           isLoading={reportLoading}
@@ -192,7 +192,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="animate-in fade-in slide-in-from-bottom-4">
+      <Card className="animate-in fade-in slide-in-from-bottom-4 shadow-sm hover:shadow-md transition-all" style={{ animationDelay: '400ms' }}>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
           <CardDescription>
@@ -200,7 +200,7 @@ export default function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-6">
             <Button variant="outline" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
               <span>Manage Staff</span>

@@ -196,6 +196,48 @@ func (h *AssessmentHandler) CreateAssessmentLink(c *gin.Context) {
 	})
 }
 
+// GetPublicAssessmentResponse represents the response for getting public assessment details
+type GetPublicAssessmentResponse struct {
+	Assessment *domain.Assessment `json:"assessment"`
+	Questions  []domain.Question  `json:"questions"`
+}
+
+// GetPublicAssessment retrieves assessment details for public access via token
+// GET /api/v1/assessments/public/:token
+// This is a public endpoint (no authentication required)
+func (h *AssessmentHandler) GetPublicAssessment(c *gin.Context) {
+	// Extract token from URL
+	token := c.Param("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "token is required"})
+		return
+	}
+
+	// Get assessment and questions
+	assessment, questions, err := h.assessmentService.GetPublicAssessment(token)
+	if err != nil {
+		errMsg := err.Error()
+
+		// Check for specific error types (client errors - 400)
+		if errMsg == "invalid or expired assessment link: assessment link not found" ||
+			errMsg == "assessment link has expired" ||
+			errMsg == "assessment link is not associated with an assessment" ||
+			errMsg == "assessment is not in pending status" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
+			return
+		}
+
+		// All other errors are server errors - 500
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})
+		return
+	}
+
+	c.JSON(http.StatusOK, GetPublicAssessmentResponse{
+		Assessment: assessment,
+		Questions:  questions,
+	})
+}
+
 // SubmitAssessmentRequest represents the request body for submitting assessment responses
 type SubmitAssessmentRequest struct {
 	Responses []services.ResponseDTO `json:"responses" binding:"required,min=1"`

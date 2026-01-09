@@ -127,6 +127,7 @@ func main() {
 	// Public API endpoints (no authentication required)
 	public := router.Group("/api/v1/assessments/public")
 	{
+		public.GET("/:token", assessmentHandler.GetPublicAssessment)
 		public.POST("/:token/submit", assessmentHandler.SubmitAssessment)
 	}
 
