@@ -48,13 +48,16 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 		return nil, fmt.Errorf("assessment has not been scored yet")
 	}
 
-	// Fetch responses with questions and relationships loaded for score recalculation
+	// Fetch responses with questions and relationships loaded for score calculation
+	// Note: Category and domain scores are calculated deterministically from stored responses
+	// This ensures consistency across report views for the same assessment
 	responses, err := r.getResponsesWithQuestions(assessmentID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch responses: %w", err)
 	}
 
-	// Recalculate category and domain scores from responses
+	// Calculate category and domain scores from stored responses
+	// This is deterministic and ensures report consistency
 	categoryScores, domainScores, err := r.calculateScoresFromResponses(responses, assessment.GuideType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate scores: %w", err)

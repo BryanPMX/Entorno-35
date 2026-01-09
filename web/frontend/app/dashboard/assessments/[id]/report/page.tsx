@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download } from "lucide-react";
+import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,11 +40,14 @@ export default function AssessmentReportPage() {
     }
   };
 
-  // Fetch individual report data
-  const { data: report, isLoading, error } = useQuery({
-    queryKey: ["individual-report", assessmentId],
+  // Fetch individual report data with more specific cache key
+  const { data: report, isLoading, error, refetch } = useQuery({
+    queryKey: ["individual-report", assessmentId, "full"],
     queryFn: () => reportService.getIndividualReport(assessmentId),
     enabled: !!assessmentId,
+    // Disable caching to ensure fresh data for each assessment view
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const getRiskBadge = (riskLevel: string) => {
@@ -164,6 +167,15 @@ export default function AssessmentReportPage() {
                   Back to Assessments
                 </Button>
                 <Button
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="mr-2"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button
                   onClick={handleDownloadPDF}
                   disabled={!report}
                   className="bg-blue-600 hover:bg-blue-700"
@@ -192,6 +204,9 @@ export default function AssessmentReportPage() {
                 <User className="h-5 w-5" />
                 <span>Staff Information</span>
               </CardTitle>
+              <CardDescription>
+                Staff details for this specific assessment period ({report.period})
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -207,10 +222,10 @@ export default function AssessmentReportPage() {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Period</div>
+                    <div className="text-sm font-medium text-gray-500">Assessment Period</div>
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4" />
-                      <span>{report.period}</span>
+                      <span className="font-semibold">{report.period}</span>
                     </div>
                   </div>
                   <div>
@@ -371,30 +386,61 @@ export default function AssessmentReportPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
-                <span>Assessment Details</span>
+                <span>Assessment Timeline</span>
               </CardTitle>
+              <CardDescription>
+                Important dates and context for this assessment
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="font-medium text-gray-500">Guide Type</div>
-                  <div>NOM-035 {report.guide_type}</div>
+                  <div className="flex items-center space-x-2">
+                    <span>NOM-035 {report.guide_type}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {report.guide_type === "I" ? "Trauma" : report.guide_type === "II" ? "Risk Factors" : "Work Environment"}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-500">Assessment Period</div>
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>{report.period}</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-500">Status</div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Completed</span>
+                  </div>
                 </div>
                 <div>
                   <div className="font-medium text-gray-500">Completed At</div>
-                  <div>
-                    {report.completed_at
-                      ? new Date(report.completed_at).toLocaleDateString("es-MX", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "Not completed"
-                    }
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      {report.completed_at
+                        ? new Date(report.completed_at).toLocaleDateString("es-MX", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "Not completed"
+                      }
+                    </span>
                   </div>
                 </div>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800">
+                  <strong>Important:</strong> This report reflects the psychosocial risk assessment results for the {report.period} period only.
+                  If this staff member has multiple assessments, each report is independent and specific to its assessment period.
+                </p>
               </div>
             </CardContent>
           </Card>
