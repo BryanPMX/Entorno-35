@@ -55,6 +55,8 @@ type StaffFormValues = z.infer<typeof staffSchema>;
 
 interface StaffCreateDialogProps {
   onStaffCreated?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -63,9 +65,13 @@ interface StaffCreateDialogProps {
  * Modal dialog for manually creating individual staff members.
  * Includes comprehensive form validation and demographic data collection.
  */
-export function StaffCreateDialog({ onStaffCreated }: StaffCreateDialogProps) {
-  const [open, setOpen] = useState(false);
+export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpenChange }: StaffCreateDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
 
   const form = useForm<StaffFormValues>({
     resolver: zodResolver(staffSchema),
@@ -122,12 +128,14 @@ export function StaffCreateDialog({ onStaffCreated }: StaffCreateDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Staff Member
-        </Button>
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Staff Member
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>

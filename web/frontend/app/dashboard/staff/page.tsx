@@ -64,6 +64,7 @@ export default function StaffPage() {
         onPageChange={handlePageChange}
         onLimitChange={handleLimitChange}
         onCsvUpload={handleCsvUpload}
+        onDataRefresh={refetch}
         currentPage={currentPage}
         limit={limit}
       />

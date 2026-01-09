@@ -30,6 +30,7 @@ interface StaffTableProps {
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
   onCsvUpload: () => void;
+  onDataRefresh?: () => void;
   currentPage: number;
   limit: number;
 }
@@ -43,6 +44,7 @@ export function StaffTable({
   onPageChange,
   onLimitChange,
   onCsvUpload,
+  onDataRefresh,
   currentPage,
   limit,
 }: StaffTableProps) {
@@ -243,7 +245,12 @@ export function StaffTable({
       </Card>
 
       <StaffCreateDialog
-        onStaffCreated={() => setIsCreateDialogOpen(false)}
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onStaffCreated={() => {
+          setIsCreateDialogOpen(false);
+          onDataRefresh?.();
+        }}
       />
     </div>
   );
