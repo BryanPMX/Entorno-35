@@ -22,7 +22,7 @@ func NewReportService(reportRepo ports.ReportRepository) *ReportService {
 
 // GenerateIndividualReport generates an individual assessment report with recommendations
 func (s *ReportService) GenerateIndividualReport(assessmentID uuid.UUID, companyID uuid.UUID) (*domain.IndividualReportDTO, error) {
-	// Fetch report data from repository
+	// Fetch report data from repository (includes dynamic max scores calculation)
 	report, err := s.reportRepo.GetIndividualReport(assessmentID, companyID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get individual report: %w", err)
@@ -30,9 +30,6 @@ func (s *ReportService) GenerateIndividualReport(assessmentID uuid.UUID, company
 
 	// Generate recommendations based on risk level and domain scores
 	report.Recommendations = s.generateRecommendations(report.RiskLevel, report.DomainScores, report.GuideType)
-
-	// Add maximum scores for categories and domains based on guide type
-	report.CategoryMaxScores, report.DomainMaxScores = s.getMaxScoresForGuide(report.GuideType)
 
 	return report, nil
 }
@@ -136,53 +133,4 @@ func (s *ReportService) getTopDomains(domainScores map[string]float64, n int) []
 	return result
 }
 
-// getMaxScoresForGuide returns the maximum possible scores for categories and domains based on guide type
-func (s *ReportService) getMaxScoresForGuide(guideType domain.GuideType) (map[string]float64, map[string]float64) {
-	categoryMaxScores := make(map[string]float64)
-	domainMaxScores := make(map[string]float64)
-
-	switch guideType {
-	case domain.GuideTypeII:
-		// Guide II maximum scores (reasonable upper bounds for each category/domain)
-		categoryMaxScores = map[string]float64{
-			"Ambiente de trabajo":                        5,  // Max reasonable score
-			"Factores propios de la actividad":          40, // Based on risk thresholds
-			"Organización del tiempo de trabajo":        12, // Based on risk thresholds
-			"Liderazgo y relaciones en el trabajo":      38, // Based on risk thresholds
-		}
-		domainMaxScores = map[string]float64{
-			"Condiciones en el ambiente de trabajo":    5,  // Max reasonable score
-			"Carga de trabajo":                         24, // Based on risk thresholds
-			"Falta de control sobre el trabajo":        14, // Based on risk thresholds
-			"Jornada de trabajo":                       6,  // Based on risk thresholds
-			"Interferencia en la relación trabajo-familia": 6,  // Based on risk thresholds
-			"Liderazgo":                                11, // Based on risk thresholds
-			"Relaciones en el trabajo":                 14, // Based on risk thresholds
-			"Violencia":                                16, // Based on risk thresholds
-		}
-	case domain.GuideTypeIII:
-		// Guide III maximum scores (reasonable upper bounds for each category/domain)
-		categoryMaxScores = map[string]float64{
-			"Ambiente de trabajo":                        14, // Based on risk thresholds
-			"Factores propios de la actividad":          60, // Based on risk thresholds
-			"Organización del tiempo de trabajo":        13, // Based on risk thresholds
-			"Liderazgo y relaciones en el trabajo":      58, // Based on risk thresholds
-			"Entorno organizacional":                    23, // Based on risk thresholds
-		}
-		domainMaxScores = map[string]float64{
-			"Condiciones en el ambiente de trabajo":    14, // Based on risk thresholds
-			"Carga de trabajo":                         37, // Based on risk thresholds
-			"Falta de control sobre el trabajo":        25, // Based on risk thresholds
-			"Jornada de trabajo":                       6,  // Based on risk thresholds
-			"Interferencia en la relación trabajo-familia": 10, // Based on risk thresholds
-			"Liderazgo":                                20, // Based on risk thresholds
-			"Relaciones en el trabajo":                 21, // Based on risk thresholds
-			"Violencia":                                16, // Based on risk thresholds
-			"Reconocimiento del desempeño":             18, // Based on risk thresholds
-			"Insuficiente sentido de pertenencia e inestabilidad": 10, // Based on risk thresholds
-		}
-	}
-
-	return categoryMaxScores, domainMaxScores
-}
 

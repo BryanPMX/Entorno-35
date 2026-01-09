@@ -63,6 +63,15 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 		return nil, fmt.Errorf("failed to calculate scores: %w", err)
 	}
 
+	// Calculate dynamic maximum scores based on questions answered
+	categoryMaxScores, domainMaxScores, err := r.calculateDynamicMaxScores(responses, assessment.GuideType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate max scores: %w", err)
+	}
+
+	// Validate scores don't exceed maximums (data integrity check)
+	categoryScores, domainScores = r.validateAndClampScores(categoryScores, domainScores, categoryMaxScores, domainMaxScores)
+
 	// Calculate category and domain risk levels using NOM-035 thresholds
 	categoryRiskLevels, domainRiskLevels, err := r.calculateRiskLevelsFromScores(categoryScores, domainScores, assessment.GuideType)
 	if err != nil {
@@ -81,20 +90,22 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 
 	// Build DTO
 	dto := &domain.IndividualReportDTO{
-		AssessmentID:       assessment.ID,
-		Period:             assessment.Period,
-		GuideType:          assessment.GuideType,
-		StaffName:          assessment.Staff.FullName,
-		Department:         department,
-		Shift:              shift,
-		TotalScore:         *assessment.TotalScore,
-		RiskLevel:          *assessment.RiskLevel,
-		CategoryScores:     categoryScores,
-		CategoryRiskLevels: categoryRiskLevels,
-		DomainScores:       domainScores,
-		DomainRiskLevels:   domainRiskLevels,
-		RequiresMedical:    assessment.RequiresMedicalAttention,
-		CompletedAt:       assessment.CompletedAt,
+		AssessmentID:        assessment.ID,
+		Period:              assessment.Period,
+		GuideType:           assessment.GuideType,
+		StaffName:           assessment.Staff.FullName,
+		Department:          department,
+		Shift:               shift,
+		TotalScore:          *assessment.TotalScore,
+		RiskLevel:           *assessment.RiskLevel,
+		CategoryScores:      categoryScores,
+		CategoryRiskLevels:  categoryRiskLevels,
+		CategoryMaxScores:   categoryMaxScores,
+		DomainScores:        domainScores,
+		DomainRiskLevels:    domainRiskLevels,
+		DomainMaxScores:     domainMaxScores,
+		RequiresMedical:     assessment.RequiresMedicalAttention,
+		CompletedAt:        assessment.CompletedAt,
 	}
 
 	return dto, nil
@@ -273,6 +284,96 @@ func (r *reportRepository) calculateScoresFromResponses(responses []domain.Respo
 	}
 
 	return categoryScores, domainScores, nil
+}
+
+// calculateDynamicMaxScores calculates the maximum possible scores for categories and domains
+// based on the questions that were actually answered, not hardcoded NOM-035 specifications
+func (r *reportRepository) calculateDynamicMaxScores(responses []domain.Response, guideType domain.GuideType) (map[string]float64, map[string]float64, error) {
+	categoryMaxScores := make(map[string]float64)
+	domainMaxScores := make(map[string]float64)
+
+	// Only calculate for Guide II/III (Guide I doesn't have category/domain structure)
+	if guideType == domain.GuideTypeI {
+		return categoryMaxScores, domainMaxScores, nil
+	}
+
+	// Track unique questions per category/domain to avoid double-counting
+	categoryQuestionCounts := make(map[string]int)
+	domainQuestionCounts := make(map[string]int)
+
+	// Process each response to count questions per category/domain
+	for _, response := range responses {
+		if response.Question.ID == 0 {
+			continue
+		}
+
+		question := response.Question
+
+		// Skip questions without polarity (shouldn't happen in Guide II/III)
+		if question.Polarity == nil {
+			continue
+		}
+
+		// Count by domain
+		if question.DomainID != nil && question.Domain != nil {
+			domainName := question.Domain.Name
+			if _, exists := domainQuestionCounts[domainName]; !exists {
+				domainQuestionCounts[domainName] = 0
+			}
+			domainQuestionCounts[domainName]++
+		}
+
+		// Count by category
+		if question.CategoryID != nil && question.Category != nil {
+			categoryName := question.Category.Name
+			if _, exists := categoryQuestionCounts[categoryName]; !exists {
+				categoryQuestionCounts[categoryName] = 0
+			}
+			categoryQuestionCounts[categoryName]++
+		}
+	}
+
+	// Calculate maximum scores based on question counts
+	// Each question can contribute a maximum of MaxScorePerQuestion points (after polarity adjustment)
+	for categoryName, questionCount := range categoryQuestionCounts {
+		categoryMaxScores[categoryName] = float64(questionCount * scoring.MaxScorePerQuestion)
+	}
+
+	for domainName, questionCount := range domainQuestionCounts {
+		domainMaxScores[domainName] = float64(questionCount * scoring.MaxScorePerQuestion)
+	}
+
+	return categoryMaxScores, domainMaxScores, nil
+}
+
+// validateAndClampScores ensures scores don't exceed their calculated maximums
+// This prevents impossible scores like 40/38 and provides data integrity
+func (r *reportRepository) validateAndClampScores(
+	categoryScores, domainScores, categoryMaxScores, domainMaxScores map[string]float64,
+) (map[string]float64, map[string]float64) {
+	// Validate category scores
+	for category, score := range categoryScores {
+		if maxScore, exists := categoryMaxScores[category]; exists {
+			if score > maxScore {
+				// Log warning but don't expose sensitive data (no staff/assessment IDs)
+				fmt.Printf("WARNING: Category '%s' score %.1f exceeds maximum %.1f, clamping to maximum\n", category, score, maxScore)
+				categoryScores[category] = maxScore
+			}
+		}
+	}
+
+	// Validate domain scores
+	for domain, score := range domainScores {
+		if maxScore, exists := domainMaxScores[domain]; exists {
+			if score > maxScore {
+				// Log warning but don't expose sensitive data
+				fmt.Printf("WARNING: Domain '%s' score %.1f exceeds maximum %.1f, clamping to maximum\n", domain, score, maxScore)
+				domainScores[domain] = maxScore
+			}
+		}
+	}
+
+	return categoryScores, domainScores
 }
 
 // calculateRiskLevelsFromScores calculates risk levels for categories and domains using NOM-035 thresholds
