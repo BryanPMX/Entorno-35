@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronUp, ChevronDown, Eye, Link, Plus, FileText, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ interface AssessmentTableProps {
   limit: number;
   onViewReport?: (assessmentId: string) => void;
   onGenerateLink?: (assessmentId: string) => void;
+  onFiltersChange?: (filters: { status?: string; period?: number }) => void;
 }
 
 type SortField = "created_at" | "staff_name" | "status" | "risk_level" | "period";
@@ -65,11 +66,29 @@ export function AssessmentTable({
   limit,
   onViewReport,
   onGenerateLink,
+  onFiltersChange,
 }: AssessmentTableProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [periodFilter, setPeriodFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [periodFilter, setPeriodFilter] = useState<string>("all");
+
+  // Notify parent component when filters change
+  useEffect(() => {
+    if (onFiltersChange) {
+      const filters: { status?: string; period?: number } = {};
+
+      if (statusFilter !== "all") {
+        filters.status = statusFilter;
+      }
+
+      if (periodFilter !== "all") {
+        filters.period = parseInt(periodFilter);
+      }
+
+      onFiltersChange(filters);
+    }
+  }, [statusFilter, periodFilter, onFiltersChange]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -159,7 +178,7 @@ export function AssessmentTable({
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -171,7 +190,7 @@ export function AssessmentTable({
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Years</SelectItem>
+                <SelectItem value="all">All Years</SelectItem>
                 <SelectItem value="2025">2025</SelectItem>
                 <SelectItem value="2024">2024</SelectItem>
                 <SelectItem value="2023">2023</SelectItem>

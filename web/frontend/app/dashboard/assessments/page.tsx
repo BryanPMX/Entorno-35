@@ -17,14 +17,16 @@ export default function AssessmentsPage() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(25);
+  const [filters, setFilters] = useState<{ status?: string; period?: number }>({});
 
-  // Fetch assessments with pagination
+  // Fetch assessments with pagination and filters
   const { data: assessmentData, isLoading, refetch } = useQuery({
-    queryKey: ["assessments", currentPage, limit],
+    queryKey: ["assessments", currentPage, limit, filters],
     queryFn: () =>
       assessmentService.list({
         limit,
         offset: (currentPage - 1) * limit,
+        ...filters,
       }),
   });
 
@@ -64,6 +66,11 @@ export default function AssessmentsPage() {
     }
   };
 
+  const handleFiltersChange = (newFilters: { status?: string; period?: number }) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -83,6 +90,7 @@ export default function AssessmentsPage() {
         limit={limit}
         onViewReport={handleViewReport}
         onGenerateLink={handleGenerateLink}
+        onFiltersChange={handleFiltersChange}
       />
     </div>
   );
