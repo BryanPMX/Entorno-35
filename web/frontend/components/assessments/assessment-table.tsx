@@ -261,7 +261,7 @@ export function AssessmentTable({
                       </TableCell>
                     </TableRow>
                   ))
-                ) : assessmentData?.data.length === 0 ? (
+                ) : assessmentData?.data && assessmentData.data.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">

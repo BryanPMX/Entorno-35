@@ -1,12 +1,23 @@
 #!/bin/bash
 
+#!/bin/bash
 # Entorno35 - Golden Path E2E Walkthrough
 # Simulates: Admin → Import Staff → Create Assessment → Send Link → Staff Takes Test → Admin Views Report
+#
+# Required Environment Variables:
+#   DB_URL - Database connection string (default: postgres://entorno35:entorno35@localhost:5432/entorno35?sslmode=disable)
+#   JWT_SECRET - JWT signing secret (default: e2e-test-secret-key-for-walkthrough)
+#   CORS_ORIGIN - Frontend URL for CORS (default: http://localhost:3000)
 
 set -e  # Exit on any error
 
 echo "🚀 Entorno35 Golden Path E2E Walkthrough"
 echo "=============================================="
+echo "Environment Variables:"
+echo "  DB_URL: ${DB_URL:-'default'}"
+echo "  JWT_SECRET: ${JWT_SECRET:+'set (hidden)'}"
+echo "  CORS_ORIGIN: ${CORS_ORIGIN:-'default'}"
+echo "----------------------------------------------"
 
 # Colors for output
 RED='\033[0;31m'
@@ -18,7 +29,9 @@ NC='\033[0m' # No Color
 # Configuration
 BASE_URL="http://localhost:8080"
 FRONTEND_URL="http://localhost:3000"
-DB_URL="postgres://entorno35:entorno35@localhost:5432/entorno35?sslmode=disable"
+DB_URL="${DB_URL:-postgres://entorno35:entorno35@localhost:5432/entorno35?sslmode=disable}"
+JWT_SECRET="${JWT_SECRET:-e2e-test-secret-key-for-walkthrough}"
+CORS_ORIGIN="${CORS_ORIGIN:-$FRONTEND_URL}"
 
 echo -e "${BLUE}Step 1: Infrastructure Setup${NC}"
 echo "--------------------------------"
@@ -78,8 +91,8 @@ echo "---------------------------"
 # 3. Start backend API in background
 echo -e "${YELLOW}Starting backend API server...${NC}"
 export DB_URL="$DB_URL"
-export JWT_SECRET="e2e-test-secret-key-for-walkthrough"
-export CORS_ORIGIN="$FRONTEND_URL"
+export JWT_SECRET="$JWT_SECRET"
+export CORS_ORIGIN="$CORS_ORIGIN"
 make run &
 BACKEND_PID=$!
 echo "Backend started (PID: $BACKEND_PID)"
@@ -128,20 +141,16 @@ CREATE_COMPANY_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "identifier": "TEST123456789",
-    "type": "COMPANY",
-    "password": "testpassword"
+    "type": "COMPANY"
   }')
 
 if echo "$CREATE_COMPANY_RESPONSE" | grep -q "token"; then
     ADMIN_TOKEN=$(echo "$CREATE_COMPANY_RESPONSE" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
     echo -e "${GREEN}✓ Company login successful, token: ${ADMIN_TOKEN:0:20}...${NC}"
 else
-    echo -e "${YELLOW}⚠ Company login failed (expected for new company), continuing...${NC}"
-    # Try with a different approach - use a known company setup
-    echo -e "${YELLOW}Setting up test data manually...${NC}"
-
-    # We'll use direct database setup for this walkthrough
-    ADMIN_TOKEN="test-admin-token-for-e2e"
+    echo -e "${RED}✗ Company login failed - check if backend is running and company exists${NC}"
+    echo -e "${YELLOW}Make sure to run migrations and start the backend first${NC}"
+    exit 1
 fi
 
 echo -e "\n${BLUE}Step 5: Admin Workflow - Import Staff${NC}"
