@@ -20,7 +20,8 @@ web/frontend/
 │   └── utils.ts          # Utility functions (cn, etc.)
 ├── services/              # API service layer
 │   ├── auth.service.ts   # Authentication service
-│   └── staff.service.ts  # Staff management service
+│   ├── staff.service.ts  # Staff management service
+│   └── report.service.ts # Report and PDF export service
 ├── types/                 # TypeScript type definitions
 │   └── backend.d.ts      # Backend API types (matches Go models)
 ├── public/                # Static assets
@@ -220,11 +221,22 @@ These types strictly match the Go backend domain models for type safety across t
 - Empty state handling with onboarding cards
 - Responsive design and mobile-friendly interface
 
-### Phase 5.5: Public Assessment View (Pending)
+### Phase 5.5: Public Assessment View ✅ COMPLETE
 
-- Minimalist staff assessment interface
-- Form-based question navigation
-- Progress tracking and validation
+- Minimalist staff assessment interface with distraction-free design
+- Form-based question navigation with auto-advance
+- Progress bar with completion tracking
+- Mobile-first, touch-optimized interface
+- Secure token-based authentication
+- Professional completion screen
+
+### Phase 6.0: PDF Export ✅ COMPLETE
+
+- PDF download button in assessment report pages
+- Server-side PDF generation with NOM-035 compliant formatting
+- Professional report layout with all assessment data
+- Automatic filename generation and browser download
+- Secure JWT-authenticated PDF access
 
 ## Scripts
 

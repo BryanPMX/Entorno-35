@@ -1,5 +1,74 @@
 # Report Endpoints
 
+## GET /api/v1/reports/individual/:assessment_id/pdf
+
+Generates and downloads a PDF report for an individual assessment with professional NOM-035 formatting.
+
+### Authentication
+
+- **Required**: Yes (JWT Bearer token)
+- **Authorization**: Assessment must belong to authenticated company
+
+### Request
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Path Parameters:**
+- `assessment_id` (UUID, required) - Assessment ID
+
+### Response
+
+**Success (200 OK):**
+- **Content-Type**: `application/pdf`
+- **Content-Disposition**: `attachment; filename="NOM035_Report_{staff_name}_{date}.pdf"`
+- **Body**: PDF file data
+
+### Error Responses
+
+**404 Not Found:**
+```json
+{
+  "error": "assessment report not found"
+}
+```
+
+**400 Bad Request:**
+```json
+{
+  "error": "assessment has not been scored yet"
+}
+```
+
+**401 Unauthorized:**
+```json
+{
+  "error": "unauthorized"
+}
+```
+
+### PDF Content Structure
+
+The generated PDF includes:
+- **Header**: NOM-035 Psychosocial Risk Assessment Report
+- **Assessment Information**: Staff details, department, period, completion date
+- **Risk Assessment**: Total score, risk level, medical attention warnings
+- **Category Scores**: NOM-035 category breakdown (Guide II/III)
+- **Domain Scores**: Detailed psychosocial risk domains
+- **Recommendations**: Actionable NOM-035 Section 8 recommendations
+- **Footer**: Generation timestamp and platform information
+
+### Notes
+
+- PDFs are generated server-side for consistent formatting and security
+- Only available for completed, scored assessments
+- Filename automatically generated with staff name and date
+- Professional A4 layout suitable for HR documentation and compliance records
+
+---
+
 ## GET /api/v1/reports/individual/:assessment_id
 
 Retrieves an individual assessment report with detailed scoring breakdown and NOM-035 recommendations.
@@ -245,6 +314,6 @@ Authorization: Bearer <jwt_token>
 
 ---
 
-**Last Updated**: 2025-12-30  
+**Last Updated**: 2026-01-09
 **API Version**: v1
 

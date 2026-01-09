@@ -8,7 +8,7 @@ NOM-035-STPS-2018 is a Mexican federal standard that requires employers to ident
 
 - **Staff Assessment Management**: Secure, anonymous evaluation links sent to employees
 - **Automated Risk Scoring**: Real-time calculation of psychosocial risk levels
-- **Compliance Reporting**: Individual and company-wide NOM-035 reports
+- **Compliance Reporting**: Individual and company-wide NOM-035 reports with PDF export
 - **Professional Dashboards**: Analytics and monitoring for HR administrators
 - **Multi-tenant Architecture**: Secure isolation between organizations
 
@@ -16,6 +16,7 @@ NOM-035-STPS-2018 is a Mexican federal standard that requires employers to ident
 
 - Complete NOM-035 question catalog (138 questions across 3 guides)
 - Automated risk level calculation (Nulo, Bajo, Medio, Alto, Muy Alto)
+- PDF export for individual assessment reports
 - CSV staff import with CURP validation
 - Mobile-responsive assessment interface
 - Professional analytics dashboard
@@ -189,10 +190,10 @@ go test ./tests/integration/...
 ### API Documentation
 
 Detailed endpoint documentation is available in `docs/`:
-- `ASSESSMENT_ENDPOINTS.md` - Assessment management
+- `ASSESSMENT_ENDPOINTS.md` - Assessment management and public endpoints
 - `AUTH_ENDPOINTS.md` - Authentication
 - `STAFF_ENDPOINTS.md` - Staff management
-- `REPORT_ENDPOINTS.md` - Reporting and analytics
+- `REPORT_ENDPOINTS.md` - Reporting, analytics, and PDF export
 
 ## Data Files
 
@@ -207,7 +208,7 @@ This project implements a complete NOM-035 compliance solution with:
 - **Backend API**: RESTful Go service with PostgreSQL
 - **Frontend Application**: Modern React/Next.js interface
 - **Assessment Engine**: Automated scoring and risk calculation
-- **Reporting System**: Individual and company-wide analytics
+- **Reporting System**: Individual and company-wide analytics with PDF export
 - **Security**: JWT authentication with multi-tenant isolation
 
 All core features are implemented and tested. The platform is production-ready for NOM-035-STPS-2018 compliance automation.
