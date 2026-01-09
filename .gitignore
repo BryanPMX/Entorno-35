@@ -88,6 +88,9 @@ tmp/
 temp/
 *.tmp
 
+# PDF files (test/debug reports)
+*.pdf
+
 # Database
 *.db
 *.sqlite

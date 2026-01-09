@@ -3,7 +3,6 @@ package services
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -19,372 +18,211 @@ func NewReportPDFService() *ReportPDFService {
 	return &ReportPDFService{}
 }
 
-// GenerateIndividualReportPDF creates a high-fidelity PDF report for an individual assessment
+// GenerateIndividualReportPDF creates a professional PDF report for an individual assessment
 func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.IndividualReportDTO, companyName string) ([]byte, error) {
-	pdf := gofpdf.New("P", "mm", "A4", "fonts/")
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetAutoPageBreak(true, 25.0) // More conservative page breaks
 	pdf.AddPage()
 
-	// Set up fonts with UTF-8 support
-	pdf.AddUTF8Font("DejaVuSans", "", "DejaVuSans.ttf")
-	pdf.AddUTF8Font("DejaVuSans", "B", "DejaVuSans-Bold.ttf")
+	// Set up footer
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-15)
+		pdf.SetFont("Arial", "", 8)
+		pdf.SetTextColor(128, 128, 128)
+		pdf.Cell(0, 0, "Entorno35 Platform - NOM-035 Compliance Report - Page "+fmt.Sprintf("%d", pdf.PageNo()))
+	})
 
-	// Brand Header
-	s.drawBrandHeader(pdf, companyName)
+	// 1. Header (Dark Slate Banner)
+	pdf.SetFillColor(51, 65, 85)
+	pdf.Rect(0, 0, 210, 30, "F")
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 16)
+	pdf.Text(10, 12, "Entorno35 Platform")
+	pdf.SetFont("Arial", "", 10)
+	pdf.Text(10, 20, fmt.Sprintf("Report Generated: %s", time.Now().Format("2006-01-02")))
+	pdf.SetFont("Arial", "B", 12)
+	pdf.Text(150, 12, "CONFIDENTIAL")
 
-	// Title Section
-	s.drawTitleSection(pdf)
+	// 2. Title Section
+	pdf.SetTextColor(0, 0, 0)
+	pdf.SetY(40)
+	pdf.SetFont("Arial", "B", 16)
+	pdf.Cell(0, 10, "NOM-035 Psychosocial Risk Assessment")
+	pdf.Ln(8)
+	pdf.SetFont("Arial", "I", 12)
+	pdf.SetTextColor(100, 100, 100)
+	pdf.Cell(0, 10, "Individual Report - Guide II/III Analysis")
+	pdf.Ln(15)
 
-	// Assessment Info
-	s.drawAssessmentInfo(pdf, report)
+	// 3. Staff Info Box
+	pdf.SetFillColor(245, 245, 245)
+	pdf.Rect(10, pdf.GetY(), 190, 30, "F")
+	pdf.SetFont("Arial", "", 11)
+	pdf.SetTextColor(0, 0, 0)
+	yStart := pdf.GetY() + 8
 
-	// Risk Thermometer
-	s.drawRiskThermometer(pdf, report)
+	pdf.SetXY(15, yStart)
+	pdf.Cell(0, 0, fmt.Sprintf("Staff Member: %s", report.StaffName))
 
-	// Category Scores Table
-	s.drawCategoryTable(pdf, report)
+	pdf.SetXY(15, yStart+8)
+	pdf.Cell(0, 0, fmt.Sprintf("Department: %s", report.Department))
 
-	// Domain Scores Table
-	s.drawDomainTable(pdf, report)
+	pdf.SetXY(15, yStart+16)
+	pdf.Cell(0, 0, fmt.Sprintf("Total Score: %.2f / 100", report.TotalScore))
 
-	// Recommendations Section
-	s.drawRecommendationsSection(pdf, report)
+	pdf.SetY(yStart + 24)
+	pdf.Ln(10)
 
-	// Footer
-	s.drawFooter(pdf)
+	// 4. Risk Thermometer (Robust Primitive)
+	pdf.SetFont("Arial", "B", 12)
+	pdf.Cell(0, 10, "Risk Level Visualization")
+	pdf.Ln(8)
+
+	// Draw Background Bar
+	barX, barY, barW := 15.0, pdf.GetY(), 180.0
+	pdf.SetFillColor(220, 220, 220)
+	pdf.Rect(barX, barY, barW, 6, "F")
+
+	// Axis Labels (0 and 100) - Positioned relative to bar coordinates
+	pdf.SetFont("Arial", "", 8)
+	pdf.SetTextColor(128, 128, 128)
+	pdf.SetXY(barX, barY+8)  // Position cursor at bar start, below bar
+	pdf.Cell(0, 0, "0")      // Use Cell instead of Text for consistent positioning
+	pdf.SetXY(barX+barW-5, barY+8)  // Position at bar end
+	pdf.Cell(0, 0, "100")
+	pdf.SetTextColor(0, 0, 0)
+
+	// Draw Indicator
+	score := report.TotalScore
+	if score > 100 { score = 100 }
+	if score < 0 { score = 0 }
+	indicatorX := barX + (score/100.0 * barW)
+
+	// Color Logic
+	riskLevelStr := string(report.RiskLevel)
+	if riskLevelStr == "nulo" || riskLevelStr == "bajo" {
+		pdf.SetFillColor(0, 150, 0)
+	} else if riskLevelStr == "medio" {
+		pdf.SetFillColor(255, 165, 0)
+	} else {
+		pdf.SetFillColor(200, 0, 0)
+	}
+	pdf.Circle(indicatorX, barY+3, 3, "F")
+
+	// Risk Label - Positioned above the bar, centered on indicator
+	pdf.SetFont("Arial", "B", 9)
+	labelWidth := pdf.GetStringWidth(strings.ToUpper(riskLevelStr))
+	labelX := indicatorX - (labelWidth / 2)
+	if labelX < 15 { labelX = 15 } // Keep within left margin
+	if labelX + labelWidth > 195 { labelX = 195 - labelWidth } // Keep within right margin
+
+	pdf.SetXY(labelX, barY-6) // Position above bar with proper spacing
+	pdf.Cell(0, 0, strings.ToUpper(riskLevelStr))
+	pdf.Ln(15) // Less spacing after risk label
+
+	// 5. Data Tables (Fixed 2 Columns to avoid alignment issues)
+	// Check if we need a new page for tables
+	if pdf.GetY() > 220 {
+		pdf.AddPage()
+	}
+
+	drawTable(pdf, "Category Scores", report.CategoryScores)
+	pdf.Ln(10)
+
+	if pdf.GetY() > 220 {
+		pdf.AddPage()
+	}
+
+	drawTable(pdf, "Domain Scores", report.DomainScores)
+	pdf.Ln(12)
+
+	// 6. Recommendations - Fixed to flow naturally
+	if pdf.GetY() > 200 {
+		pdf.AddPage()
+	}
+
+	pdf.SetFont("Arial", "B", 14)
+	pdf.SetFillColor(240, 240, 255)
+	pdf.CellFormat(0, 12, " Recommendations", "0", 1, "", true, 0, "")
+	pdf.SetFont("Arial", "", 10)
+	pdf.Ln(6)
+
+	for i, rec := range report.Recommendations {
+		// Check page break only if we're actually at the bottom (> 270mm)
+		// Standard A4 height is 297mm, so 270 gives us 27mm margin
+		currentY := pdf.GetY()
+		if currentY > 270 {
+			pdf.AddPage()
+			pdf.SetFont("Arial", "", 10)
+		}
+
+		pdf.SetX(15)
+		// Bullet point
+		pdf.SetFillColor(100, 100, 100)
+		pdf.Circle(17, pdf.GetY()+3, 1, "F")
+		pdf.SetX(22)
+
+		// Use MultiCell for proper text wrapping with better line height
+		pdf.MultiCell(175, 7, fmt.Sprintf("%d. %s", i+1, rec), "", "", false)
+		pdf.Ln(4)
+	}
 
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate PDF output: %w", err)
 	}
 
 	return buf.Bytes(), nil
 }
 
-// drawBrandHeader creates a branded header with company info
-func (s *ReportPDFService) drawBrandHeader(pdf *gofpdf.Fpdf, companyName string) {
-	// Dark Slate colored banner (R:51, G:65, B:85)
-	pdf.SetFillColor(51, 65, 85)
-	pdf.Rect(0, 0, 210, 25, "F")
+func drawTable(pdf *gofpdf.Fpdf, title string, data map[string]float64) {
+	pdf.SetFont("Arial", "B", 12)
+	pdf.Cell(0, 10, title)
+	pdf.Ln(10)
 
-	// White text
-	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("DejaVuSans", "B", 12)
+	// Header - STRICTLY 2 columns only
+	pdf.SetFillColor(230, 230, 230)
+	pdf.SetFont("Arial", "B", 10)
+	pdf.CellFormat(130, 10, "Item", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(50, 10, "Score", "1", 1, "C", true, 0, "")
 
-	// Company name on the left
-	pdf.SetXY(15, 8)
-	pdf.Cell(0, 0, companyName)
+	// Rows - STRICTLY 2 columns only
+	pdf.SetFont("Arial", "", 9)
+	fill := false
+	for k, v := range data {
+		// Check if we need a page break before this row
+		if pdf.GetY() > 250 {
+			pdf.AddPage()
+			pdf.SetFont("Arial", "", 9)
+			// Re-draw header on new page for continuity
+			pdf.SetFillColor(230, 230, 230)
+			pdf.SetFont("Arial", "B", 10)
+			pdf.CellFormat(130, 10, "Item", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(50, 10, "Score", "1", 1, "C", true, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			fill = false // Reset fill pattern
+		}
 
-	// CONFIDENTIAL label on the right
-	pdf.SetXY(130, 8)
-	pdf.Cell(0, 0, "CONFIDENTIAL")
-
-	// Date below company name
-	pdf.SetFont("DejaVuSans", "", 8)
-	pdf.SetXY(15, 15)
-	pdf.Cell(0, 0, fmt.Sprintf("Generated: %s", time.Now().Format("2006-01-02")))
-
-	// Reset text color to black
-	pdf.SetTextColor(0, 0, 0)
-}
-
-// drawTitleSection creates the main title
-func (s *ReportPDFService) drawTitleSection(pdf *gofpdf.Fpdf) {
-	pdf.SetY(35)
-	pdf.SetFont("DejaVuSans", "B", 16)
-	pdf.Cell(0, 0, "NOM-035 Psychosocial Risk Assessment Report")
-
-	pdf.SetY(45)
-	pdf.SetFont("DejaVuSans", "", 12)
-	pdf.SetTextColor(128, 128, 128)
-	pdf.Cell(0, 0, "Guía II - Identificación y análisis de los factores de riesgo psicosocial")
-	pdf.SetTextColor(0, 0, 0)
-}
-
-// drawAssessmentInfo displays staff and assessment details
-func (s *ReportPDFService) drawAssessmentInfo(pdf *gofpdf.Fpdf, report *domain.IndividualReportDTO) {
-	yPos := 60.0
-
-	// Assessment Information Box
-	pdf.SetFillColor(245, 245, 245)
-	pdf.Rect(15, yPos, 180, 35, "F")
-
-	pdf.SetFont("DejaVuSans", "B", 12)
-	pdf.SetXY(20, yPos+8)
-	pdf.Cell(0, 0, "Assessment Information")
-
-	pdf.SetFont("DejaVuSans", "", 10)
-	pdf.SetXY(20, yPos+18)
-	pdf.Cell(0, 0, fmt.Sprintf("Staff Member: %s", report.StaffName))
-
-	if report.Department != "" {
-		pdf.SetXY(20, yPos+25)
-		pdf.Cell(0, 0, fmt.Sprintf("Department: %s", report.Department))
-	}
-
-	if report.Shift != "" {
-		pdf.SetXY(20, yPos+32)
-		pdf.Cell(0, 0, fmt.Sprintf("Shift: %s", report.Shift))
-	}
-
-	pdf.SetXY(110, yPos+18)
-	pdf.Cell(0, 0, fmt.Sprintf("Period: %d", report.Period))
-
-	if report.CompletedAt != nil {
-		pdf.SetXY(110, yPos+25)
-		pdf.Cell(0, 0, fmt.Sprintf("Completed: %s", report.CompletedAt.Format("2006-01-02")))
-	}
-}
-
-// drawRiskThermometer creates a visual risk level indicator
-func (s *ReportPDFService) drawRiskThermometer(pdf *gofpdf.Fpdf, report *domain.IndividualReportDTO) {
-	yPos := 105.0
-
-	pdf.SetFont("DejaVuSans", "B", 12)
-	pdf.SetXY(15, yPos)
-	pdf.Cell(0, 0, "Risk Assessment")
-
-	// Total Score
-	pdf.SetFont("DejaVuSans", "", 14)
-	pdf.SetXY(15, yPos+10)
-	pdf.Cell(0, 0, fmt.Sprintf("Total Score: %.0f/100", report.TotalScore))
-
-	// Risk Level Text
-	pdf.SetXY(15, yPos+18)
-	pdf.Cell(0, 0, fmt.Sprintf("Risk Level: %s", strings.ToUpper(string(report.RiskLevel))))
-
-	// Thermometer Scale (horizontal bar)
-	scaleStartX := 15.0
-	scaleEndX := 195.0
-	scaleY := yPos + 25
-	scaleHeight := 8.0
-
-	// Draw background scale
-	pdf.SetFillColor(240, 240, 240)
-	pdf.Rect(scaleStartX, scaleY, scaleEndX-scaleStartX, scaleHeight, "F")
-
-	// Calculate marker position (0-100 scale)
-	scorePercent := report.TotalScore / 100.0
-	markerX := scaleStartX + (scorePercent * (scaleEndX - scaleStartX))
-
-	// Set marker color based on risk level
-	switch report.RiskLevel {
-	case "nulo", "bajo":
-		pdf.SetFillColor(0, 128, 0) // Green
-	case "medio":
-		pdf.SetFillColor(255, 165, 0) // Orange
-	case "alto", "muy_alto":
-		pdf.SetFillColor(220, 20, 60) // Red
-	default:
-		pdf.SetFillColor(128, 128, 128) // Gray
-	}
-
-	// Draw marker (circle)
-	markerRadius := 5.0
-	pdf.Circle(markerX, scaleY+scaleHeight/2, markerRadius, "F")
-
-	// Draw scale labels
-	pdf.SetFont("DejaVuSans", "", 8)
-	pdf.SetTextColor(128, 128, 128)
-	pdf.SetXY(scaleStartX, scaleY+scaleHeight+3)
-	pdf.Cell(0, 0, "0")
-	pdf.SetXY(scaleEndX-5, scaleY+scaleHeight+3)
-	pdf.Cell(0, 0, "100")
-	pdf.SetTextColor(0, 0, 0)
-}
-
-// drawCategoryTable creates a professional table for category scores
-func (s *ReportPDFService) drawCategoryTable(pdf *gofpdf.Fpdf, report *domain.IndividualReportDTO) {
-	yPos := 140.0
-
-	pdf.SetFont("DejaVuSans", "B", 12)
-	pdf.SetXY(15, yPos)
-	pdf.Cell(0, 0, "Category Scores")
-
-	yPos += 10
-
-	// Table headers
-	headers := []string{"Categoría", "Puntaje", "Nivel de Riesgo"}
-	colWidths := []float64{80, 30, 50}
-
-	// Header row
-	pdf.SetFillColor(240, 240, 240)
-	pdf.SetFont("DejaVuSans", "B", 10)
-	xPos := 15.0
-
-	for i, header := range headers {
-		pdf.Rect(xPos, yPos, colWidths[i], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, header)
-		xPos += colWidths[i]
-	}
-
-	yPos += 8
-
-	// Data rows
-	row := 0
-	for category, score := range report.CategoryScores {
-		// Alternate row colors
-		if row%2 == 0 {
+		if fill {
 			pdf.SetFillColor(250, 250, 250)
 		} else {
 			pdf.SetFillColor(255, 255, 255)
 		}
 
-		riskLevel := s.calculateRiskLevel(score, 20) // Max score for categories is 20
-
-		pdf.SetFont("DejaVuSans", "", 9)
-		xPos = 15.0
-
-		// Category
-		pdf.Rect(xPos, yPos, colWidths[0], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, category)
-		xPos += colWidths[0]
-
-		// Score
-		pdf.Rect(xPos, yPos, colWidths[1], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, fmt.Sprintf("%.1f", score))
-		xPos += colWidths[1]
-
-		// Risk Level
-		pdf.Rect(xPos, yPos, colWidths[2], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, riskLevel)
-
-		yPos += 8
-		row++
-	}
-}
-
-// drawDomainTable creates a professional table for domain scores
-func (s *ReportPDFService) drawDomainTable(pdf *gofpdf.Fpdf, report *domain.IndividualReportDTO) {
-	yPos := 200.0
-
-	pdf.SetFont("DejaVuSans", "B", 12)
-	pdf.SetXY(15, yPos)
-	pdf.Cell(0, 0, "Domain Scores")
-
-	yPos += 10
-
-	// Table headers
-	headers := []string{"Dominio", "Puntaje", "Nivel de Riesgo"}
-	colWidths := []float64{80, 30, 50}
-
-	// Header row
-	pdf.SetFillColor(240, 240, 240)
-	pdf.SetFont("DejaVuSans", "B", 10)
-	xPos := 15.0
-
-	for i, header := range headers {
-		pdf.Rect(xPos, yPos, colWidths[i], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, header)
-		xPos += colWidths[i]
-	}
-
-	yPos += 8
-
-	// Data rows
-	row := 0
-	for domain, score := range report.DomainScores {
-		// Alternate row colors
-		if row%2 == 0 {
-			pdf.SetFillColor(250, 250, 250)
-		} else {
-			pdf.SetFillColor(255, 255, 255)
+		// Ensure text fits in the cell - truncate if too long
+		itemText := k
+		if pdf.GetStringWidth(itemText) > 125 {
+			// Truncate with ellipsis
+			for len(itemText) > 0 && pdf.GetStringWidth(itemText+"...") > 125 {
+				itemText = itemText[:len(itemText)-1]
+			}
+			itemText += "..."
 		}
 
-		riskLevel := s.calculateRiskLevel(score, 15) // Max score for domains is 15
-
-		pdf.SetFont("DejaVuSans", "", 9)
-		xPos = 15.0
-
-		// Domain
-		pdf.Rect(xPos, yPos, colWidths[0], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, domain)
-		xPos += colWidths[0]
-
-		// Score
-		pdf.Rect(xPos, yPos, colWidths[1], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, fmt.Sprintf("%.1f", score))
-		xPos += colWidths[1]
-
-		// Risk Level
-		pdf.Rect(xPos, yPos, colWidths[2], 8, "FD")
-		pdf.SetXY(xPos+2, yPos+2)
-		pdf.Cell(0, 0, riskLevel)
-
-		yPos += 8
-		row++
+		// STRICTLY 2 columns: Item and Score only
+		pdf.CellFormat(130, 8, itemText, "1", 0, "L", fill, 0, "")
+		pdf.CellFormat(50, 8, fmt.Sprintf("%.1f", v), "1", 1, "C", fill, 0, "")
+		fill = !fill
 	}
-}
-
-// drawRecommendationsSection creates a formatted recommendations section
-func (s *ReportPDFService) drawRecommendationsSection(pdf *gofpdf.Fpdf, report *domain.IndividualReportDTO) {
-	yPos := 260.0
-
-	pdf.SetFont("DejaVuSans", "B", 12)
-	pdf.SetXY(15, yPos)
-	pdf.Cell(0, 0, "Recommendations")
-
-	// Background box
-	boxHeight := float64(len(report.Recommendations)*8 + 20)
-	pdf.SetFillColor(248, 248, 248)
-	pdf.Rect(15, yPos+5, 180, boxHeight, "F")
-
-	// Warning icon for high risk
-	if report.RiskLevel == "alto" || report.RiskLevel == "muy_alto" {
-		pdf.SetFillColor(220, 20, 60)
-		pdf.Circle(20, yPos+12, 3, "F")
-		pdf.SetFont("DejaVuSans", "B", 8)
-		pdf.SetTextColor(255, 255, 255)
-		pdf.SetXY(18.5, yPos+10)
-		pdf.Cell(0, 0, "!")
-		pdf.SetTextColor(0, 0, 0)
-	}
-
-	yPos += 15
-	pdf.SetFont("DejaVuSans", "", 9)
-
-	for i, rec := range report.Recommendations {
-		// Checkbox
-		pdf.Rect(25, yPos+1, 3, 3, "D")
-
-		// Recommendation text
-		pdf.SetXY(35, yPos+2)
-		pdf.MultiCell(155, 5, fmt.Sprintf("%d. %s", i+1, rec), "", "", false)
-		yPos += 8
-	}
-}
-
-// drawFooter adds page footer with branding
-func (s *ReportPDFService) drawFooter(pdf *gofpdf.Fpdf) {
-	// Add footer on every page
-	pdf.SetFooterFunc(func() {
-		pdf.SetY(-15)
-		pdf.SetFont("DejaVuSans", "", 8)
-		pdf.SetTextColor(128, 128, 128)
-		pdf.Cell(0, 0, "Entorno35 Platform - NOM-035 Compliance Report - Page "+strconv.Itoa(pdf.PageNo()))
-	})
-}
-
-// calculateRiskLevel determines risk level based on score and max score
-func (s *ReportPDFService) calculateRiskLevel(score, maxScore float64) string {
-	percentage := score / maxScore
-
-	switch {
-	case percentage < 0.25:
-		return "Nulo"
-	case percentage < 0.50:
-		return "Bajo"
-	case percentage < 0.75:
-		return "Medio"
-	case percentage <= 1.0:
-		return "Alto"
-	default:
-		return "N/A"
-	}
+	pdf.Ln(5) // Add some space after table
 }

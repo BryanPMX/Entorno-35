@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/entorno35/backend/internal/core/ports"
+	"github.com/entorno35/backend/internal/core/scoring"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -59,6 +60,12 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 		return nil, fmt.Errorf("failed to calculate scores: %w", err)
 	}
 
+	// Calculate category and domain risk levels using NOM-035 thresholds
+	categoryRiskLevels, domainRiskLevels, err := r.calculateRiskLevelsFromScores(categoryScores, domainScores, assessment.GuideType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate risk levels: %w", err)
+	}
+
 	// Extract demographics
 	department := ""
 	shift := ""
@@ -71,18 +78,20 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 
 	// Build DTO
 	dto := &domain.IndividualReportDTO{
-		AssessmentID:    assessment.ID,
-		Period:          assessment.Period,
-		GuideType:       assessment.GuideType,
-		StaffName:       assessment.Staff.FullName,
-		Department:      department,
-		Shift:           shift,
-		TotalScore:      *assessment.TotalScore,
-		RiskLevel:       *assessment.RiskLevel,
-		CategoryScores:  categoryScores,
-		DomainScores:    domainScores,
-		RequiresMedical: assessment.RequiresMedicalAttention,
-		CompletedAt:    assessment.CompletedAt,
+		AssessmentID:       assessment.ID,
+		Period:             assessment.Period,
+		GuideType:          assessment.GuideType,
+		StaffName:          assessment.Staff.FullName,
+		Department:         department,
+		Shift:              shift,
+		TotalScore:         *assessment.TotalScore,
+		RiskLevel:          *assessment.RiskLevel,
+		CategoryScores:     categoryScores,
+		CategoryRiskLevels: categoryRiskLevels,
+		DomainScores:       domainScores,
+		DomainRiskLevels:   domainRiskLevels,
+		RequiresMedical:    assessment.RequiresMedicalAttention,
+		CompletedAt:       assessment.CompletedAt,
 	}
 
 	return dto, nil
@@ -261,5 +270,112 @@ func (r *reportRepository) calculateScoresFromResponses(responses []domain.Respo
 	}
 
 	return categoryScores, domainScores, nil
+}
+
+// calculateRiskLevelsFromScores calculates risk levels for categories and domains using NOM-035 thresholds
+func (r *reportRepository) calculateRiskLevelsFromScores(categoryScores, domainScores map[string]float64, guideType domain.GuideType) (map[string]string, map[string]string, error) {
+	categoryRiskLevels := make(map[string]string)
+	domainRiskLevels := make(map[string]string)
+
+	// Load scoring rules
+	rules := scoring.LoadScoringRules()
+	var guideRules interface{}
+
+	if guideType == domain.GuideTypeII {
+		guideRules = rules.GuideII
+	} else if guideType == domain.GuideTypeIII {
+		guideRules = rules.GuideIII
+	} else {
+		// Guide I doesn't have category/domain structure
+		return categoryRiskLevels, domainRiskLevels, nil
+	}
+
+	// Calculate category risk levels
+	if guideII, ok := guideRules.(scoring.GuideIIScoringRules); ok {
+		for category, score := range categoryScores {
+			// Try exact match first
+			if thresholds, exists := guideII.Categories[category]; exists {
+				categoryRiskLevels[category] = string(thresholds.GetRiskLevel(score))
+			} else {
+				// Fallback: always calculate based on score magnitude
+				// Since NOM-035 scores are accumulated, use score-based logic
+				categoryRiskLevels[category] = r.calculateRiskFromScore(score)
+			}
+		}
+	} else if guideIII, ok := guideRules.(scoring.GuideIIIScoringRules); ok {
+		for category, score := range categoryScores {
+			if thresholds, exists := guideIII.Categories[category]; exists {
+				categoryRiskLevels[category] = string(thresholds.GetRiskLevel(score))
+			} else {
+				categoryRiskLevels[category] = r.calculateRiskFromScore(score)
+			}
+		}
+	} else {
+		// Fallback for any guide type
+		for category, score := range categoryScores {
+			categoryRiskLevels[category] = r.calculateRiskFromScore(score)
+		}
+	}
+
+	// Calculate domain risk levels
+	if guideII, ok := guideRules.(scoring.GuideIIScoringRules); ok {
+		for domain, score := range domainScores {
+			if thresholds, exists := guideII.Domains[domain]; exists {
+				domainRiskLevels[domain] = string(thresholds.GetRiskLevel(score))
+			} else {
+				// Fallback to percentage-based calculation
+				domainRiskLevels[domain] = string(r.getRiskLevelFromPercentage(score, 15))
+			}
+		}
+	} else if guideIII, ok := guideRules.(scoring.GuideIIIScoringRules); ok {
+		for domain, score := range domainScores {
+			if thresholds, exists := guideIII.Domains[domain]; exists {
+				domainRiskLevels[domain] = string(thresholds.GetRiskLevel(score))
+			} else {
+				// Fallback to percentage-based calculation
+				domainRiskLevels[domain] = string(r.getRiskLevelFromPercentage(score, 15))
+			}
+		}
+	}
+
+	return categoryRiskLevels, domainRiskLevels, nil
+}
+
+// calculateRiskFromScore provides intelligent risk level calculation based on score magnitude
+// This is used when specific NOM-035 thresholds are not available
+func (r *reportRepository) calculateRiskFromScore(score float64) string {
+	// For NOM-035, higher accumulated scores indicate higher risk
+	// Use reasonable thresholds based on typical score ranges
+	if score <= 5 {
+		return "nulo"
+	}
+	if score <= 15 {
+		return "bajo"
+	}
+	if score <= 30 {
+		return "medio"
+	}
+	if score <= 50 {
+		return "alto"
+	}
+	return "muy_alto"
+}
+
+// getRiskLevelFromPercentage provides fallback risk level calculation based on percentage
+func (r *reportRepository) getRiskLevelFromPercentage(score, maxScore float64) string {
+	percentage := (score / maxScore) * 100
+	if percentage < 25 {
+		return "nulo"
+	}
+	if percentage < 50 {
+		return "bajo"
+	}
+	if percentage < 75 {
+		return "medio"
+	}
+	if percentage < 90 {
+		return "alto"
+	}
+	return "muy_alto"
 }
 
