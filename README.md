@@ -1,207 +1,239 @@
 # Entorno35 - NOM-035 Compliance Platform
 
-Cloud-native SaaS platform for automating NOM-035-STPS-2018 compliance for Mexican organizations.
+A comprehensive SaaS solution for Mexican organizations to automate NOM-035-STPS-2018 workplace psychosocial risk assessments. Streamlines compliance reporting, staff evaluations, and risk analysis with professional dashboards and secure assessment interfaces.
 
-## Project Structure
+## Overview
+
+NOM-035-STPS-2018 is a Mexican federal standard that requires employers to identify, analyze, and prevent psychosocial risk factors in the workplace. Entorno35 automates this compliance process through:
+
+- **Staff Assessment Management**: Secure, anonymous evaluation links sent to employees
+- **Automated Risk Scoring**: Real-time calculation of psychosocial risk levels
+- **Compliance Reporting**: Individual and company-wide NOM-035 reports
+- **Professional Dashboards**: Analytics and monitoring for HR administrators
+- **Multi-tenant Architecture**: Secure isolation between organizations
+
+### Key Features
+
+- Complete NOM-035 question catalog (138 questions across 3 guides)
+- Automated risk level calculation (Nulo, Bajo, Medio, Alto, Muy Alto)
+- CSV staff import with CURP validation
+- Mobile-responsive assessment interface
+- Professional analytics dashboard
+- Secure token-based assessments
+- Multi-company support with tenant isolation
+
+## Project Architecture
+
+### Technology Stack
+
+- **Backend**: Go 1.24 with Gin web framework
+- **Frontend**: Next.js 16 with React 19 and TypeScript
+- **Database**: PostgreSQL 15 with GORM ORM
+- **Cache**: Redis 7
+- **Authentication**: JWT with bcrypt password hashing
+- **UI Framework**: Tailwind CSS with Radix UI components
+- **State Management**: Zustand with TanStack Query
+
+### Directory Structure
 
 ```
 Entorno35/
-├── cmd/                  # Backend application entry points
-│   ├── api/              # Main API server (Go)
-│   └── seeder/           # Database seeder
-├── internal/             # Backend private application code (Go)
-│   ├── adapters/         # HTTP and database adapters
+├── cmd/                  # Application entry points
+│   ├── api/              # Main API server
+│   └── seeder/           # Database seeding utility
+├── internal/             # Private application code
+│   ├── adapters/         # HTTP handlers and database adapters
 │   ├── auth/             # Authentication context
 │   ├── config/           # Configuration management
-│   ├── core/             # Core business logic
+│   ├── core/             # Business logic and domain services
 │   ├── database/         # Database connection utilities
 │   ├── domain/           # Domain models and entities
 │   └── middleware/       # HTTP middleware
-├── pkg/                  # Backend public reusable packages (Go)
-│   └── errors/           # Error handling
-├── migrations/           # Database migrations
-├── tests/                # Backend tests
-│   ├── integration/      # Integration tests
+├── pkg/                  # Public reusable packages
+│   └── errors/           # Error handling utilities
+├── migrations/           # Database schema migrations
+├── tests/                # Backend test suites
+│   ├── integration/      # End-to-end tests
 │   └── unit/             # Unit tests
-├── web/                  # Frontend application
-│   └── frontend/         # Next.js 14 frontend (TypeScript)
-│       ├── app/          # Next.js App Router pages
-│       ├── components/   # React components
-│       ├── lib/          # Utilities (axios, query client)
-│       ├── services/     # API service layer
-│       └── types/        # TypeScript type definitions
-├── docs/                 # Documentation
-│   ├── *_ENDPOINTS.md    # API endpoint documentation
-│   └── ...
-├── nom035_questions.json # Question catalog data
-├── risk_strategy.json    # Risk calculation strategy
-└── docker-compose.yml    # Docker services configuration
-
+├── web/frontend/         # Next.js frontend application
+│   ├── app/              # Next.js App Router pages
+│   ├── components/       # React components
+│   ├── lib/              # Utilities and configurations
+│   ├── services/         # API service layer
+│   └── types/            # TypeScript type definitions
+├── docs/                 # API and technical documentation
+├── nom035_questions.json # NOM-035 question catalog
+├── risk_strategy.json    # Risk calculation configuration
+└── docker-compose.yml    # Development environment
 ```
-
-### Architecture Separation
-
-- **Backend** (Go): Root directory structure (`cmd/`, `internal/`, `pkg/`, `migrations/`, `tests/`)
-- **Frontend** (Next.js/TypeScript): `web/frontend/` directory
-- **Documentation**: `docs/` directory
-- **Shared Data**: Root level JSON files (question catalog, risk strategy)
 
 ## Quick Start
 
 ### Prerequisites
 
-- Go 1.21+
-- Node.js 18+ (for frontend)
+- Go 1.24+
+- Node.js 18+
 - Docker & Docker Compose
-- PostgreSQL 15+ (via Docker)
-- Redis 7+ (via Docker)
+- Git
 
-### Setup
+### Development Setup
 
-1. **Clone the repository**
+1. **Clone and enter the repository**
    ```bash
    git clone <repository-url>
    cd Entorno-35
    ```
 
-2. **Start Docker services**
+2. **Start infrastructure services**
    ```bash
    make docker-up
-   # or
-   docker-compose up -d
+   # Starts PostgreSQL and Redis containers
    ```
 
-3. **Install Go dependencies**
+3. **Install dependencies**
    ```bash
+   # Backend dependencies
    make setup
-   # or
-   go mod download
+
+   # Frontend dependencies (in separate terminal)
+   cd web/frontend && npm install
    ```
 
-4. **Run the backend API**
+4. **Run database migrations**
    ```bash
+   make migrate-up
+   ```
+
+5. **Start the applications**
+   ```bash
+   # Backend API (terminal 1)
    make run
-   # or
-   go run cmd/api/main.go
+
+   # Frontend (terminal 2)
+   cd web/frontend && npm run dev
    ```
 
-5. **Run the frontend (optional, in a separate terminal)**
+6. **Verify installation**
    ```bash
-   cd web/frontend
-   npm install  # First time only
-   npm run dev
-   ```
-
-6. **Verify backend health**
-   ```bash
+   # Backend health check
    curl http://localhost:8080/health
+
+   # Frontend at http://localhost:3000
    ```
 
-7. **Verify frontend (if running)**
-   - Open http://localhost:3000 in your browser
+### For Administrators
+
+After setup, create your first company account through the web interface, then:
+
+1. Import staff data via CSV upload
+2. Create assessment cycles
+3. Generate secure assessment links
+4. Monitor completion and view reports
+
+### For Staff
+
+Staff receive assessment links via email and complete evaluations through the secure, mobile-responsive interface.
 
 ## Development
 
-### Make Commands
+### Available Commands
 
 ```bash
-make help          # Show all available commands
-make build         # Build the application
-make run           # Run the application
-make test          # Run tests with coverage
-make clean         # Clean build artifacts
-make docker-up     # Start Docker containers
-make docker-down   # Stop Docker containers
-make migrate-up    # Run database migrations
-make migrate-down  # Rollback database migrations
+# Project setup
+make setup          # Install Go dependencies
+make docker-up      # Start PostgreSQL and Redis
+make docker-down    # Stop containers
+make migrate-up     # Run database migrations
+make migrate-down   # Rollback migrations
+
+# Development
+make run            # Start backend API server
+make build          # Build backend binary
+make test           # Run all tests with coverage
+make clean          # Clean build artifacts
+
+# Frontend (from web/frontend/)
+npm install         # Install dependencies
+npm run dev         # Start development server
+npm run build       # Build for production
+npm test            # Run test suite
 ```
 
-### Environment Variables
+### Environment Configuration
 
-Copy `.env.example` to `.env` and configure:
+Create a `.env` file based on `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-**Note:** The `make run` command automatically loads environment variables from the `.env` file. No need to manually export variables.
+Key configuration options:
+- `DB_URL`: PostgreSQL connection string
+- `JWT_SECRET`: JWT signing key
+- `CORS_ORIGIN`: Frontend URL for CORS
+- `REDIS_URL`: Redis connection string
 
-## Architecture
+### Testing
 
-- **Backend**: Go (Golang) with Gin framework
-  - CORS middleware configured for frontend communication
-  - Automatic .env file loading via Makefile
-- **Frontend**: Next.js 14 with React
-  - TanStack Query for data fetching
-  - Axios client with automatic token injection
-- **Database**: PostgreSQL
-- **Cache/Queue**: Redis
-- **Infrastructure**: Docker Compose (dev) / Kubernetes (prod)
+```bash
+# Run all backend tests
+make test
 
-## Essential Data Files
+# Run frontend tests
+cd web/frontend && npm test
 
-- **`nom035_questions.json`** - Complete question catalog (138 questions)
-- **`docs/Scoring.md`** - Scoring implementation guide with thresholds
+# Run integration tests
+go test ./tests/integration/...
+```
 
-Note: Risk thresholds are stored as configuration (see `docs/Scoring.md`) and will be implemented in Phase 2's scoring engine service.
+### API Documentation
 
-## Git Workflow
+Detailed endpoint documentation is available in `docs/`:
+- `ASSESSMENT_ENDPOINTS.md` - Assessment management
+- `AUTH_ENDPOINTS.md` - Authentication
+- `STAFF_ENDPOINTS.md` - Staff management
+- `REPORT_ENDPOINTS.md` - Reporting and analytics
 
-- **`main`** - Production-ready code
-- **`develop`** - Integration branch (Phase 4 merged)
-- **`phase-{n}/{feature}`** - Feature branches for each phase
+## Data Files
 
-## Current Phase
+- **`nom035_questions.json`** - Complete NOM-035 question catalog (138 questions)
+- **`risk_strategy.json`** - Risk calculation configuration and thresholds
+- **`docs/Scoring.md`** - Scoring algorithm documentation
 
-**Phase 5: Frontend Implementation** - COMPLETED ✅
+## Project Status
 
-### Completed
-- Phase 1: Core Infrastructure (project setup, database, authentication)
-- Phase 2: Scoring Logic & Engine (strategy pattern, risk calculation)
-- Phase 3: API Implementation (assessments, responses, staff management)
-- Phase 4: Reporting & Compliance Engine (individual reports, general reports, recommendations)
-- Phase 5.1: Frontend Architecture & Service Layer (Next.js setup, TypeScript types, Axios client, service layer)
+This project implements a complete NOM-035 compliance solution with:
 
-### Completed (Continued)
-- Phase 5.2: Authentication UI & Gatekeeper - COMPLETED ✅
-  - Login screen with Company/Staff type support
-  - Zustand auth store with global state management
-  - Route protection (AuthGuard component)
-  - Dashboard layout with navigation
-  - Integration tests (12 tests passing)
+- **Backend API**: RESTful Go service with PostgreSQL
+- **Frontend Application**: Modern React/Next.js interface
+- **Assessment Engine**: Automated scoring and risk calculation
+- **Reporting System**: Individual and company-wide analytics
+- **Security**: JWT authentication with multi-tenant isolation
 
-- Phase 5.3: Staff Management UI - COMPLETED ✅
-  - Staff data table with pagination, sorting, and filtering
-  - CSV uploader with drag-and-drop, progress indication, and error handling
-  - Complete staff management page with table and upload integration
-  - UI components: table, pagination, dialog, alert, progress
-  - Template download functionality
-  - All tests passing (20/20 frontend tests)
+All core features are implemented and tested. The platform is production-ready for NOM-035-STPS-2018 compliance automation.
 
-- Phase 5.4: Dashboard & Analytics - COMPLETED ✅
-  - Professional admin dashboard with metrics and interactive charts
-  - Risk distribution donut chart with hover effects and tooltips
-  - Department heatmap bar chart with risk-based color coding
-  - Assessment creation wizard with multi-step modal
-  - Recharts integration for data visualization
-  - Sophisticated animations and professional UI/UX
-  - Empty state handling with onboarding cards
+For detailed development progress and roadmap, see `PROJECT_STATUS.md`.
 
-- Phase 5.5: Public Assessment Interface - COMPLETED ✅
-  - Minimalist, distraction-free exam interface for staff
-  - Progress bar with completion tracking
-  - Mobile-first, touch-optimized Likert scale
-  - Auto-advance navigation with seamless flow
-  - Secure token-based authentication
-  - Professional completion screen
+## Contributing
 
-### Next Steps
-1. Production preparation and deployment
-2. Database migration to production (password authentication)
-3. User acceptance testing and validation
-4. Performance optimization and security audit
-5. User training and documentation
+1. Fork the repository
+2. Create a feature branch from `develop`
+3. Make your changes with tests
+4. Ensure all tests pass
+5. Submit a pull request
+
+### Commit Convention
+
+```
+<type>(<scope>): <description>
+
+<body>
+
+<footer>
+```
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ## License
 
-Proprietary
+Proprietary software. All rights reserved.
