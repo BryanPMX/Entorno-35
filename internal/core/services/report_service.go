@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/entorno35/backend/internal/core/ports"
+	"github.com/entorno35/backend/internal/core/scoring"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/google/uuid"
 )
@@ -30,6 +31,9 @@ func (s *ReportService) GenerateIndividualReport(assessmentID uuid.UUID, company
 
 	// Generate recommendations based on risk level and domain scores
 	report.Recommendations = s.generateRecommendations(report.RiskLevel, report.DomainScores, report.GuideType)
+
+	// Add maximum scores for categories and domains based on guide type
+	report.CategoryMaxScores, report.DomainMaxScores = s.getMaxScoresForGuide(report.GuideType)
 
 	return report, nil
 }
@@ -131,5 +135,37 @@ func (s *ReportService) getTopDomains(domainScores map[string]float64, n int) []
 	}
 
 	return result
+}
+
+// getMaxScoresForGuide returns the maximum possible scores for categories and domains based on guide type
+func (s *ReportService) getMaxScoresForGuide(guideType domain.GuideType) (map[string]float64, map[string]float64) {
+	categoryMaxScores := make(map[string]float64)
+	domainMaxScores := make(map[string]float64)
+
+	// Get the scoring rules
+	rules := scoring.LoadScoringRules()
+
+	switch guideType {
+	case domain.GuideTypeII:
+		// Guide II category maximums (from risk thresholds, "muy alto" upper bound)
+		for category, thresholds := range rules.GuideII.Categories {
+			categoryMaxScores[category] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		}
+		// Guide II domain maximums
+		for domain, thresholds := range rules.GuideII.Domains {
+			domainMaxScores[domain] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		}
+	case domain.GuideTypeIII:
+		// Guide III category maximums
+		for category, thresholds := range rules.GuideIII.Categories {
+			categoryMaxScores[category] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		}
+		// Guide III domain maximums
+		for domain, thresholds := range rules.GuideIII.Domains {
+			domainMaxScores[domain] = thresholds.Ranges[3] // Upper bound for "alto" to "muy alto"
+		}
+	}
+
+	return categoryMaxScores, domainMaxScores
 }
 

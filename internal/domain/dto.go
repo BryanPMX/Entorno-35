@@ -46,8 +46,10 @@ type IndividualReportDTO struct {
 	RiskLevel           RiskLevel            `json:"risk_level"`
 	CategoryScores      map[string]float64   `json:"category_scores"`
 	CategoryRiskLevels  map[string]string `json:"category_risk_levels"`
+	CategoryMaxScores   map[string]float64   `json:"category_max_scores,omitempty"` // Maximum possible scores for each category
 	DomainScores        map[string]float64   `json:"domain_scores"`
 	DomainRiskLevels    map[string]string `json:"domain_risk_levels"`
+	DomainMaxScores     map[string]float64   `json:"domain_max_scores,omitempty"`   // Maximum possible scores for each domain
 	RequiresMedical     bool                 `json:"requires_medical_attention"`
 	CompletedAt         *time.Time           `json:"completed_at,omitempty"`
 	Recommendations     []string             `json:"recommendations,omitempty"`

@@ -42,12 +42,11 @@ export default function AssessmentReportPage() {
 
   // Fetch individual report data with more specific cache key
   const { data: report, isLoading, error, refetch } = useQuery({
-    queryKey: ["individual-report", assessmentId, "full"],
+    queryKey: ["individual-report", assessmentId],
     queryFn: () => reportService.getIndividualReport(assessmentId),
     enabled: !!assessmentId,
-    // Disable caching to ensure fresh data for each assessment view
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const getRiskBadge = (riskLevel: string) => {
@@ -292,6 +291,7 @@ export default function AssessmentReportPage() {
               <div className="space-y-4">
                 {Object.entries(report.category_scores).map(([category, score]) => {
                   const riskLevel = report.category_risk_levels?.[category] || "nulo";
+                  const maxScore = report.category_max_scores?.[category] || 20; // Fallback to 20 if not provided
                   return (
                     <div key={category} className="flex items-center justify-between">
                       <div className="flex-1">
@@ -302,13 +302,13 @@ export default function AssessmentReportPage() {
                         <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                           <div
                             className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(riskLevel)}`}
-                            style={{ width: `${Math.min((score / 20) * 100, 100)}%` }}
+                            style={{ width: `${Math.min((score / maxScore) * 100, 100)}%` }}
                           ></div>
                         </div>
                       </div>
                       <div className="ml-4 text-right">
                         <div className="font-semibold">{score.toFixed(1)}</div>
-                        <div className="text-xs text-gray-500">/20</div>
+                        <div className="text-xs text-gray-500">/{maxScore}</div>
                       </div>
                     </div>
                   );
@@ -329,6 +329,7 @@ export default function AssessmentReportPage() {
               <div className="space-y-4">
                 {Object.entries(report.domain_scores).map(([domain, score]) => {
                   const riskLevel = report.domain_risk_levels?.[domain] || "nulo";
+                  const maxScore = report.domain_max_scores?.[domain] || 15; // Fallback to 15 if not provided
                   return (
                     <div key={domain} className="flex items-center justify-between">
                       <div className="flex-1">
@@ -339,13 +340,13 @@ export default function AssessmentReportPage() {
                         <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                           <div
                             className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(riskLevel)}`}
-                            style={{ width: `${Math.min((score / 15) * 100, 100)}%` }}
+                            style={{ width: `${Math.min((score / maxScore) * 100, 100)}%` }}
                           ></div>
                         </div>
                       </div>
                       <div className="ml-4 text-right">
                         <div className="font-semibold">{score.toFixed(1)}</div>
-                        <div className="text-xs text-gray-500">/15</div>
+                        <div className="text-xs text-gray-500">/{maxScore}</div>
                       </div>
                     </div>
                   );
