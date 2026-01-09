@@ -88,7 +88,7 @@ export function AssessmentTable({
 
       onFiltersChange(filters);
     }
-  }, [statusFilter, periodFilter, onFiltersChange]);
+  }, [statusFilter, periodFilter, onFiltersChange]); // Added back onFiltersChange as it's now stable
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

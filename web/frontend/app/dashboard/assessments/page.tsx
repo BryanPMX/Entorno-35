@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AssessmentTable } from "@/components/assessments/assessment-table";
 import { assessmentService } from "@/services/assessment.service";
@@ -66,10 +66,10 @@ export default function AssessmentsPage() {
     }
   };
 
-  const handleFiltersChange = (newFilters: { status?: string; period?: number }) => {
+  const handleFiltersChange = useCallback((newFilters: { status?: string; period?: number }) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
-  };
+  }, []);
 
   return (
     <div className="space-y-8">
