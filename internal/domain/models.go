@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -204,7 +205,7 @@ type Staff struct {
 	ID           uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	CompanyID    uuid.UUID         `gorm:"type:uuid;not null;index" json:"company_id"`
 	CURP         *string           `gorm:"type:varchar(18)" json:"curp,omitempty"` // Made nullable for staff without CURPs
-	EmployeeID   *string           `gorm:"type:varchar(50);unique" json:"employee_id,omitempty"` // Auto-generated for staff without CURPs, nullable
+	EmployeeID   sql.NullString    `gorm:"type:varchar(50);unique" json:"employee_id,omitempty"` // Auto-generated for staff without CURPs, nullable
 	FullName     string            `gorm:"type:varchar(255);not null" json:"full_name"`
 	Email        string            `gorm:"type:varchar(255)" json:"email,omitempty"`
 	PasswordHash string            `gorm:"type:varchar(255)" json:"-"` // Not exposed in JSON
@@ -242,8 +243,8 @@ func (s *Staff) GetIdentifier() string {
 	if s.IsCURPAvailable() {
 		return *s.CURP
 	}
-	if s.EmployeeID != nil {
-		return *s.EmployeeID
+	if s.EmployeeID.Valid {
+		return s.EmployeeID.String
 	}
 	return ""
 }

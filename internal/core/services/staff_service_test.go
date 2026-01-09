@@ -507,8 +507,8 @@ func TestStaffService_CreateStaff_WithCURP_SetsEmployeeIDToNil(t *testing.T) {
 	}
 
 	mockRepo.On("Create", mock.MatchedBy(func(staff *domain.Staff) bool {
-		// Verify that CURP is set and EmployeeID is nil
-		return staff.CURP != nil && *staff.CURP == "ABCD123456HIJKLM01" && staff.EmployeeID == nil
+		// Verify that CURP is set and EmployeeID is NULL
+		return staff.CURP != nil && *staff.CURP == "ABCD123456HIJKLM01" && !staff.EmployeeID.Valid
 	})).Return(nil)
 
 	staff, err := service.CreateStaff(req, companyID)
@@ -519,7 +519,7 @@ func TestStaffService_CreateStaff_WithCURP_SetsEmployeeIDToNil(t *testing.T) {
 	assert.Equal(t, "test@example.com", staff.Email)
 	assert.NotNil(t, staff.CURP)
 	assert.Equal(t, "ABCD123456HIJKLM01", *staff.CURP)
-	assert.Nil(t, staff.EmployeeID) // EmployeeID should be nil for CURP users
+	assert.False(t, staff.EmployeeID.Valid) // EmployeeID should be NULL for CURP users
 
 	mockRepo.AssertExpectations(t)
 }
@@ -538,7 +538,7 @@ func TestStaffService_CreateStaff_WithoutCURP_SetsEmployeeID(t *testing.T) {
 	mockRepo.On("ListByCompany", companyID, 1000, 0).Return([]domain.Staff{}, int64(0), nil)
 	mockRepo.On("Create", mock.MatchedBy(func(staff *domain.Staff) bool {
 		// Verify that EmployeeID is set and CURP is nil
-		return staff.EmployeeID != nil && strings.HasPrefix(*staff.EmployeeID, "CMP") && staff.CURP == nil
+		return staff.EmployeeID.Valid && strings.HasPrefix(staff.EmployeeID.String, "CMP") && staff.CURP == nil
 	})).Return(nil)
 
 	staff, err := service.CreateStaff(req, companyID)
@@ -548,8 +548,8 @@ func TestStaffService_CreateStaff_WithoutCURP_SetsEmployeeID(t *testing.T) {
 	assert.Equal(t, "Test User", staff.FullName)
 	assert.Equal(t, "test@example.com", staff.Email)
 	assert.Nil(t, staff.CURP)
-	assert.NotNil(t, staff.EmployeeID)
-	assert.True(t, strings.HasPrefix(*staff.EmployeeID, "CMP"), "EmployeeID should start with CMP")
+	assert.True(t, staff.EmployeeID.Valid)
+	assert.True(t, strings.HasPrefix(staff.EmployeeID.String, "CMP"), "EmployeeID should start with CMP")
 
 	mockRepo.AssertExpectations(t)
 }

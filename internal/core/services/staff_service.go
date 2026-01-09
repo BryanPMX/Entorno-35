@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -89,14 +90,14 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 		// CURP provided - use it as primary identifier
 		normalizedCURP := strings.ToUpper(curp)
 		staff.CURP = &normalizedCURP
-		staff.EmployeeID = nil // Explicitly set to nil for CURP users
+		staff.EmployeeID = sql.NullString{Valid: false} // Explicitly set to NULL for CURP users
 	} else {
 		// No CURP provided - auto-generate employee ID
 		employeeID, err := s.generateEmployeeID(companyID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate employee ID: %w", err)
 		}
-		staff.EmployeeID = &employeeID // Set as pointer to generated string
+		staff.EmployeeID = sql.NullString{String: employeeID, Valid: true} // Set as valid string
 		staff.CURP = nil // Explicitly set to nil
 	}
 
@@ -118,7 +119,7 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 				if genErr != nil {
 					return nil, fmt.Errorf("failed to regenerate employee ID: %w", genErr)
 				}
-				staff.EmployeeID = &newEmployeeID // Set as pointer
+				staff.EmployeeID = sql.NullString{String: newEmployeeID, Valid: true} // Set as valid string
 				continue // Retry with new employee ID
 			}
 		}
@@ -259,9 +260,9 @@ func (s *StaffService) generateEmployeeID(companyID uuid.UUID) (string, error) {
 
 	// Find the highest sequence number for this company's prefix
 	for _, staff := range staffList {
-		if staff.EmployeeID != nil && strings.HasPrefix(*staff.EmployeeID, prefix) {
+		if staff.EmployeeID.Valid && strings.HasPrefix(staff.EmployeeID.String, prefix) {
 			// Extract sequence number from employee ID (format: CMPXXX-NNNN)
-			parts := strings.Split(*staff.EmployeeID, "-")
+			parts := strings.Split(staff.EmployeeID.String, "-")
 			if len(parts) == 2 {
 				var seq int
 				if _, err := fmt.Sscanf(parts[1], "%d", &seq); err == nil {
