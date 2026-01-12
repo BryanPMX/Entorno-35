@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download, RefreshCw } from "lucide-react";
+import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,7 @@ export default function AssessmentReportPage() {
   };
 
   // Fetch individual report data with more specific cache key
-  const { data: report, isLoading, error, refetch } = useQuery({
+  const { data: report, isLoading, error } = useQuery({
     queryKey: ["individual-report", assessmentId],
     queryFn: () => reportService.getIndividualReport(assessmentId),
     enabled: !!assessmentId,
@@ -155,15 +155,6 @@ export default function AssessmentReportPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               {translations.reports.backToAssessments}
             </Button>
-                <Button
-                  onClick={() => refetch()}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="mr-2"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  {translations.reports.refresh}
-                </Button>
                 <Button
                   onClick={handleDownloadPDF}
                   disabled={!report}
