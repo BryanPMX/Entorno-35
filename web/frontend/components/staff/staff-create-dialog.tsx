@@ -38,9 +38,9 @@ import { staffService, type CreateStaffRequest } from "@/services/staff.service"
 
 // Form validation schema
 const staffSchema = z.object({
-  full_name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  curp: z.string().length(18, "CURP must be exactly 18 characters").optional().or(z.literal("")),
+  full_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  email: z.string().email("Correo electronico invalido").optional().or(z.literal("")),
+  curp: z.string().length(18, "El CURP debe tener exactamente 18 caracteres").optional().or(z.literal("")),
   department: z.string().optional(),
   role: z.string().optional(),
   gender: z.enum(["masculino", "femenino", "otro"]).optional(),
@@ -49,6 +49,7 @@ const staffSchema = z.object({
   education_level: z.enum(["secundaria", "preparatoria", "universidad", "postgrado"]).optional(),
   shift_type: z.enum(["diurno", "nocturno", "mixto"]).optional(),
   time_in_position: z.enum(["<1 año", "1-3 años", "3-5 años", "5+ años"]).optional(),
+  total_work_experience: z.enum(["<1 año", "1-5 años", "5-10 años", "10+ años"]).optional(),
 });
 
 type StaffFormValues = z.infer<typeof staffSchema>;
@@ -60,16 +61,12 @@ interface StaffCreateDialogProps {
 }
 
 /**
- * StaffCreateDialog
- *
- * Modal dialog for manually creating individual staff members.
- * Includes comprehensive form validation and demographic data collection.
+ * StaffCreateDialog - Modal para crear miembros del personal manualmente
  */
 export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpenChange }: StaffCreateDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
 
@@ -87,6 +84,7 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
       education_level: undefined,
       shift_type: undefined,
       time_in_position: undefined,
+      total_work_experience: undefined,
     },
   });
 
@@ -94,7 +92,6 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
     setIsSubmitting(true);
 
     try {
-      // Prepare the request data
       const staffData: CreateStaffRequest = {
         full_name: values.full_name,
         email: values.email || undefined,
@@ -108,18 +105,18 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
           education_level: values.education_level,
           shift_type: values.shift_type,
           time_in_position: values.time_in_position,
+          total_work_experience: values.total_work_experience,
         },
       };
 
-      // Create the staff member
       await staffService.create(staffData);
 
-      toast.success("Staff member created successfully!");
+      toast.success("Personal creado exitosamente");
       form.reset();
       setOpen(false);
       onStaffCreated?.();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || "Failed to create staff member";
+      const errorMessage = error?.response?.data?.error || "Error al crear el personal";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -132,24 +129,24 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
         <DialogTrigger asChild>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Add Staff Member
+            Agregar Personal
           </Button>
         </DialogTrigger>
       )}
 
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Staff Member</DialogTitle>
+          <DialogTitle>Agregar Nuevo Personal</DialogTitle>
           <DialogDescription>
-            Manually create a staff member with their demographic information.
+            Crea un miembro del personal con su informacion demografica.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Information */}
+            {/* Informacion Basica */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Basic Information</h3>
+              <h3 className="text-lg font-medium">Informacion Basica</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -157,9 +154,9 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="full_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name *</FormLabel>
+                      <FormLabel>Nombre Completo *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Juan Pérez García" {...field} />
+                        <Input placeholder="Juan Perez Garcia" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -171,9 +168,9 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Correo Electronico</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="juan.perez@company.com" {...field} />
+                        <Input type="email" placeholder="juan.perez@empresa.com" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -196,9 +193,9 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
               />
             </div>
 
-            {/* Job Information */}
+            {/* Informacion Laboral */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Job Information</h3>
+              <h3 className="text-lg font-medium">Informacion Laboral</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -206,9 +203,9 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="department"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Department</FormLabel>
+                      <FormLabel>Departamento</FormLabel>
                       <FormControl>
-                        <Input placeholder="IT, HR, Sales..." {...field} />
+                        <Input placeholder="TI, RH, Ventas..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,9 +217,9 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Role/Position</FormLabel>
+                      <FormLabel>Puesto</FormLabel>
                       <FormControl>
-                        <Input placeholder="Developer, Manager, Analyst..." {...field} />
+                        <Input placeholder="Desarrollador, Gerente..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -231,9 +228,9 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
               </div>
             </div>
 
-            {/* Demographics */}
+            {/* Datos Demograficos */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Demographics</h3>
+              <h3 className="text-lg font-medium">Datos Demograficos</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -241,11 +238,11 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="gender"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Gender</FormLabel>
+                      <FormLabel>Genero</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
+                            <SelectValue placeholder="Seleccionar genero" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -264,19 +261,19 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="age_range"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Age Range</FormLabel>
+                      <FormLabel>Rango de Edad</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select age range" />
+                            <SelectValue placeholder="Seleccionar rango" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="18-25">18-25</SelectItem>
-                          <SelectItem value="26-35">26-35</SelectItem>
-                          <SelectItem value="36-45">36-45</SelectItem>
-                          <SelectItem value="46-55">46-55</SelectItem>
-                          <SelectItem value="56+">56+</SelectItem>
+                          <SelectItem value="18-25">18-25 años</SelectItem>
+                          <SelectItem value="26-35">26-35 años</SelectItem>
+                          <SelectItem value="36-45">36-45 años</SelectItem>
+                          <SelectItem value="46-55">46-55 años</SelectItem>
+                          <SelectItem value="56+">56+ años</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -289,18 +286,18 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="marital_status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Marital Status</FormLabel>
+                      <FormLabel>Estado Civil</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select marital status" />
+                            <SelectValue placeholder="Seleccionar estado" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="soltero">Soltero</SelectItem>
-                          <SelectItem value="casado">Casado</SelectItem>
-                          <SelectItem value="divorciado">Divorciado</SelectItem>
-                          <SelectItem value="viudo">Viudo</SelectItem>
+                          <SelectItem value="soltero">Soltero(a)</SelectItem>
+                          <SelectItem value="casado">Casado(a)</SelectItem>
+                          <SelectItem value="divorciado">Divorciado(a)</SelectItem>
+                          <SelectItem value="viudo">Viudo(a)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -313,11 +310,11 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="education_level"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Education Level</FormLabel>
+                      <FormLabel>Nivel Educativo</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select education level" />
+                            <SelectValue placeholder="Seleccionar nivel" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -337,11 +334,11 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="shift_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Shift Type</FormLabel>
+                      <FormLabel>Tipo de Turno</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select shift type" />
+                            <SelectValue placeholder="Seleccionar turno" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -360,18 +357,42 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                   name="time_in_position"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time in Position</FormLabel>
+                      <FormLabel>Tiempo en el Puesto</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select time in position" />
+                            <SelectValue placeholder="Seleccionar tiempo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="<1 año">&lt;1 año</SelectItem>
+                          <SelectItem value="<1 año">Menos de 1 año</SelectItem>
                           <SelectItem value="1-3 años">1-3 años</SelectItem>
                           <SelectItem value="3-5 años">3-5 años</SelectItem>
-                          <SelectItem value="5+ años">5+ años</SelectItem>
+                          <SelectItem value="5+ años">Mas de 5 años</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="total_work_experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Experiencia Laboral Total</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar experiencia" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="<1 año">Menos de 1 año</SelectItem>
+                          <SelectItem value="1-5 años">1-5 años</SelectItem>
+                          <SelectItem value="5-10 años">5-10 años</SelectItem>
+                          <SelectItem value="10+ años">Mas de 10 años</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -388,10 +409,10 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
                 onClick={() => setOpen(false)}
                 disabled={isSubmitting}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Staff Member"}
+                {isSubmitting ? "Creando..." : "Crear Personal"}
               </Button>
             </DialogFooter>
           </form>

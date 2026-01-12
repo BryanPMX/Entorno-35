@@ -8,16 +8,16 @@ import { staffService } from "@/services/staff.service";
 import type { PaginatedResponse, Staff } from "@/types/backend";
 
 /**
- * Staff Management Page
+ * Pagina de Gestion de Personal
  *
- * Comprehensive staff management with data table and CSV import functionality.
+ * Administracion integral del personal con tabla de datos y funcionalidad de importacion CSV.
  */
 export default function StaffPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(50);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  // Fetch staff data with pagination
+  // Obtener datos del personal con paginacion
   const {
     data: staffData,
     isLoading,
@@ -27,24 +27,20 @@ export default function StaffPage() {
     queryFn: () => staffService.getAll({ limit, offset: (currentPage - 1) * limit }),
   });
 
-  // Handle page changes
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  // Handle limit changes
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
-    setCurrentPage(1); // Reset to first page when changing limit
+    setCurrentPage(1);
   };
 
-  // Handle CSV upload completion
   const handleUploadComplete = () => {
     setIsUploadModalOpen(false);
-    refetch(); // Refresh the staff data
+    refetch();
   };
 
-  // Handle CSV upload modal open
   const handleCsvUpload = () => {
     setIsUploadModalOpen(true);
   };
@@ -52,9 +48,9 @@ export default function StaffPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Gestion de Personal</h1>
         <p className="text-gray-600 mt-2">
-          Manage your staff members, view their information, and import via CSV
+          Administra los miembros del personal, visualiza su informacion e importa mediante CSV
         </p>
       </div>
 
@@ -77,4 +73,3 @@ export default function StaffPage() {
     </div>
   );
 }
-

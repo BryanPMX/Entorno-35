@@ -4,14 +4,17 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AssessmentTable } from "@/components/assessments/assessment-table";
 import { assessmentService } from "@/services/assessment.service";
+import { reportService } from "@/services/report.service";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 
 /**
- * Assessments Page
+ * Pagina de Evaluaciones
  *
- * Comprehensive assessment management interface for NOM-035 compliance.
- * Features assessment listing, filtering, creation, and status tracking.
+ * Interfaz de gestion de evaluaciones NOM-035.
+ * Incluye listado, filtrado, creacion y seguimiento de estado.
  */
 export default function AssessmentsPage() {
   const router = useRouter();
@@ -19,7 +22,7 @@ export default function AssessmentsPage() {
   const [limit, setLimit] = useState(25);
   const [filters, setFilters] = useState<{ status?: string; period?: number }>({});
 
-  // Fetch assessments with pagination and filters
+  // Obtener evaluaciones con paginacion y filtros
   const { data: assessmentData, isLoading, refetch } = useQuery({
     queryKey: ["assessments", currentPage, limit, filters],
     queryFn: () =>
@@ -36,11 +39,11 @@ export default function AssessmentsPage() {
 
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
-    setCurrentPage(1); // Reset to first page when changing limit
+    setCurrentPage(1);
   };
 
   const handleCreateAssessment = () => {
-    refetch(); // Refresh the list after creating an assessment
+    refetch();
   };
 
   const handleViewReport = (assessmentId: string) => {
@@ -48,17 +51,15 @@ export default function AssessmentsPage() {
   };
 
   const copyToClipboard = async (text: string): Promise<boolean> => {
-    // Try modern clipboard API first
     if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(text);
         return true;
       } catch (error) {
-        console.warn("Clipboard API failed:", error);
+        console.warn("Error al copiar:", error);
       }
     }
 
-    // Fallback: Use textarea method
     try {
       const textArea = document.createElement("textarea");
       textArea.value = text;
@@ -74,52 +75,103 @@ export default function AssessmentsPage() {
 
       return successful;
     } catch (error) {
-      console.error("Fallback clipboard method failed:", error);
+      console.error("Error al copiar:", error);
       return false;
     }
   };
 
   const handleGenerateLink = async (assessmentId: string) => {
     try {
-      const linkData = await assessmentService.createLink(assessmentId, 7); // 7 days expiry
+      const linkData = await assessmentService.createLink(assessmentId, 7);
 
-      // Copy link to clipboard with fallback
       const fullLink = `${window.location.origin}/assessment/${linkData.token}`;
       const copied = await copyToClipboard(fullLink);
 
       if (copied) {
-        toast.success("Assessment link copied to clipboard!", {
-          description: "The secure link has been generated and copied to your clipboard.",
+        toast.success("Enlace copiado al portapapeles", {
+          description: "El enlace seguro ha sido generado y copiado.",
         });
       } else {
-        // Fallback: Show link that user can copy manually
-        toast.success("Assessment link generated!", {
-          description: `Copy this link: ${fullLink}`,
-          duration: 10000, // Show for 10 seconds
+        toast.success("Enlace generado", {
+          description: `Copia este enlace: ${fullLink}`,
+          duration: 10000,
         });
       }
 
-      refetch(); // Refresh to show any status changes
+      refetch();
     } catch (error) {
-      toast.error("Failed to generate assessment link", {
-        description: "Please try again or contact support if the issue persists.",
+      toast.error("Error al generar el enlace", {
+        description: "Por favor intenta de nuevo o contacta a soporte.",
       });
-      console.error("Link generation error:", error);
+      console.error("Error al generar enlace:", error);
+    }
+  };
+
+  const handleSendEmail = async (assessmentId: string, email: string) => {
+    try {
+      await assessmentService.sendEmail(assessmentId, email);
+      toast.success("Correo enviado exitosamente", {
+        description: `El enlace de evaluacion ha sido enviado a ${email}`,
+      });
+      refetch();
+    } catch (error) {
+      toast.error("Error al enviar el correo", {
+        description: "Por favor verifica el correo e intenta de nuevo.",
+      });
+      console.error("Error al enviar correo:", error);
     }
   };
 
   const handleFiltersChange = useCallback((newFilters: { status?: string; period?: number }) => {
     setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, []);
+
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadGeneralReport = async () => {
+    try {
+      setIsDownloading(true);
+      const pdfBlob = await reportService.downloadGeneralReportPDF(filters.period);
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `NOM035_Reporte_General_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Reporte general descargado exitosamente");
+    } catch (error) {
+      console.error('Error al descargar reporte:', error);
+      toast.error("Error al descargar el reporte general");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="heading-1">Assessments</h1>
-        <p className="label-muted mt-2">
-          Create and manage NOM-035 assessments for your staff members
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Evaluaciones</h1>
+          <p className="text-gray-600 mt-2">
+            Crea y gestiona evaluaciones NOM-035 para tu personal
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleDownloadGeneralReport}
+          disabled={isDownloading}
+          className="flex items-center space-x-2"
+        >
+          {isDownloading ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : (
+            <FileText className="h-4 w-4" />
+          )}
+          <span>Descargar Reporte General</span>
+        </Button>
       </div>
 
       <AssessmentTable
@@ -133,8 +185,8 @@ export default function AssessmentsPage() {
         onViewReport={handleViewReport}
         onGenerateLink={handleGenerateLink}
         onFiltersChange={handleFiltersChange}
+        onSendEmail={handleSendEmail}
       />
     </div>
   );
 }
-

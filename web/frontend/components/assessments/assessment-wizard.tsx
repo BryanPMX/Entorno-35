@@ -3,10 +3,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -16,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Users, Settings, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 import { staffService } from "@/services/staff.service";
@@ -68,9 +65,9 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
   });
 
   const steps = [
-    { id: "select-staff", title: "Select Staff", icon: Users },
-    { id: "configure", title: "Configure", icon: Settings },
-    { id: "review", title: "Review & Create", icon: Eye },
+    { id: "select-staff", title: "Seleccionar", icon: Users },
+    { id: "configure", title: "Configurar", icon: Settings },
+    { id: "review", title: "Revisar", icon: Eye },
   ];
 
   const currentStepIndex = steps.findIndex(step => step.id === currentStep);
@@ -109,16 +106,14 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
   };
 
   const handleCreateAssessments = async () => {
-    // Create assessments for all selected staff
     const promises = selectedStaff.map(staff =>
       createAssessmentMutation.mutateAsync(staff.id)
     );
 
     try {
       await Promise.all(promises);
-      // Success is handled by the mutation's onSuccess
     } catch (error) {
-      console.error("Failed to create assessments:", error);
+      console.error("Error al crear evaluaciones:", error);
     }
   };
 
@@ -139,9 +134,9 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">Select Staff Members</h3>
+              <h3 className="text-lg font-medium">Seleccionar Personal</h3>
               <Badge variant="secondary">
-                {selectedStaff.length} selected
+                {selectedStaff.length} seleccionados
               </Badge>
             </div>
 
@@ -158,8 +153,8 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
                     </div>
                   ))}
                 </div>
-              ) : (
-                staffData?.data.map((staff) => (
+              ) : staffData?.data && staffData.data.length > 0 ? (
+                staffData.data.map((staff) => (
                   <div
                     key={staff.id}
                     className="flex items-center space-x-3 p-3 border rounded hover:bg-muted/50 transition-colors"
@@ -180,6 +175,12 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
                     </div>
                   </div>
                 ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="h-8 w-8 mx-auto mb-2" />
+                  <p>No hay personal registrado</p>
+                  <p className="text-sm">Primero debes agregar personal a tu organizacion</p>
+                </div>
               )}
             </div>
           </div>
@@ -189,7 +190,7 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
         return (
           <div className="space-y-6">
             <div>
-              <Label htmlFor="period">Assessment Period</Label>
+              <Label htmlFor="period">Periodo de Evaluacion</Label>
               <Input
                 id="period"
                 type="number"
@@ -203,9 +204,16 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
 
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
               <p className="text-sm text-blue-800">
-                <strong>Note:</strong> The assessment guide type (Guide II or Guide III) is automatically 
-                determined based on your company's employee count. Guide II is used for companies with 
-                16-50 employees, and Guide III for companies with more than 50 employees.
+                <strong>Nota:</strong> El tipo de guia (Guia II o Guia III) se determina automaticamente 
+                segun el numero de empleados de tu empresa. La Guia II se usa para empresas con 
+                16-50 empleados, y la Guia III para empresas con mas de 50 empleados.
+              </p>
+            </div>
+
+            <div className="rounded-md border p-4">
+              <h4 className="font-medium mb-2">Resumen de Seleccion</h4>
+              <p className="text-sm text-muted-foreground">
+                Se crearan {selectedStaff.length} evaluacion{selectedStaff.length !== 1 ? 'es' : ''} para el periodo {period}
               </p>
             </div>
           </div>
@@ -216,22 +224,29 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
           <div className="space-y-6">
             <div className="text-center">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Assessments Created Successfully!</h3>
+              <h3 className="text-lg font-medium mb-2">¡Evaluaciones Creadas Exitosamente!</h3>
               <p className="text-muted-foreground">
-                {selectedStaff.length} assessment{selectedStaff.length !== 1 ? 's' : ''} have been created for the {period} period.
+                {selectedStaff.length} evaluacion{selectedStaff.length !== 1 ? 'es' : ''} {selectedStaff.length !== 1 ? 'han' : 'ha'} sido creada{selectedStaff.length !== 1 ? 's' : ''} para el periodo {period}.
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-medium">Created Assessments:</h4>
+              <h4 className="font-medium">Evaluaciones Creadas:</h4>
               <div className="max-h-40 overflow-y-auto space-y-1">
                 {selectedStaff.map((staff) => (
                   <div key={staff.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
                     <span className="text-sm">{staff.full_name}</span>
-                    <Badge variant="outline">Period {period}</Badge>
+                    <Badge variant="outline">Periodo {period}</Badge>
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-800">
+                <strong>Siguiente paso:</strong> Genera enlaces de evaluacion desde la tabla de evaluaciones 
+                y comparte con tu personal para que completen su cuestionario NOM-035.
+              </p>
             </div>
           </div>
         );
@@ -250,10 +265,10 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Users className="h-5 w-5" />
-            <span>Create Assessment Cycle</span>
+            <span>Crear Ciclo de Evaluacion</span>
           </DialogTitle>
           <DialogDescription>
-            Create assessments for multiple staff members in a few simple steps.
+            Crea evaluaciones para multiples empleados en unos pocos pasos.
           </DialogDescription>
         </DialogHeader>
 
@@ -309,12 +324,12 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
               className="flex items-center space-x-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
+              <span>Atras</span>
             </Button>
 
             <div className="flex space-x-2">
               <Button variant="outline" onClick={handleClose}>
-                Cancel
+                Cancelar
               </Button>
 
               {currentStep === "configure" ? (
@@ -326,11 +341,11 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
                   {createAssessmentMutation.isPending ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Creating...</span>
+                      <span>Creando...</span>
                     </>
                   ) : (
                     <>
-                      <span>Create Assessments</span>
+                      <span>Crear Evaluaciones</span>
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -344,7 +359,7 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
                   }
                   className="flex items-center space-x-2"
                 >
-                  <span>Next</span>
+                  <span>Siguiente</span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               )}
@@ -356,7 +371,7 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
           <div className="flex justify-end pt-6 border-t">
             <Button onClick={handleClose} className="flex items-center space-x-2">
               <CheckCircle className="h-4 w-4" />
-              <span>Done</span>
+              <span>Listo</span>
             </Button>
           </div>
         )}

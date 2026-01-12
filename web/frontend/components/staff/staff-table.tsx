@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronUp, ChevronDown, Upload, Users } from "lucide-react";
+import { ChevronUp, ChevronDown, Upload, Users, Edit2, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StaffCreateDialog } from "./staff-create-dialog";
-import { Input } from "@/components/ui/input";
+import { StaffEditDialog } from "./staff-edit-dialog";
+import { StaffDeleteDialog } from "./staff-delete-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,6 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Pagination,
   PaginationContent,
@@ -27,13 +34,9 @@ import type { PaginatedResponse, Staff } from "@/types/backend";
 // Helper function to extract string value from sql.NullString
 const getEmployeeIdValue = (employeeId: string | null | any): string | null => {
   if (!employeeId) return null;
-
-  // Handle sql.NullString object format
   if (typeof employeeId === 'object' && employeeId !== null) {
     return employeeId.Valid ? employeeId.String : null;
   }
-
-  // Handle string or null directly
   return employeeId;
 };
 
@@ -64,6 +67,8 @@ export function StaffTable({
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [deletingStaff, setDeletingStaff] = useState<Staff | null>(null);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -72,7 +77,6 @@ export function StaffTable({
       setSortField(field);
       setSortDirection("asc");
     }
-    // In a real implementation, you'd call an API with sort parameters
   };
 
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
@@ -99,17 +103,17 @@ export function StaffTable({
 
   return (
     <div className="space-y-6">
-      {/* Header with stats and upload button */}
+      {/* Header with stats and buttons */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <Users className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">
-                {staffData?.total || 0} Staff Members
+                {staffData?.total || 0} Miembros del Personal
               </p>
               <p className="text-xs text-muted-foreground">
-                Showing {startItem}-{endItem} of {staffData?.total || 0}
+                Mostrando {startItem}-{endItem} de {staffData?.total || 0}
               </p>
             </div>
           </div>
@@ -117,11 +121,11 @@ export function StaffTable({
         <div className="flex space-x-2">
           <Button onClick={() => setIsCreateDialogOpen(true)} variant="default">
             <Users className="h-4 w-4 mr-2" />
-            Add Staff Member
+            Agregar Personal
           </Button>
           <Button onClick={onCsvUpload} variant="outline" className="flex items-center space-x-2">
             <Upload className="h-4 w-4" />
-            <span>Import CSV</span>
+            <span>Importar CSV</span>
           </Button>
         </div>
       </div>
@@ -129,9 +133,9 @@ export function StaffTable({
       {/* Staff Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Staff Members</CardTitle>
+          <CardTitle>Lista de Personal</CardTitle>
           <CardDescription>
-            Manage your staff members and their information
+            Gestiona la informacion de los miembros del personal
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -140,26 +144,27 @@ export function StaffTable({
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <SortButton field="full_name">Name</SortButton>
+                    <SortButton field="full_name">Nombre</SortButton>
                   </TableHead>
-                  <TableHead>Identifier</TableHead>
+                  <TableHead>Identificador</TableHead>
                   <TableHead>
-                    <SortButton field="email">Email</SortButton>
+                    <SortButton field="email">Correo Electronico</SortButton>
                   </TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>Departamento</TableHead>
+                  <TableHead>Puesto</TableHead>
                   <TableHead>
-                    <SortButton field="created_at">Created</SortButton>
+                    <SortButton field="created_at">Fecha de Registro</SortButton>
                   </TableHead>
+                  <TableHead className="w-[70px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <div className="flex items-center justify-center space-x-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                        <span>Loading staff members...</span>
+                        <span>Cargando personal...</span>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -180,14 +185,37 @@ export function StaffTable({
                         {staff.demographics?.role || "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {new Date(staff.created_at).toLocaleDateString()}
+                        {new Date(staff.created_at).toLocaleDateString("es-MX")}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Acciones</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setEditingStaff(staff)}>
+                              <Edit2 className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setDeletingStaff(staff)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No staff members found. Import staff data using the CSV upload feature.
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No hay personal registrado. Importa datos usando la funcion de carga CSV.
                     </TableCell>
                   </TableRow>
                 )}
@@ -199,7 +227,7 @@ export function StaffTable({
           {staffData && staffData.total > limit && (
             <div className="flex items-center justify-between pt-4">
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Show</span>
+                <span className="text-sm text-muted-foreground">Mostrar</span>
                 <select
                   value={limit}
                   onChange={(e) => onLimitChange(Number(e.target.value))}
@@ -210,7 +238,7 @@ export function StaffTable({
                   <option value={50}>50</option>
                   <option value={100}>100</option>
                 </select>
-                <span className="text-sm text-muted-foreground">per page</span>
+                <span className="text-sm text-muted-foreground">por pagina</span>
               </div>
 
               <Pagination>
@@ -224,7 +252,6 @@ export function StaffTable({
                     />
                   </PaginationItem>
 
-                  {/* Page numbers */}
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNumber = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
                     if (pageNumber > totalPages) return null;
@@ -257,11 +284,32 @@ export function StaffTable({
         </CardContent>
       </Card>
 
+      {/* Dialogs */}
       <StaffCreateDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onStaffCreated={() => {
           setIsCreateDialogOpen(false);
+          onDataRefresh?.();
+        }}
+      />
+
+      <StaffEditDialog
+        staff={editingStaff}
+        open={!!editingStaff}
+        onOpenChange={(open) => !open && setEditingStaff(null)}
+        onStaffUpdated={() => {
+          setEditingStaff(null);
+          onDataRefresh?.();
+        }}
+      />
+
+      <StaffDeleteDialog
+        staff={deletingStaff}
+        open={!!deletingStaff}
+        onOpenChange={(open) => !open && setDeletingStaff(null)}
+        onStaffDeleted={() => {
+          setDeletingStaff(null);
           onDataRefresh?.();
         }}
       />

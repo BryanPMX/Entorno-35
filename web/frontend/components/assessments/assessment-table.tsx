@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronUp, ChevronDown, Eye, Link, Plus, FileText, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { ChevronUp, ChevronDown, Eye, Link, Plus, FileText, AlertTriangle, CheckCircle, Clock, Mail, MoreHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,6 +15,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Pagination,
   PaginationContent,
   PaginationItem,
@@ -24,6 +30,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { AssessmentWizard } from "./assessment-wizard";
+import { AssessmentDeleteDialog } from "./assessment-delete-dialog";
 import type { PaginatedResponse, Assessment } from "@/types/backend";
 
 interface AssessmentTableProps {
@@ -37,15 +44,16 @@ interface AssessmentTableProps {
   onViewReport?: (assessmentId: string) => void;
   onGenerateLink?: (assessmentId: string) => void;
   onFiltersChange?: (filters: { status?: string; period?: number }) => void;
+  onSendEmail?: (assessmentId: string, email: string) => void;
 }
 
 type SortField = "created_at" | "staff_name" | "status" | "risk_level" | "period";
 type SortDirection = "asc" | "desc";
 
 const statusConfig = {
-  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800", icon: Clock },
-  completed: { label: "Completed", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-800", icon: AlertTriangle },
+  pending: { label: "Pendiente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
+  completed: { label: "Completado", color: "bg-green-100 text-green-800", icon: CheckCircle },
+  cancelled: { label: "Cancelado", color: "bg-gray-100 text-gray-800", icon: AlertTriangle },
 };
 
 const riskLevelConfig = {
@@ -67,13 +75,14 @@ export function AssessmentTable({
   onViewReport,
   onGenerateLink,
   onFiltersChange,
+  onSendEmail,
 }: AssessmentTableProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState<string>("all");
+  const [deletingAssessment, setDeletingAssessment] = useState<Assessment | null>(null);
 
-  // Notify parent component when filters change
   useEffect(() => {
     if (onFiltersChange) {
       const filters: { status?: string; period?: number } = {};
@@ -88,7 +97,7 @@ export function AssessmentTable({
 
       onFiltersChange(filters);
     }
-  }, [statusFilter, periodFilter, onFiltersChange]); // Added back onFiltersChange as it's now stable
+  }, [statusFilter, periodFilter, onFiltersChange]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -164,7 +173,11 @@ export function AssessmentTable({
     if (assessment.staff) {
       return assessment.staff.full_name;
     }
-    return `Staff ${assessment.staff_id.slice(-4)}`;
+    return `Empleado ${assessment.staff_id.slice(-4)}`;
+  };
+
+  const getStaffEmail = (assessment: Assessment) => {
+    return assessment.staff?.email || null;
   };
 
   return (
@@ -174,26 +187,26 @@ export function AssessmentTable({
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex items-center gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">Todos los Estados</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="completed">Completado</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={periodFilter} onValueChange={setPeriodFilter}>
-              <SelectTrigger className="w-24">
-                <SelectValue placeholder="Period" />
+              <SelectTrigger className="w-28">
+                <SelectValue placeholder="Periodo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Years</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="2026">2026</SelectItem>
                 <SelectItem value="2025">2025</SelectItem>
                 <SelectItem value="2024">2024</SelectItem>
-                <SelectItem value="2023">2023</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -203,7 +216,7 @@ export function AssessmentTable({
           trigger={
             <Button className="flex items-center space-x-2">
               <Plus className="h-4 w-4" />
-              <span>Create Assessment</span>
+              <span>Nueva Evaluacion</span>
             </Button>
           }
         />
@@ -214,10 +227,10 @@ export function AssessmentTable({
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <FileText className="h-5 w-5" />
-            <span>Assessments</span>
+            <span>Evaluaciones</span>
           </CardTitle>
           <CardDescription>
-            Manage and track NOM-035 assessments for your organization
+            Gestiona y da seguimiento a las evaluaciones NOM-035 de tu organizacion
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -225,17 +238,16 @@ export function AssessmentTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortableHeader field="staff_name">Staff Member</SortableHeader>
-                  <SortableHeader field="period">Period</SortableHeader>
-                  <SortableHeader field="status">Status</SortableHeader>
-                  <SortableHeader field="risk_level">Risk Level</SortableHeader>
-                  <SortableHeader field="created_at">Created</SortableHeader>
-                  <TableHead>Actions</TableHead>
+                  <SortableHeader field="staff_name">Empleado</SortableHeader>
+                  <SortableHeader field="period">Periodo</SortableHeader>
+                  <SortableHeader field="status">Estado</SortableHeader>
+                  <SortableHeader field="risk_level">Nivel de Riesgo</SortableHeader>
+                  <SortableHeader field="created_at">Creado</SortableHeader>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  // Loading skeleton
                   Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index}>
                       <TableCell>
@@ -256,7 +268,6 @@ export function AssessmentTable({
                       <TableCell>
                         <div className="flex gap-2">
                           <div className="h-8 bg-gray-200 rounded animate-pulse w-16" />
-                          <div className="h-8 bg-gray-200 rounded animate-pulse w-16" />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -266,9 +277,9 @@ export function AssessmentTable({
                     <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="h-8 w-8 text-gray-400" />
-                        <p className="text-gray-500">No assessments found</p>
+                        <p className="text-gray-500">No hay evaluaciones encontradas</p>
                         <p className="text-sm text-gray-400">
-                          Create your first assessment to get started
+                          Crea tu primera evaluacion para comenzar
                         </p>
                       </div>
                     </TableCell>
@@ -277,7 +288,12 @@ export function AssessmentTable({
                   assessmentData?.data.map((assessment) => (
                     <TableRow key={assessment.id}>
                       <TableCell className="font-medium">
-                        {getStaffName(assessment)}
+                        <div>
+                          <p>{getStaffName(assessment)}</p>
+                          {getStaffEmail(assessment) && (
+                            <p className="text-xs text-muted-foreground">{getStaffEmail(assessment)}</p>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{assessment.period}</TableCell>
                       <TableCell>{getStatusBadge(assessment.status)}</TableCell>
@@ -286,30 +302,48 @@ export function AssessmentTable({
                         {formatDate(assessment.created_at)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {assessment.status === "pending" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onGenerateLink?.(assessment.id)}
-                              className="flex items-center space-x-1"
-                            >
-                              <Link className="h-3 w-3" />
-                              <span>Link</span>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Acciones</span>
                             </Button>
-                          )}
-                          {assessment.status === "completed" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onViewReport?.(assessment.id)}
-                              className="flex items-center space-x-1"
-                            >
-                              <Eye className="h-3 w-3" />
-                              <span>Report</span>
-                            </Button>
-                          )}
-                        </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {assessment.status === "pending" && (
+                              <>
+                                <DropdownMenuItem onClick={() => onGenerateLink?.(assessment.id)}>
+                                  <Link className="h-4 w-4 mr-2" />
+                                  Generar Enlace
+                                </DropdownMenuItem>
+                                {getStaffEmail(assessment) && onSendEmail && (
+                                  <DropdownMenuItem 
+                                    onClick={() => onSendEmail(assessment.id, getStaffEmail(assessment)!)}
+                                  >
+                                    <Mail className="h-4 w-4 mr-2" />
+                                    Enviar por Correo
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {assessment.status === "completed" && (
+                              <DropdownMenuItem onClick={() => onViewReport?.(assessment.id)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Reporte
+                              </DropdownMenuItem>
+                            )}
+                            {assessment.status === "pending" && (
+                              <DropdownMenuItem
+                                onClick={() => setDeletingAssessment(assessment)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -322,7 +356,7 @@ export function AssessmentTable({
           {assessmentData && assessmentData.total > limit && (
             <div className="flex items-center justify-between px-2 py-4">
               <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span>Show</span>
+                <span>Mostrar</span>
                 <Select
                   value={limit.toString()}
                   onValueChange={(value) => onLimitChange(parseInt(value))}
@@ -337,7 +371,7 @@ export function AssessmentTable({
                     <SelectItem value="100">100</SelectItem>
                   </SelectContent>
                 </Select>
-                <span>per page</span>
+                <span>por pagina</span>
               </div>
 
               <Pagination>
@@ -400,6 +434,17 @@ export function AssessmentTable({
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Dialog */}
+      <AssessmentDeleteDialog
+        assessment={deletingAssessment}
+        open={!!deletingAssessment}
+        onOpenChange={(open) => !open && setDeletingAssessment(null)}
+        onAssessmentDeleted={() => {
+          setDeletingAssessment(null);
+          onCreateAssessment(); // Refresh the list
+        }}
+      />
     </div>
   );
 }

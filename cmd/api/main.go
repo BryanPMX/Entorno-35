@@ -142,7 +142,9 @@ func main() {
 			assessments.POST("", assessmentHandler.CreateAssessment)
 			assessments.GET("", assessmentHandler.ListAssessments)
 			assessments.GET("/:id", assessmentHandler.GetAssessment)
+			assessments.DELETE("/:id", assessmentHandler.DeleteAssessment)
 			assessments.POST("/:id/links", assessmentHandler.CreateAssessmentLink)
+			assessments.POST("/:id/send-email", assessmentHandler.SendAssessmentEmail)
 			assessments.POST("/:id/calculate", scoringHandler.CalculateAssessment)
 		}
 
@@ -165,6 +167,7 @@ func main() {
 			reports.GET("/individual/:assessment_id", reportHandler.GetIndividualReport)
 			reports.GET("/individual/:assessment_id/pdf", reportHandler.GetIndividualReportPDF)
 			reports.GET("/general", reportHandler.GetGeneralReport)
+			reports.GET("/general/pdf", reportHandler.GetGeneralReportPDF)
 		}
 	}
 
