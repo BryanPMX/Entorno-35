@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	csvdetect "github.com/entorno35/backend/internal/core/csv"
 	"github.com/entorno35/backend/internal/core/ports"
@@ -335,9 +336,40 @@ func (s *StaffService) UpdateStaff(id uuid.UUID, companyID uuid.UUID, req Update
 	return staff, nil
 }
 
+// ErrStaffHasCompletedAssessments is returned when attempting to delete a staff member with completed assessments
+var ErrStaffHasCompletedAssessments = fmt.Errorf("cannot delete staff member with completed assessments")
+
 // DeleteStaff soft deletes a staff member
+// Returns an error if the staff member has any completed assessments
 func (s *StaffService) DeleteStaff(id uuid.UUID, companyID uuid.UUID) error {
+	// First, verify staff exists and belongs to company
+	staff, err := s.staffRepo.GetByIDAndCompany(id, companyID)
+	if err != nil {
+		return err
+	}
+
+	// Check if staff has completed assessments
+	hasCompleted, err := s.staffRepo.HasCompletedAssessments(id)
+	if err != nil {
+		return fmt.Errorf("failed to check assessments: %w", err)
+	}
+
+	if hasCompleted {
+		return ErrStaffHasCompletedAssessments
+	}
+
+	// Log the deletion action
+	logAuditAction("STAFF_DELETE", companyID, id, staff.FullName)
+
 	return s.staffRepo.Delete(id, companyID)
+}
+
+// logAuditAction logs administrative actions for audit purposes
+func logAuditAction(action string, companyID, entityID uuid.UUID, details string) {
+	// TODO: In production, this should write to an audit_logs table
+	// For now, we log to stdout in a structured format
+	fmt.Printf("[AUDIT] Action=%s CompanyID=%s EntityID=%s Details=%s Time=%s\n",
+		action, companyID.String(), entityID.String(), details, time.Now().Format(time.RFC3339))
 }
 
 // ListStaff retrieves staff members for a company with pagination
@@ -364,16 +396,17 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 	}
 
 	// Validate header format (case-insensitive)
-	expectedHeaders := []string{"name", "curp", "email", "area", "job", "shift", "gender"}
+	// Only name, curp, and email are strictly required
+	requiredHeaders := []string{"name", "curp", "email"}
 	headerMap := make(map[string]int)
 	for i, h := range header {
 		headerMap[strings.ToLower(strings.TrimSpace(h))] = i
 	}
 
 	// Check if all required headers are present
-	for _, expected := range expectedHeaders {
-		if _, exists := headerMap[expected]; !exists {
-			return nil, fmt.Errorf("missing required header: %s", expected)
+	for _, required := range requiredHeaders {
+		if _, exists := headerMap[required]; !exists {
+			return nil, fmt.Errorf("missing required header: %s", required)
 		}
 	}
 
@@ -426,20 +459,25 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 			continue
 		}
 
-		// Extract values from row
-		nameIdx := headerMap["name"]
-		curpIdx := headerMap["curp"]
-		emailIdx := headerMap["email"]
-		areaIdx := headerMap["area"]
-		jobIdx := headerMap["job"]
-		shiftIdx := headerMap["shift"]
-		genderIdx := headerMap["gender"]
-		ageIdx := headerMap["age_range"]
-		maritalIdx := headerMap["marital_status"]
-		experienceIdx := headerMap["experience"]
+		// Extract values from row using safe index lookup
+		getIdx := func(key string) (int, bool) {
+			idx, exists := headerMap[key]
+			return idx, exists
+		}
+
+		nameIdx, _ := getIdx("name")
+		curpIdx, _ := getIdx("curp")
+		emailIdx, _ := getIdx("email")
+		areaIdx, hasArea := getIdx("area")
+		jobIdx, hasJob := getIdx("job")
+		shiftIdx, hasShift := getIdx("shift")
+		genderIdx, hasGender := getIdx("gender")
+		ageIdx, hasAge := getIdx("age_range")
+		maritalIdx, hasMarital := getIdx("marital_status")
+		experienceIdx, hasExperience := getIdx("experience")
 
 		// Validate row has enough columns for required fields
-		requiredMaxIdx := max(nameIdx, curpIdx, emailIdx, areaIdx, jobIdx, shiftIdx, genderIdx)
+		requiredMaxIdx := max(nameIdx, curpIdx, emailIdx)
 		if len(row) <= requiredMaxIdx {
 			result.Errors = append(result.Errors, fmt.Sprintf("Row %d: insufficient columns", rowNum-1))
 			result.SkippedCount++
@@ -449,22 +487,36 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 		name := strings.TrimSpace(row[nameIdx])
 		curp := strings.TrimSpace(row[curpIdx])
 		email := strings.TrimSpace(row[emailIdx])
-		area := strings.TrimSpace(row[areaIdx])
-		job := strings.TrimSpace(row[jobIdx])
-		shift := strings.TrimSpace(row[shiftIdx])
-		gender := strings.TrimSpace(row[genderIdx])
 		
-		// Optional demographic fields - check if index exists and row has enough columns
+		// Optional core fields - check if header exists and row has enough columns
+		area := ""
+		if hasArea && len(row) > areaIdx {
+			area = strings.TrimSpace(row[areaIdx])
+		}
+		job := ""
+		if hasJob && len(row) > jobIdx {
+			job = strings.TrimSpace(row[jobIdx])
+		}
+		shift := ""
+		if hasShift && len(row) > shiftIdx {
+			shift = strings.TrimSpace(row[shiftIdx])
+		}
+		gender := ""
+		if hasGender && len(row) > genderIdx {
+			gender = strings.TrimSpace(row[genderIdx])
+		}
+		
+		// Optional demographic fields - check if header exists and row has enough columns
 		ageRange := ""
-		if ageIdx >= 0 && len(row) > ageIdx {
+		if hasAge && len(row) > ageIdx {
 			ageRange = strings.TrimSpace(row[ageIdx])
 		}
 		maritalStatus := ""
-		if maritalIdx >= 0 && len(row) > maritalIdx {
+		if hasMarital && len(row) > maritalIdx {
 			maritalStatus = strings.TrimSpace(row[maritalIdx])
 		}
 		experience := ""
-		if experienceIdx >= 0 && len(row) > experienceIdx {
+		if hasExperience && len(row) > experienceIdx {
 			experience = strings.TrimSpace(row[experienceIdx])
 		}
 

@@ -248,21 +248,33 @@ func (h *StaffHandler) DeleteStaff(c *gin.Context) {
 	staffIDStr := c.Param("id")
 	staffID, err := uuid.Parse(staffIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid staff ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de personal invalido"})
 		return
 	}
 
 	err = h.staffService.DeleteStaff(staffID, companyID)
 	if err != nil {
-		if err.Error() == "staff not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "staff not found"})
+		errMsg := err.Error()
+
+		// Handle specific business rule errors
+		if strings.Contains(errMsg, "staff not found") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Personal no encontrado"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if strings.Contains(errMsg, "completed assessments") {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":   "No se puede eliminar personal con evaluaciones completadas",
+				"code":    "HAS_COMPLETED_ASSESSMENTS",
+				"message": "Este empleado tiene evaluaciones NOM-035 completadas. Por razones de cumplimiento normativo, no puede ser eliminado.",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "staff deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Personal eliminado exitosamente"})
 }
 
 // ImportStaff imports staff members from a CSV file

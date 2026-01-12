@@ -134,3 +134,18 @@ func (r *staffRepository) BulkCreate(staff []*domain.Staff) (int, error) {
 	return insertedCount, nil
 }
 
+// HasCompletedAssessments checks if a staff member has any completed assessments
+func (r *staffRepository) HasCompletedAssessments(staffID uuid.UUID) (bool, error) {
+	var count int64
+
+	result := r.db.Model(&domain.Assessment{}).
+		Where("staff_id = ? AND status = ?", staffID, domain.AssessmentStatusCompleted).
+		Count(&count)
+
+	if result.Error != nil {
+		return false, fmt.Errorf("failed to check for completed assessments: %w", result.Error)
+	}
+
+	return count > 0, nil
+}
+

@@ -26,5 +26,8 @@ type StaffRepository interface {
 	// Uses ON CONFLICT DO NOTHING for CURP collisions to avoid crashing the whole batch
 	// Returns the number of records successfully inserted
 	BulkCreate(staff []*domain.Staff) (int, error)
+
+	// HasCompletedAssessments checks if a staff member has any completed assessments
+	HasCompletedAssessments(staffID uuid.UUID) (bool, error)
 }
 
