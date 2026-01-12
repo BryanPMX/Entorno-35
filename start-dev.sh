@@ -12,15 +12,42 @@ echo "Starting Entorno35 Development Environment..."
 echo "=============================================="
 echo "Project root: $PROJECT_ROOT"
 
-# Function to kill process on a specific port
+# Function to kill all processes on a specific port (more thorough)
 kill_port() {
     local port=$1
-    local pid=$(lsof -ti :$port 2>/dev/null)
-    if [ -n "$pid" ]; then
-        echo "Port $port is in use by PID $pid. Terminating..."
-        kill -9 $pid 2>/dev/null || true
+    # Try multiple methods to find and kill processes on the port
+    # Method 1: lsof (standard)
+    local pids=$(lsof -ti tcp:$port 2>/dev/null)
+    if [ -n "$pids" ]; then
+        echo "Port $port is in use by PID(s): $pids. Terminating..."
+        echo "$pids" | xargs kill -9 2>/dev/null || true
         sleep 1
     fi
+    # Method 2: Check again with different lsof syntax
+    pids=$(lsof -i :$port -t 2>/dev/null)
+    if [ -n "$pids" ]; then
+        echo "Port $port still in use by PID(s): $pids. Force terminating..."
+        echo "$pids" | xargs kill -9 2>/dev/null || true
+        sleep 1
+    fi
+}
+
+# Function to wait for port to be available
+wait_for_port_free() {
+    local port=$1
+    local max_attempts=5
+    local attempt=0
+    while [ $attempt -lt $max_attempts ]; do
+        if ! lsof -i :$port > /dev/null 2>&1; then
+            return 0
+        fi
+        echo "Waiting for port $port to be free..."
+        kill_port $port
+        sleep 1
+        attempt=$((attempt + 1))
+    done
+    echo "Warning: Port $port may still be in use"
+    return 1
 }
 
 # Check if Docker is running
@@ -34,6 +61,8 @@ echo ""
 echo "Step 0: Checking for processes on required ports..."
 kill_port $BACKEND_PORT
 kill_port $FRONTEND_PORT
+wait_for_port_free $BACKEND_PORT
+wait_for_port_free $FRONTEND_PORT
 echo "Ports $BACKEND_PORT and $FRONTEND_PORT are now available."
 
 # Start infrastructure
@@ -56,8 +85,8 @@ export DB_SSLMODE=disable
 export JWT_SECRET=your-secret-key-min-32-chars-long-for-development
 export JWT_EXPIRY=24h
 export CORS_ORIGIN=http://localhost:3000
-export PORT=8080
 export ENV=development
+# Note: PORT is set per-process to avoid conflicts between backend (8080) and frontend (3000)
 
 echo ""
 echo "Step 3: Starting Backend API Server..."
@@ -65,11 +94,21 @@ echo "Backend will run on http://localhost:$BACKEND_PORT"
 echo ""
 
 # Start backend in background using subshell with absolute path
-(cd "$PROJECT_ROOT/cmd/api" && go run main.go) &
+# PORT is set explicitly for the backend only to avoid conflicts with frontend
+(cd "$PROJECT_ROOT/cmd/api" && PORT=$BACKEND_PORT exec go run main.go) &
 BACKEND_PID=$!
 
-# Wait for backend to start
-sleep 3
+# Wait for backend to start and verify it's running
+echo "Waiting for backend to initialize..."
+sleep 5
+
+# Check if backend is responding
+if curl -s --max-time 2 http://localhost:$BACKEND_PORT/health > /dev/null 2>&1 || \
+   curl -s --max-time 2 http://localhost:$BACKEND_PORT > /dev/null 2>&1; then
+    echo "Backend is running!"
+else
+    echo "Backend may still be starting..."
+fi
 
 echo ""
 echo "Step 4: Starting Frontend Development Server..."
@@ -77,7 +116,8 @@ echo "Frontend will run on http://localhost:$FRONTEND_PORT"
 echo ""
 
 # Start frontend in background using subshell with absolute path
-(cd "$PROJECT_ROOT/web/frontend" && npm run dev) &
+# Explicitly set port to avoid any conflicts
+(cd "$PROJECT_ROOT/web/frontend" && exec npm run dev -- -p $FRONTEND_PORT) &
 FRONTEND_PID=$!
 
 echo ""
