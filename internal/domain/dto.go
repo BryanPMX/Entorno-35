@@ -34,25 +34,39 @@ type QuestionsDataJSON struct {
 	GuideIII GuideJSON `json:"guide_iii"`
 }
 
+// QuestionResponseDetail represents the details of a single question response for reporting
+type QuestionResponseDetail struct {
+	QuestionNumber  int    `json:"question_number"`
+	QuestionText    string `json:"question_text"`
+	Category        string `json:"category,omitempty"`
+	Domain          string `json:"domain,omitempty"`
+	SelectedValue   int    `json:"selected_value"`
+	CalculatedScore int    `json:"calculated_score"`
+	MaxScore        int    `json:"max_score"`
+}
+
 // IndividualReportDTO represents the data structure for an individual assessment report
 type IndividualReportDTO struct {
-	AssessmentID        uuid.UUID            `json:"assessment_id"`
-	Period              int                  `json:"period"`
-	GuideType           GuideType            `json:"guide_type"`
-	StaffName           string               `json:"staff_name"`
-	Department          string               `json:"department,omitempty"`
-	Shift               string               `json:"shift,omitempty"`
-	TotalScore          float64              `json:"total_score"`
-	RiskLevel           RiskLevel            `json:"risk_level"`
-	CategoryScores      map[string]float64   `json:"category_scores"`
-	CategoryRiskLevels  map[string]string `json:"category_risk_levels"`
-	CategoryMaxScores   map[string]float64   `json:"category_max_scores,omitempty"` // Maximum possible scores for each category
-	DomainScores        map[string]float64   `json:"domain_scores"`
-	DomainRiskLevels    map[string]string `json:"domain_risk_levels"`
-	DomainMaxScores     map[string]float64   `json:"domain_max_scores,omitempty"`   // Maximum possible scores for each domain
-	RequiresMedical     bool                 `json:"requires_medical_attention"`
-	CompletedAt         *time.Time           `json:"completed_at,omitempty"`
-	Recommendations     []string             `json:"recommendations,omitempty"`
+	AssessmentID        uuid.UUID                `json:"assessment_id"`
+	Period              int                      `json:"period"`
+	GuideType           GuideType                `json:"guide_type"`
+	StaffName           string                   `json:"staff_name"`
+	Department          string                   `json:"department,omitempty"`
+	Shift               string                   `json:"shift,omitempty"`
+	TotalScore          float64                  `json:"total_score"`
+	TotalMaxScore       float64                  `json:"total_max_score"`            // Maximum possible total score based on questions answered
+	RiskLevel           RiskLevel                `json:"risk_level"`
+	CategoryScores      map[string]float64       `json:"category_scores"`
+	CategoryRiskLevels  map[string]string        `json:"category_risk_levels"`
+	CategoryMaxScores   map[string]float64       `json:"category_max_scores,omitempty"` // Maximum possible scores for each category
+	DomainScores        map[string]float64       `json:"domain_scores"`
+	DomainRiskLevels    map[string]string        `json:"domain_risk_levels"`
+	DomainMaxScores     map[string]float64       `json:"domain_max_scores,omitempty"`   // Maximum possible scores for each domain
+	RequiresMedical     bool                     `json:"requires_medical_attention"`
+	CompletedAt         *time.Time               `json:"completed_at,omitempty"`
+	Recommendations     []string                 `json:"recommendations,omitempty"`
+	// Question-level details for detailed analysis
+	QuestionResponses   []QuestionResponseDetail `json:"question_responses,omitempty"`
 }
 
 // RiskDistribution represents the count of assessments by risk level

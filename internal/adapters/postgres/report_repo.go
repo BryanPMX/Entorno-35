@@ -88,6 +88,49 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 		shift = assessment.Staff.Demographics.ShiftType
 	}
 
+	// Calculate total max score from questions answered
+	totalMaxScore := float64(len(responses) * scoring.MaxScorePerQuestion)
+
+	// Build question response details for detailed analysis
+	questionResponses := make([]domain.QuestionResponseDetail, 0, len(responses))
+	for _, response := range responses {
+		if response.Question.ID == 0 {
+			continue
+		}
+
+		question := response.Question
+		
+		// Calculate score with polarity
+		calculatedScore := response.SelectedValue
+		if question.Polarity != nil {
+			calcScore, err := scoring.ApplyPolarity(response.SelectedValue, *question.Polarity)
+			if err == nil {
+				calculatedScore = calcScore
+			}
+		}
+
+		// Get category and domain names
+		categoryName := ""
+		domainName := ""
+		if question.Category != nil {
+			categoryName = question.Category.Name
+		}
+		if question.Domain != nil {
+			domainName = question.Domain.Name
+		}
+
+		detail := domain.QuestionResponseDetail{
+			QuestionNumber:  question.QuestionNumber,
+			QuestionText:    question.Text,
+			Category:        categoryName,
+			Domain:          domainName,
+			SelectedValue:   response.SelectedValue,
+			CalculatedScore: calculatedScore,
+			MaxScore:        scoring.MaxScorePerQuestion,
+		}
+		questionResponses = append(questionResponses, detail)
+	}
+
 	// Build DTO
 	dto := &domain.IndividualReportDTO{
 		AssessmentID:       assessment.ID,
@@ -97,6 +140,7 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 		Department:         department,
 		Shift:              shift,
 		TotalScore:         *assessment.TotalScore,
+		TotalMaxScore:      totalMaxScore,
 		RiskLevel:          *assessment.RiskLevel,
 		CategoryScores:     categoryScores,
 		CategoryRiskLevels: categoryRiskLevels,
@@ -106,6 +150,7 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 		DomainMaxScores:    domainMaxScores,
 		RequiresMedical:    assessment.RequiresMedicalAttention,
 		CompletedAt:        assessment.CompletedAt,
+		QuestionResponses:  questionResponses,
 	}
 
 	return dto, nil
