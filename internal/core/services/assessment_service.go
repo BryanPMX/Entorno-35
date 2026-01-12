@@ -282,3 +282,102 @@ func (s *AssessmentService) GetPublicAssessment(token string) (*domain.Assessmen
 
 	return assessment, questions, nil
 }
+
+// DeleteAssessment deletes a pending assessment
+// Only assessments in pending status can be deleted
+func (s *AssessmentService) DeleteAssessment(assessmentID uuid.UUID, companyID uuid.UUID) error {
+	// Verify assessment exists and belongs to company
+	assessment, err := s.assessmentRepo.GetByIDAndCompany(assessmentID, companyID)
+	if err != nil {
+		return fmt.Errorf("assessment not found: %w", err)
+	}
+
+	// Only allow deleting pending assessments
+	if assessment.Status != domain.AssessmentStatusPending {
+		return fmt.Errorf("only pending assessments can be deleted")
+	}
+
+	// Log the deletion action
+	staffName := "Unknown"
+	if assessment.Staff.ID != uuid.Nil {
+		staffName = assessment.Staff.FullName
+	}
+	logAssessmentAuditAction("ASSESSMENT_DELETE", companyID, assessmentID, assessment.StaffID,
+		fmt.Sprintf("Staff=%s Period=%d GuideType=%s", staffName, assessment.Period, assessment.GuideType))
+
+	// Delete the assessment
+	err = s.assessmentRepo.Delete(assessmentID)
+	if err != nil {
+		return fmt.Errorf("failed to delete assessment: %w", err)
+	}
+
+	return nil
+}
+
+// SendAssessmentEmail sends an assessment link via email to the staff member
+// This creates a new link if needed and sends it via the configured email service
+func (s *AssessmentService) SendAssessmentEmail(assessmentID uuid.UUID, companyID uuid.UUID, email string) error {
+	// Verify assessment exists and belongs to company
+	assessment, err := s.assessmentRepo.GetByIDAndCompany(assessmentID, companyID)
+	if err != nil {
+		return fmt.Errorf("assessment not found: %w", err)
+	}
+
+	// Only allow sending emails for pending assessments
+	if assessment.Status != domain.AssessmentStatusPending {
+		return fmt.Errorf("only pending assessments can be sent via email")
+	}
+
+	// Create a new link for the assessment (7 days expiry)
+	token := uuid.New().String()
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	link := &domain.AssessmentLink{
+		Token:        token,
+		StaffID:      assessment.StaffID,
+		AssessmentID: &assessmentID,
+		ExpiresAt:    expiresAt,
+	}
+
+	err = s.assessmentRepo.CreateLink(link)
+	if err != nil {
+		return fmt.Errorf("failed to create assessment link: %w", err)
+	}
+
+	// Initialize email service and send invitation
+	emailService := NewEmailService()
+
+	// Get staff and company names (check if relationships are loaded by checking ID)
+	staffName := "Empleado"
+	if assessment.Staff.ID != uuid.Nil {
+		staffName = assessment.Staff.FullName
+	}
+
+	companyName := "Tu Empresa"
+	if assessment.Company.ID != uuid.Nil {
+		companyName = assessment.Company.Name
+	}
+
+	// Prepare email data
+	emailData := AssessmentEmailData{
+		StaffName:     staffName,
+		CompanyName:   companyName,
+		AssessmentURL: emailService.GetAssessmentURL(token),
+		ExpiresAt:     expiresAt,
+		Period:        assessment.Period,
+	}
+
+	// Send the email
+	if err := emailService.SendAssessmentInvitation(email, emailData); err != nil {
+		return fmt.Errorf("failed to send email: %w", err)
+	}
+
+	return nil
+}
+
+// logAssessmentAuditAction logs assessment-related administrative actions for audit purposes
+func logAssessmentAuditAction(action string, companyID, assessmentID, staffID uuid.UUID, details string) {
+	// TODO: In production, this should write to an audit_logs table
+	// For now, we log to stdout in a structured format
+	fmt.Printf("[AUDIT] Action=%s CompanyID=%s AssessmentID=%s StaffID=%s Details=%s Time=%s\n",
+		action, companyID.String(), assessmentID.String(), staffID.String(), details, time.Now().Format(time.RFC3339))
+}

@@ -284,3 +284,23 @@ func (r *assessmentRepository) GetQuestionsByGuideTypeWithRelations(guideType do
 
 	return questions, nil
 }
+
+// Delete removes an assessment and its associated data (links and responses)
+// Uses a transaction to ensure data integrity
+func (r *assessmentRepository) Delete(id uuid.UUID) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// First, delete associated assessment links
+		if err := tx.Where("assessment_id = ?", id).Delete(&domain.AssessmentLink{}).Error; err != nil {
+			return fmt.Errorf("failed to delete assessment links: %w", err)
+		}
+		// Then, delete associated responses
+		if err := tx.Where("assessment_id = ?", id).Delete(&domain.Response{}).Error; err != nil {
+			return fmt.Errorf("failed to delete responses: %w", err)
+		}
+		// Finally, delete the assessment itself
+		if err := tx.Delete(&domain.Assessment{}, id).Error; err != nil {
+			return fmt.Errorf("failed to delete assessment: %w", err)
+		}
+		return nil
+	})
+}

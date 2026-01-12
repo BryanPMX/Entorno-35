@@ -162,3 +162,54 @@ func (h *ReportHandler) GetGeneralReport(c *gin.Context) {
 
 	c.JSON(http.StatusOK, report)
 }
+
+// GetGeneralReportPDF generates and returns a PDF report for company-wide statistics
+// GET /api/v1/reports/general/pdf?period=2025
+func (h *ReportHandler) GetGeneralReportPDF(c *gin.Context) {
+	companyID, ok := middleware.RequireCompanyID(c)
+	if !ok {
+		return // Already aborted with error
+	}
+
+	// Parse period from query string if provided
+	var period *int
+	if periodStr := c.Query("period"); periodStr != "" {
+		periodInt, err := strconv.Atoi(periodStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid period format"})
+			return
+		}
+		period = &periodInt
+	}
+
+	// Generate general report
+	report, err := h.reportService.GenerateGeneralReport(companyID, period)
+	if err != nil {
+		if err.Error() == "failed to get general report: company not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "company not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Generate PDF using the professional PDF service
+	pdf, err := h.reportPDFService.GenerateGeneralReportPDF(report)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate PDF"})
+		return
+	}
+
+	// Set headers for PDF download
+	periodSuffix := "all"
+	if period != nil {
+		periodSuffix = fmt.Sprintf("%d", *period)
+	}
+	filename := fmt.Sprintf("NOM035_General_Report_%s_%s.pdf", report.CompanyName, periodSuffix)
+	c.Header("Content-Type", "application/pdf")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	c.Header("Content-Length", fmt.Sprintf("%d", len(pdf)))
+
+	// Send PDF data
+	c.Data(http.StatusOK, "application/pdf", pdf)
+}

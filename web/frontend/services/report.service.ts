@@ -117,6 +117,25 @@ class ReportService {
     );
     return response.data;
   }
+
+  /**
+   * Download General Report PDF
+   * Downloads a PDF version of the company-wide general report
+   *
+   * @param period - Optional period filter
+   * @returns Promise resolving to PDF blob
+   * @throws AxiosError on API failure
+   */
+  async downloadGeneralReportPDF(period?: number): Promise<Blob> {
+    const queryParams = period ? `?period=${period}` : "";
+    const response = await axiosClient.get(
+      `/api/v1/reports/general/pdf${queryParams}`,
+      {
+        responseType: 'blob',
+      }
+    );
+    return response.data;
+  }
 }
 
 // Export singleton instance

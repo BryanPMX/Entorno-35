@@ -46,4 +46,7 @@ type AssessmentRepository interface {
 
 	// GetQuestionsByGuideTypeWithRelations retrieves all questions for a specific guide type with relationships preloaded
 	GetQuestionsByGuideTypeWithRelations(guideType domain.GuideType) ([]domain.Question, error)
+
+	// Delete removes an assessment and its associated data (links and responses)
+	Delete(id uuid.UUID) error
 }
