@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"time"
 
 	csvdetect "github.com/entorno35/backend/internal/core/csv"
 	"github.com/entorno35/backend/internal/core/ports"
@@ -337,10 +336,8 @@ func (s *StaffService) UpdateStaff(id uuid.UUID, companyID uuid.UUID, req Update
 }
 
 // ErrStaffHasCompletedAssessments is returned when attempting to delete a staff member with completed assessments
-var ErrStaffHasCompletedAssessments = fmt.Errorf("cannot delete staff member with completed assessments")
-
 // DeleteStaff soft deletes a staff member
-// Returns an error if the staff member has any completed assessments
+// All deletions are logged for audit purposes, regardless of assessment status
 func (s *StaffService) DeleteStaff(id uuid.UUID, companyID uuid.UUID) error {
 	// First, verify staff exists and belongs to company
 	staff, err := s.staffRepo.GetByIDAndCompany(id, companyID)
@@ -348,28 +345,26 @@ func (s *StaffService) DeleteStaff(id uuid.UUID, companyID uuid.UUID) error {
 		return err
 	}
 
-	// Check if staff has completed assessments
-	hasCompleted, err := s.staffRepo.HasCompletedAssessments(id)
-	if err != nil {
-		return fmt.Errorf("failed to check assessments: %w", err)
+	// Check if staff has completed assessments (for logging purposes only)
+	hasCompleted := false
+	if count, err := s.staffRepo.HasCompletedAssessments(id); err == nil {
+		hasCompleted = count
 	}
 
-	if hasCompleted {
-		return ErrStaffHasCompletedAssessments
-	}
-
-	// Log the deletion action
-	logAuditAction("STAFF_DELETE", companyID, id, staff.FullName)
+	// Log the deletion action (before deletion for audit trail)
+	auditService := GetAuditService()
+	details := fmt.Sprintf("Staff=%s Email=%s HasCompletedAssessments=%v", staff.FullName, staff.Email, hasCompleted)
+	auditService.LogAction("STAFF_DELETE", companyID, id, details)
 
 	return s.staffRepo.Delete(id, companyID)
 }
 
 // logAuditAction logs administrative actions for audit purposes
+// DEPRECATED: Use GetAuditService().LogAction() instead
+// Kept for backward compatibility but now uses file-based audit service
 func logAuditAction(action string, companyID, entityID uuid.UUID, details string) {
-	// TODO: In production, this should write to an audit_logs table
-	// For now, we log to stdout in a structured format
-	fmt.Printf("[AUDIT] Action=%s CompanyID=%s EntityID=%s Details=%s Time=%s\n",
-		action, companyID.String(), entityID.String(), details, time.Now().Format(time.RFC3339))
+	auditService := GetAuditService()
+	auditService.LogAction(action, companyID, entityID, details)
 }
 
 // ListStaff retrieves staff members for a company with pagination

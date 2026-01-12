@@ -336,15 +336,9 @@ export function AssessmentTable({
                             <DropdownMenuItem
                               onClick={() => setDeletingAssessment(assessment)}
                               className="text-destructive focus:text-destructive"
-                              disabled={assessment.status !== "pending"}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Eliminar
-                              {assessment.status !== "pending" && (
-                                <span className="ml-2 text-xs text-muted-foreground">
-                                  (Solo pendientes)
-                                </span>
-                              )}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

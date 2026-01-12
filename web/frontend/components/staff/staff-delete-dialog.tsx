@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ interface StaffDeleteDialogProps {
  */
 export function StaffDeleteDialog({ staff, open, onOpenChange, onStaffDeleted }: StaffDeleteDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDelete = async () => {
     if (!staff) return;
@@ -36,6 +38,11 @@ export function StaffDeleteDialog({ staff, open, onOpenChange, onStaffDeleted }:
 
     try {
       await staffService.delete(staff.id);
+
+      // Invalidate all related queries to refresh dashboard and lists
+      queryClient.invalidateQueries({ queryKey: ["general-report"] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      queryClient.invalidateQueries({ queryKey: ["assessments"] });
 
       toast.success("Personal eliminado exitosamente");
       onOpenChange(false);
@@ -49,11 +56,6 @@ export function StaffDeleteDialog({ staff, open, onOpenChange, onStaffDeleted }:
         toast.error("El registro ya no existe");
         onOpenChange(false);
         onStaffDeleted?.();
-      } else if (statusCode === 409 && errorData?.code === "HAS_COMPLETED_ASSESSMENTS") {
-        toast.error("No se puede eliminar", {
-          description: errorData.message || "Este empleado tiene evaluaciones NOM-035 completadas.",
-          duration: 6000,
-        });
       } else {
         toast.error(errorData?.error || "Error al eliminar el personal");
       }
@@ -90,8 +92,8 @@ export function StaffDeleteDialog({ staff, open, onOpenChange, onStaffDeleted }:
           )}
           <div className="mt-4 rounded-md bg-amber-50 border border-amber-200 p-3">
             <p className="text-sm text-amber-800">
-              <strong>Advertencia:</strong> Si este empleado tiene evaluaciones pendientes o completadas, 
-              no podra ser eliminado. Primero debera eliminar las evaluaciones asociadas.
+              <strong>Advertencia:</strong> Esta accion eliminara permanentemente al empleado y todas sus evaluaciones asociadas. 
+              La accion sera registrada en el log de auditoria para cumplimiento normativo.
             </p>
           </div>
         </div>

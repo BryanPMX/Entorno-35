@@ -41,6 +41,10 @@ func main() {
 		if closeErr := database.Close(); closeErr != nil {
 			log.Printf("Warning: failed to close database connection: %v", closeErr)
 		}
+		// Close audit service to ensure all logs are flushed
+		if closeErr := services.GetAuditService().Close(); closeErr != nil {
+			log.Printf("Warning: failed to close audit service: %v", closeErr)
+		}
 	}()
 
 	// Run database migrations (create/update schema)

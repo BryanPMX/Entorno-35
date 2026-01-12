@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ export function AssessmentDeleteDialog({
   onAssessmentDeleted 
 }: AssessmentDeleteDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const getStaffName = (assessment: Assessment) => {
     if (assessment.staff) {
@@ -49,6 +51,11 @@ export function AssessmentDeleteDialog({
     try {
       await assessmentService.delete(assessment.id);
 
+      // Invalidate all related queries to refresh dashboard and lists
+      queryClient.invalidateQueries({ queryKey: ["general-report"] });
+      queryClient.invalidateQueries({ queryKey: ["assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["individual-report"] });
+
       toast.success("Evaluacion eliminada exitosamente");
       onOpenChange(false);
       onAssessmentDeleted?.();
@@ -60,7 +67,7 @@ export function AssessmentDeleteDialog({
         onOpenChange(false);
         onAssessmentDeleted?.();
       } else if (error?.response?.status === 400) {
-        toast.error("Solo se pueden eliminar evaluaciones pendientes");
+        toast.error(errorMessage);
       } else {
         toast.error(errorMessage);
       }
@@ -96,8 +103,8 @@ export function AssessmentDeleteDialog({
           </p>
           <div className="mt-4 rounded-md bg-amber-50 border border-amber-200 p-3">
             <p className="text-sm text-amber-800">
-              <strong>Nota:</strong> Solo las evaluaciones con estado "Pendiente" pueden ser eliminadas. 
-              Las evaluaciones completadas deben conservarse para cumplimiento normativo.
+              <strong>Advertencia:</strong> Esta accion eliminara permanentemente la evaluacion. 
+              La accion sera registrada en el log de auditoria para cumplimiento normativo.
             </p>
           </div>
         </div>

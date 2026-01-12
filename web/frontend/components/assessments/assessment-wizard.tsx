@@ -59,7 +59,9 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
       });
     },
     onSuccess: () => {
+      // Invalidate all related queries to refresh dashboard and lists
       queryClient.invalidateQueries({ queryKey: ["assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["general-report"] });
       setCurrentStep("review");
     },
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { StaffTable } from "@/components/staff/staff-table";
 import { CsvUploadModal } from "@/components/staff/csv-upload-modal";
 import { staffService } from "@/services/staff.service";
@@ -16,6 +16,7 @@ export default function StaffPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(50);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Obtener datos del personal con paginacion
   const {
@@ -38,6 +39,10 @@ export default function StaffPage() {
 
   const handleUploadComplete = () => {
     setIsUploadModalOpen(false);
+    // Invalidate all related queries to refresh dashboard and lists
+    queryClient.invalidateQueries({ queryKey: ["general-report"] });
+    queryClient.invalidateQueries({ queryKey: ["staff"] });
+    queryClient.invalidateQueries({ queryKey: ["assessments"] });
     refetch();
   };
 

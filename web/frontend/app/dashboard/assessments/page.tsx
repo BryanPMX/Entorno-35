@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AssessmentTable } from "@/components/assessments/assessment-table";
 import { assessmentService } from "@/services/assessment.service";
 import { reportService } from "@/services/report.service";
@@ -18,6 +18,7 @@ import { FileText } from "lucide-react";
  */
 export default function AssessmentsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [filters, setFilters] = useState<{ status?: string; period?: number }>({});
@@ -43,6 +44,9 @@ export default function AssessmentsPage() {
   };
 
   const handleCreateAssessment = () => {
+    // Invalidate all related queries to refresh dashboard and lists
+    queryClient.invalidateQueries({ queryKey: ["general-report"] });
+    queryClient.invalidateQueries({ queryKey: ["assessments"] });
     refetch();
   };
 

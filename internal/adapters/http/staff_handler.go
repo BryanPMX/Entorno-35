@@ -261,14 +261,6 @@ func (h *StaffHandler) DeleteStaff(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Personal no encontrado"})
 			return
 		}
-		if strings.Contains(errMsg, "completed assessments") {
-			c.JSON(http.StatusConflict, gin.H{
-				"error":   "No se puede eliminar personal con evaluaciones completadas",
-				"code":    "HAS_COMPLETED_ASSESSMENTS",
-				"message": "Este empleado tiene evaluaciones NOM-035 completadas. Por razones de cumplimiento normativo, no puede ser eliminado.",
-			})
-			return
-		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})
 		return

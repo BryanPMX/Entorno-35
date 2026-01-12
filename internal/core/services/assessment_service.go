@@ -283,8 +283,8 @@ func (s *AssessmentService) GetPublicAssessment(token string) (*domain.Assessmen
 	return assessment, questions, nil
 }
 
-// DeleteAssessment deletes a pending assessment
-// Only assessments in pending status can be deleted
+// DeleteAssessment deletes an assessment (any status)
+// All deletions are logged for audit purposes
 func (s *AssessmentService) DeleteAssessment(assessmentID uuid.UUID, companyID uuid.UUID) error {
 	// Verify assessment exists and belongs to company
 	assessment, err := s.assessmentRepo.GetByIDAndCompany(assessmentID, companyID)
@@ -292,18 +292,14 @@ func (s *AssessmentService) DeleteAssessment(assessmentID uuid.UUID, companyID u
 		return fmt.Errorf("assessment not found: %w", err)
 	}
 
-	// Only allow deleting pending assessments
-	if assessment.Status != domain.AssessmentStatusPending {
-		return fmt.Errorf("only pending assessments can be deleted")
-	}
-
-	// Log the deletion action
+	// Log the deletion action (before deletion for audit trail)
 	staffName := "Unknown"
 	if assessment.Staff.ID != uuid.Nil {
 		staffName = assessment.Staff.FullName
 	}
-	logAssessmentAuditAction("ASSESSMENT_DELETE", companyID, assessmentID, assessment.StaffID,
-		fmt.Sprintf("Staff=%s Period=%d GuideType=%s", staffName, assessment.Period, assessment.GuideType))
+	auditService := GetAuditService()
+	auditService.LogAssessmentAction("ASSESSMENT_DELETE", companyID, assessmentID, assessment.StaffID,
+		fmt.Sprintf("Staff=%s Period=%d GuideType=%s Status=%s", staffName, assessment.Period, assessment.GuideType, assessment.Status))
 
 	// Delete the assessment
 	err = s.assessmentRepo.Delete(assessmentID)
@@ -375,9 +371,9 @@ func (s *AssessmentService) SendAssessmentEmail(assessmentID uuid.UUID, companyI
 }
 
 // logAssessmentAuditAction logs assessment-related administrative actions for audit purposes
+// DEPRECATED: Use GetAuditService().LogAssessmentAction() instead
+// Kept for backward compatibility but now uses file-based audit service
 func logAssessmentAuditAction(action string, companyID, assessmentID, staffID uuid.UUID, details string) {
-	// TODO: In production, this should write to an audit_logs table
-	// For now, we log to stdout in a structured format
-	fmt.Printf("[AUDIT] Action=%s CompanyID=%s AssessmentID=%s StaffID=%s Details=%s Time=%s\n",
-		action, companyID.String(), assessmentID.String(), staffID.String(), details, time.Now().Format(time.RFC3339))
+	auditService := GetAuditService()
+	auditService.LogAssessmentAction(action, companyID, assessmentID, staffID, details)
 }
