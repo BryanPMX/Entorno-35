@@ -13,7 +13,7 @@ build: ## Build the application
 run: ## Run the application
 	@echo "Running backend..."
 	@if [ -f .env ]; then \
-		bash -c 'set -a; source .env; set +a; cd cmd/api && exec go run main.go'; \
+		set -a && . ./.env && set +a && cd cmd/api && go run main.go; \
 	else \
 		cd cmd/api && go run main.go; \
 	fi

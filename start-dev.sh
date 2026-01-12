@@ -4,14 +4,35 @@
 
 set -e
 
+BACKEND_PORT=8080
+FRONTEND_PORT=3000
+
 echo "Starting Entorno35 Development Environment..."
 echo "=============================================="
+
+# Function to kill process on a specific port
+kill_port() {
+    local port=$1
+    local pid=$(lsof -ti :$port 2>/dev/null)
+    if [ -n "$pid" ]; then
+        echo "Port $port is in use by PID $pid. Terminating..."
+        kill -9 $pid 2>/dev/null || true
+        sleep 1
+    fi
+}
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
     echo "Error: Docker is not running. Please start Docker Desktop."
     exit 1
 fi
+
+# Clean up ports that may be in use
+echo ""
+echo "Step 0: Checking for processes on required ports..."
+kill_port $BACKEND_PORT
+kill_port $FRONTEND_PORT
+echo "Ports $BACKEND_PORT and $FRONTEND_PORT are now available."
 
 # Start infrastructure
 echo ""
@@ -38,7 +59,7 @@ export ENV=development
 
 echo ""
 echo "Step 3: Starting Backend API Server..."
-echo "Backend will run on http://localhost:8080"
+echo "Backend will run on http://localhost:$BACKEND_PORT"
 echo ""
 
 # Start backend in background
@@ -51,7 +72,7 @@ sleep 3
 
 echo ""
 echo "Step 4: Starting Frontend Development Server..."
-echo "Frontend will run on http://localhost:3000"
+echo "Frontend will run on http://localhost:$FRONTEND_PORT"
 echo ""
 
 # Start frontend in background
@@ -64,14 +85,27 @@ echo "=============================================="
 echo "Entorno35 Development Environment Started!"
 echo "=============================================="
 echo ""
-echo "Backend API: http://localhost:8080"
-echo "Frontend UI: http://localhost:3000"
+echo "Backend API: http://localhost:$BACKEND_PORT"
+echo "Frontend UI: http://localhost:$FRONTEND_PORT"
 echo ""
 echo "Press Ctrl+C to stop all services"
 echo ""
 
+# Cleanup function
+cleanup() {
+    echo ""
+    echo "Stopping services..."
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+    # Also kill any remaining processes on the ports
+    kill_port $BACKEND_PORT
+    kill_port $FRONTEND_PORT
+    make docker-down
+    echo "All services stopped."
+    exit 0
+}
+
 # Wait for user interrupt
-trap "echo 'Stopping services...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; make docker-down; exit 0" INT TERM
+trap cleanup INT TERM
 
 # Keep script running
 wait

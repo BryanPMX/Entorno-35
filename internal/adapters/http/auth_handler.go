@@ -2,7 +2,6 @@ package http
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -113,13 +112,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		// Find staff by CURP or employee_id and company ID
 		staff, err := h.authRepo.GetStaffByIdentifier(req.Identifier, req.CompanyID)
 		if err != nil {
-			// Return 401 Unauthorized for authentication failures
-			if errors.Is(err, postgres.ErrStaffNotFound) || errors.Is(err, postgres.ErrCompanyInactive) || errors.Is(err, postgres.ErrCompanyNotFound) {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-				return
-			}
-			// Log internal errors but return generic message to client
-			fmt.Printf("Staff authentication error: %v\n", err)
+			// Return 401 Unauthorized for all authentication failures
+			// Internal errors are not exposed to clients for security
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 			return
 		}
