@@ -6,6 +6,37 @@ import (
 	"github.com/entorno35/backend/internal/domain"
 )
 
+// Scoring constants for maintainability
+const (
+	// MaxScorePerQuestion is the maximum score any single question can contribute
+	// After polarity adjustment, each question contributes 0-4 points
+	MaxScorePerQuestion = 4
+)
+
+// ScoreCalculation represents the result of score calculations for categories and domains
+type ScoreCalculation struct {
+	Scores     map[string]float64 // Actual scores achieved
+	MaxScores  map[string]float64 // Maximum possible scores
+	RiskLevels map[string]string  // Risk levels for each category/domain
+}
+
+// Validate ensures scores don't exceed maximums and provides data integrity
+func (sc *ScoreCalculation) Validate() []string {
+	var warnings []string
+
+	for name, score := range sc.Scores {
+		if maxScore, exists := sc.MaxScores[name]; exists {
+			if score > maxScore {
+				warnings = append(warnings, fmt.Sprintf("Score %.1f exceeds maximum %.1f for %s", score, maxScore, name))
+				// Clamp the score to maximum
+				sc.Scores[name] = maxScore
+			}
+		}
+	}
+
+	return warnings
+}
+
 // ApplyPolarity applies polarity inversion to a selected value
 // Positive polarity: 0→0, 1→1, 2→2, 3→3, 4→4 (no inversion)
 // Negative polarity: 0→4, 1→3, 2→2, 3→1, 4→0 (inverted)

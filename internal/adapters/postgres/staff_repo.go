@@ -101,7 +101,7 @@ func (r *staffRepository) ListByCompany(companyID uuid.UUID, limit, offset int) 
 }
 
 // BulkCreate creates multiple staff members in a transaction
-// Uses ON CONFLICT DO NOTHING for CURP collisions to avoid crashing the whole batch
+// Uses ON CONFLICT DO NOTHING for employee_id collisions to avoid crashing the whole batch
 // Returns the number of records successfully inserted
 func (r *staffRepository) BulkCreate(staff []*domain.Staff) (int, error) {
 	if len(staff) == 0 {
@@ -112,10 +112,10 @@ func (r *staffRepository) BulkCreate(staff []*domain.Staff) (int, error) {
 
 	// Use transaction for atomicity
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		// Use Clauses with OnConflict to handle CURP collisions gracefully
-		// The unique constraint is on (company_id, curp), so we use DoNothing
+		// Use Clauses with OnConflict to handle employee_id collisions gracefully
+		// The unique constraint is on employee_id, so we use DoNothing
 		result := tx.Clauses(clause.OnConflict{
-			Columns: []clause.Column{{Name: "company_id"}, {Name: "curp"}},
+			Columns: []clause.Column{{Name: "employee_id"}},
 			DoNothing: true,
 		}).Create(staff)
 

@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { assessmentService } from "@/services/assessment.service";
+import { toast } from "sonner";
 import type { Question } from "@/types/backend";
 
 /**
@@ -150,17 +151,32 @@ export default function AssessmentExamPage() {
   const handleSubmit = async () => {
     if (!assessment || !questions.length) return;
 
+    // Validate that all questions are answered
+    const unansweredQuestions = questions.filter(q => responses[q.id] === undefined);
+    if (unansweredQuestions.length > 0) {
+      // Show error and navigate to first unanswered question
+      const firstUnansweredIndex = questions.findIndex(q => responses[q.id] === undefined);
+      setCurrentQuestionIndex(firstUnansweredIndex);
+
+      toast.error("Please answer all questions before submitting", {
+        description: `You have ${unansweredQuestions.length} unanswered question(s). We've navigated to the first one.`,
+        duration: 5000,
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Convert responses to the expected format
     const formattedResponses = questions.map(question => ({
       question_id: question.id,
-      value: responses[question.id] ?? 0, // Default to 0 if not answered
+      value: responses[question.id] ?? 0, // Should not be needed now, but keeping as safety
     }));
 
     try {
       await submitMutation.mutateAsync(formattedResponses);
     } catch (error) {
+      setIsSubmitting(false); // Reset submitting state on error
       // Error is handled by the mutation
     }
   };
@@ -169,6 +185,11 @@ export default function AssessmentExamPage() {
   const isCurrentAnswered = currentQuestion ? responses[currentQuestion.id] !== undefined : false;
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const canProceed = isCurrentAnswered || isLastQuestion;
+
+  // Check if all questions are answered
+  const allQuestionsAnswered = questions.length > 0 && questions.every(q => responses[q.id] !== undefined);
+  const answeredCount = Object.keys(responses).length;
+  const totalQuestions = questions.length;
 
   // Loading state
   if (isLoadingAssessment) {
@@ -270,8 +291,8 @@ export default function AssessmentExamPage() {
                 </div>
               )}
             </div>
-            <span className="text-sm text-slate-500">
-              {Math.round(progress)}% Complete
+            <span className={`text-sm ${allQuestionsAnswered ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
+              {allQuestionsAnswered ? 'Complete!' : `${Math.round(progress)}% Complete`}
             </span>
           </div>
         </div>
@@ -342,7 +363,7 @@ export default function AssessmentExamPage() {
                   <p className="text-sm font-medium text-slate-700">
                     Select your response: (Use keyboard: 1-5 or arrow keys)
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 max-w-2xl mx-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4 max-w-2xl mx-auto">
                     {[
                       { value: 0, label: "Siempre", description: "Always", key: "1" },
                       { value: 1, label: "Casi Siempre", description: "Almost Always", key: "2" },
@@ -361,14 +382,14 @@ export default function AssessmentExamPage() {
                         >
                           <Button
                             variant={isSelected ? "default" : "outline"}
-                            className={`h-auto py-6 px-4 flex flex-col items-center justify-center space-y-2 text-center hover:shadow-md transition-all relative min-h-[100px] ${
+                            className={`h-auto py-6 px-3 flex flex-col items-center justify-center space-y-2 text-center hover:shadow-md transition-all relative min-h-[110px] w-full ${
                               isSelected ? 'ring-2 ring-primary ring-offset-2' : isPressed ? 'ring-2 ring-blue-500 ring-offset-2' : ''
                             }`}
                             onClick={() => handleAnswerSelect(option.value)}
                             disabled={isSubmitting}
                           >
-                            <span className="font-medium text-sm leading-tight">{option.label}</span>
-                            <span className="text-xs opacity-75 leading-tight">{option.description}</span>
+                            <span className="font-medium text-sm leading-tight break-words">{option.label}</span>
+                            <span className="text-xs opacity-75 leading-tight break-words">{option.description}</span>
                             <span className="absolute top-2 right-2 text-[10px] font-mono text-muted-foreground/50">
                               {option.key}
                             </span>
@@ -403,15 +424,16 @@ export default function AssessmentExamPage() {
             </Button>
           </motion.div>
 
-          <div className="text-center text-sm text-slate-500">
-            {Object.keys(responses).length} of {questions.length} answered
+          <div className={`text-center text-sm ${allQuestionsAnswered ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
+            {answeredCount} of {totalQuestions} answered
+            {allQuestionsAnswered && <span className="ml-1">✓</span>}
           </div>
 
           {isLastQuestion ? (
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={handleSubmit}
-                disabled={!canProceed || isSubmitting}
+                disabled={!allQuestionsAnswered || isSubmitting}
                 className="flex items-center space-x-2"
               >
                 {isSubmitting ? (

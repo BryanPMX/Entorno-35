@@ -82,6 +82,35 @@ Entorno35/
 
 ### Development Setup
 
+#### Quick Start (Recommended)
+
+Use the automated startup script for the easiest setup:
+
+```bash
+# Clone and enter repository
+git clone <repository-url>
+cd Entorno-35
+
+# Install dependencies
+make setup
+cd web/frontend && npm install && cd ../..
+
+# Start everything (one command)
+./start-dev.sh
+```
+
+This will automatically:
+- Start PostgreSQL and Redis containers
+- Start backend API on http://localhost:8080
+- Start frontend on http://localhost:3000
+- Configure all environment variables
+
+Press `Ctrl+C` to stop all services.
+
+#### Manual Setup (Advanced)
+
+For more control over individual services:
+
 1. **Clone and enter the repository**
    ```bash
    git clone <repository-url>
@@ -99,30 +128,39 @@ Entorno35/
    # Backend dependencies
    make setup
 
-   # Frontend dependencies (in separate terminal)
-   cd web/frontend && npm install
+   # Frontend dependencies
+   cd web/frontend && npm install && cd ../..
    ```
 
-4. **Run database migrations**
+4. **Configure environment variables**
    ```bash
-   make migrate-up
+   # Required for backend
+   export DB_HOST=localhost
+   export DB_PORT=5432
+   export DB_USER=postgres
+   export DB_PASSWORD=postgres
+   export DB_NAME=entorno35
+   export DB_SSLMODE=disable
+   export JWT_SECRET=your-secret-key-min-32-chars-long
+   export CORS_ORIGIN=http://localhost:3000
    ```
 
-5. **Start the applications**
+5. **Start the backend (terminal 1)**
    ```bash
-   # Backend API (terminal 1)
-   make run
+   cd cmd/api && go run main.go
+   ```
 
-   # Frontend (terminal 2)
+6. **Start the frontend (terminal 2)**
+   ```bash
    cd web/frontend && npm run dev
    ```
 
-6. **Verify installation**
+7. **Verify installation**
    ```bash
    # Backend health check
    curl http://localhost:8080/health
 
-   # Frontend at http://localhost:3000
+   # Frontend: Open browser to http://localhost:3000
    ```
 
 ### For Administrators

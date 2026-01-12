@@ -22,7 +22,7 @@ func NewReportService(reportRepo ports.ReportRepository) *ReportService {
 
 // GenerateIndividualReport generates an individual assessment report with recommendations
 func (s *ReportService) GenerateIndividualReport(assessmentID uuid.UUID, companyID uuid.UUID) (*domain.IndividualReportDTO, error) {
-	// Fetch report data from repository
+	// Fetch report data from repository (includes dynamic max scores calculation)
 	report, err := s.reportRepo.GetIndividualReport(assessmentID, companyID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get individual report: %w", err)
@@ -132,4 +132,5 @@ func (s *ReportService) getTopDomains(domainScores map[string]float64, n int) []
 
 	return result
 }
+
 

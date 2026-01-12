@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -89,21 +90,46 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 		// CURP provided - use it as primary identifier
 		normalizedCURP := strings.ToUpper(curp)
 		staff.CURP = &normalizedCURP
+		staff.EmployeeID = sql.NullString{Valid: false} // Explicitly set to NULL for CURP users
 	} else {
 		// No CURP provided - auto-generate employee ID
 		employeeID, err := s.generateEmployeeID(companyID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate employee ID: %w", err)
 		}
-		staff.EmployeeID = employeeID
+		staff.EmployeeID = sql.NullString{String: employeeID, Valid: true} // Set as valid string
 		staff.CURP = nil // Explicitly set to nil
 	}
 
-	if err := s.staffRepo.Create(staff); err != nil {
+	// Attempt to create staff, with retry logic for employee ID conflicts
+	maxRetries := 3
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		err := s.staffRepo.Create(staff)
+		if err == nil {
+			// Success
+			return staff, nil
+		}
+
+		// Check if this is a duplicate employee_id error
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") &&
+		   strings.Contains(err.Error(), "uni_staff_employee_id") {
+			// This is a duplicate employee ID error - regenerate and retry
+			if curp == "" { // Only retry if we're using auto-generated employee IDs
+				newEmployeeID, genErr := s.generateEmployeeID(companyID)
+				if genErr != nil {
+					return nil, fmt.Errorf("failed to regenerate employee ID: %w", genErr)
+				}
+				staff.EmployeeID = sql.NullString{String: newEmployeeID, Valid: true} // Set as valid string
+				continue // Retry with new employee ID
+			}
+		}
+
+		// Not a duplicate employee ID error, or we've exhausted retries
 		return nil, fmt.Errorf("failed to create staff: %w", err)
 	}
 
-	return staff, nil
+	// If we get here, we've exhausted all retries
+	return nil, fmt.Errorf("failed to create staff after %d attempts due to employee ID conflicts", maxRetries)
 }
 
 // AnalyzeCSV analyzes a CSV file and returns column mapping suggestions
@@ -234,9 +260,9 @@ func (s *StaffService) generateEmployeeID(companyID uuid.UUID) (string, error) {
 
 	// Find the highest sequence number for this company's prefix
 	for _, staff := range staffList {
-		if strings.HasPrefix(staff.EmployeeID, prefix) {
+		if staff.EmployeeID.Valid && strings.HasPrefix(staff.EmployeeID.String, prefix) {
 			// Extract sequence number from employee ID (format: CMPXXX-NNNN)
-			parts := strings.Split(staff.EmployeeID, "-")
+			parts := strings.Split(staff.EmployeeID.String, "-")
 			if len(parts) == 2 {
 				var seq int
 				if _, err := fmt.Sscanf(parts[1], "%d", &seq); err == nil {

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download } from "lucide-react";
+import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,27 +40,29 @@ export default function AssessmentReportPage() {
     }
   };
 
-  // Fetch individual report data
-  const { data: report, isLoading, error } = useQuery({
+  // Fetch individual report data with more specific cache key
+  const { data: report, isLoading, error, refetch } = useQuery({
     queryKey: ["individual-report", assessmentId],
     queryFn: () => reportService.getIndividualReport(assessmentId),
     enabled: !!assessmentId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const getRiskBadge = (riskLevel: string) => {
     const riskConfig = {
-      nulo: { label: "Nulo", color: "bg-green-100 text-green-800", description: "Very Low Risk" },
-      bajo: { label: "Bajo", color: "bg-blue-100 text-blue-800", description: "Low Risk" },
-      medio: { label: "Medio", color: "bg-yellow-100 text-yellow-800", description: "Medium Risk" },
-      alto: { label: "Alto", color: "bg-orange-100 text-orange-800", description: "High Risk" },
-      muy_alto: { label: "Muy Alto", color: "bg-red-100 text-red-800", description: "Very High Risk" },
+      nulo: { label: "Nulo", color: "bg-emerald-100 text-emerald-800 border-emerald-200", description: "Very Low Risk" },
+      bajo: { label: "Bajo", color: "bg-sky-100 text-sky-800 border-sky-200", description: "Low Risk" },
+      medio: { label: "Medio", color: "bg-amber-100 text-amber-800 border-amber-200", description: "Medium Risk" },
+      alto: { label: "Alto", color: "bg-orange-100 text-orange-800 border-orange-200", description: "High Risk" },
+      muy_alto: { label: "Muy Alto", color: "bg-red-100 text-red-800 border-red-200", description: "Very High Risk" },
     };
 
     const config = riskConfig[riskLevel as keyof typeof riskConfig];
     if (!config) return <Badge variant="outline">{riskLevel}</Badge>;
 
     return (
-      <Badge className={`${config.color} border-0 text-sm px-3 py-1`}>
+      <Badge className={`${config.color} border text-sm px-3 py-1 font-medium`}>
         {config.label}
       </Badge>
     );
@@ -81,20 +83,16 @@ export default function AssessmentReportPage() {
     return `${score}/${maxScore}`;
   };
 
-  const getScoreColor = (score: number, maxScore: number = 100) => {
-    const percentage = (score / maxScore) * 100;
-    if (percentage < 25) return "bg-green-500";
-    if (percentage < 50) return "bg-blue-500";
-    if (percentage < 75) return "bg-yellow-500";
-    return "bg-red-500";
-  };
-
-  const getRiskColor = (score: number, maxScore: number = 100) => {
-    const percentage = (score / maxScore) * 100;
-    if (percentage < 25) return "bg-green-500";
-    if (percentage < 50) return "bg-blue-500";
-    if (percentage < 75) return "bg-yellow-500";
-    return "bg-red-500";
+  // Use backend-provided risk levels instead of recalculating
+  const getRiskColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case "nulo": return "bg-emerald-500";
+      case "bajo": return "bg-sky-500";
+      case "medio": return "bg-amber-500";
+      case "alto": return "bg-orange-500";
+      case "muy_alto": return "bg-red-600";
+      default: return "bg-gray-400";
+    }
   };
 
   if (isLoading) {
@@ -168,6 +166,15 @@ export default function AssessmentReportPage() {
                   Back to Assessments
                 </Button>
                 <Button
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="mr-2"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button
                   onClick={handleDownloadPDF}
                   disabled={!report}
                   className="bg-blue-600 hover:bg-blue-700"
@@ -196,6 +203,9 @@ export default function AssessmentReportPage() {
                 <User className="h-5 w-5" />
                 <span>Staff Information</span>
               </CardTitle>
+              <CardDescription>
+                Staff details for this specific assessment period ({report.period})
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -211,10 +221,10 @@ export default function AssessmentReportPage() {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Period</div>
+                    <div className="text-sm font-medium text-gray-500">Assessment Period</div>
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4" />
-                      <span>{report.period}</span>
+                      <span className="font-semibold">{report.period}</span>
                     </div>
                   </div>
                   <div>
@@ -253,7 +263,7 @@ export default function AssessmentReportPage() {
 
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
-                  className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(report.total_score)}`}
+                  className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(report.risk_level)}`}
                   style={{ width: `${Math.min((report.total_score / 100) * 100, 100)}%` }}
                 ></div>
               </div>
@@ -278,24 +288,48 @@ export default function AssessmentReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {Object.entries(report.category_scores).map(([category, score]) => (
-                  <div key={category} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium">{category}</div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(score, 20)}`}
-                          style={{ width: `${Math.min((score / 20) * 100, 100)}%` }}
-                        ></div>
+              <div className="space-y-6">
+                {Object.entries(report.category_scores).map(([category, score], index) => {
+                  const riskLevel = report.category_risk_levels?.[category] || "nulo";
+                  const maxScore = report.category_max_scores?.[category] || 20; // Fallback to 20 if not provided
+                  const percentage = Math.min((score / maxScore) * 100, 100);
+
+                  return (
+                    <div key={category} className="space-y-3">
+                      {/* Header with category name and risk badge */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-medium text-gray-600 w-6">{index + 1}.</span>
+                          <span className="font-semibold text-gray-900">{category}</span>
+                        </div>
+                        {getRiskBadge(riskLevel)}
+                      </div>
+
+                      {/* Progress bar and score */}
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-1">
+                          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                            <div
+                              className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline space-x-1 min-w-0">
+                          <span className="text-lg font-bold text-gray-900 tabular-nums">
+                            {score.toFixed(1)}
+                          </span>
+                          <span className="text-sm font-medium text-gray-500">
+                            /{maxScore}
+                          </span>
+                          <span className="text-xs text-gray-400 ml-1">
+                            ({percentage.toFixed(0)}%)
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="ml-4 text-right">
-                      <div className="font-semibold">{score.toFixed(1)}</div>
-                      <div className="text-xs text-gray-500">/20</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -309,24 +343,48 @@ export default function AssessmentReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {Object.entries(report.domain_scores).map(([domain, score]) => (
-                  <div key={domain} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium">{domain}</div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${getRiskColor(score, 15)}`}
-                          style={{ width: `${Math.min((score / 15) * 100, 100)}%` }}
-                        ></div>
+              <div className="space-y-6">
+                {Object.entries(report.domain_scores).map(([domain, score], index) => {
+                  const riskLevel = report.domain_risk_levels?.[domain] || "nulo";
+                  const maxScore = report.domain_max_scores?.[domain] || 15; // Fallback to 15 if not provided
+                  const percentage = Math.min((score / maxScore) * 100, 100);
+
+                  return (
+                    <div key={domain} className="space-y-3">
+                      {/* Header with domain name and risk badge */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-medium text-gray-600 w-6">{index + 1}.</span>
+                          <span className="font-semibold text-gray-900">{domain}</span>
+                        </div>
+                        {getRiskBadge(riskLevel)}
+                      </div>
+
+                      {/* Progress bar and score */}
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-1">
+                          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                            <div
+                              className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline space-x-1 min-w-0">
+                          <span className="text-lg font-bold text-gray-900 tabular-nums">
+                            {score.toFixed(1)}
+                          </span>
+                          <span className="text-sm font-medium text-gray-500">
+                            /{maxScore}
+                          </span>
+                          <span className="text-xs text-gray-400 ml-1">
+                            ({percentage.toFixed(0)}%)
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="ml-4 text-right">
-                      <div className="font-semibold">{score.toFixed(1)}</div>
-                      <div className="text-xs text-gray-500">/15</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -363,30 +421,61 @@ export default function AssessmentReportPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
-                <span>Assessment Details</span>
+                <span>Assessment Timeline</span>
               </CardTitle>
+              <CardDescription>
+                Important dates and context for this assessment
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="font-medium text-gray-500">Guide Type</div>
-                  <div>NOM-035 {report.guide_type}</div>
+                  <div className="flex items-center space-x-2">
+                    <span>NOM-035 {report.guide_type}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {report.guide_type === "I" ? "Trauma" : report.guide_type === "II" ? "Risk Factors" : "Work Environment"}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-500">Assessment Period</div>
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>{report.period}</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-500">Status</div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Completed</span>
+                  </div>
                 </div>
                 <div>
                   <div className="font-medium text-gray-500">Completed At</div>
-                  <div>
-                    {report.completed_at
-                      ? new Date(report.completed_at).toLocaleDateString("es-MX", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "Not completed"
-                    }
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      {report.completed_at
+                        ? new Date(report.completed_at).toLocaleDateString("es-MX", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "Not completed"
+                      }
+                    </span>
                   </div>
                 </div>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800">
+                  <strong>Important:</strong> This report reflects the psychosocial risk assessment results for the {report.period} period only.
+                  If this staff member has multiple assessments, each report is independent and specific to its assessment period.
+                </p>
               </div>
             </CardContent>
           </Card>

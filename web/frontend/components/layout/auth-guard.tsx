@@ -27,6 +27,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
     hydrate();
   }, [hydrate]);
 
+  useEffect(() => {
+    // Redirect to login if not authenticated (after render)
+    if (!isAuthenticated && !isLoading) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
@@ -36,9 +43,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // Redirect to login if not authenticated
+  // Don't render anything while redirecting
   if (!isAuthenticated) {
-    router.push("/login");
     return null;
   }
 
