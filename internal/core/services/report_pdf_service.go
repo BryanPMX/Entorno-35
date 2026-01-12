@@ -126,14 +126,14 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 		pdf.AddPage()
 	}
 
-	drawTable(pdf, "Category Scores", report.CategoryScores)
+	drawTableWithRiskLevels(pdf, "Category Scores", report.CategoryScores, report.CategoryMaxScores, report.CategoryRiskLevels)
 	pdf.Ln(10)
 
 	if pdf.GetY() > 220 {
 		pdf.AddPage()
 	}
 
-	drawTable(pdf, "Domain Scores", report.DomainScores)
+	drawTableWithRiskLevels(pdf, "Domain Scores", report.DomainScores, report.DomainMaxScores, report.DomainRiskLevels)
 	pdf.Ln(12)
 
 	// 6. Recommendations - Fixed to flow naturally
@@ -175,6 +175,110 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	return buf.Bytes(), nil
 }
 
+func drawTableWithRiskLevels(pdf *gofpdf.Fpdf, title string, scores map[string]float64, maxScores map[string]float64, riskLevels map[string]string) {
+	pdf.SetFont("Arial", "B", 12)
+	pdf.Cell(0, 10, title)
+	pdf.Ln(10)
+
+	// Header - 3 columns: Item, Score/Max, Risk Level
+	pdf.SetFillColor(230, 230, 230)
+	pdf.SetFont("Arial", "B", 9)
+	pdf.CellFormat(85, 10, "Item", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(45, 10, "Score/Max", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(50, 10, "Risk Level", "1", 1, "C", true, 0, "")
+
+	// Rows - 3 columns
+	pdf.SetFont("Arial", "", 9)
+	fill := false
+	for k, v := range scores {
+		// Check if we need a page break before this row
+		if pdf.GetY() > 250 {
+			pdf.AddPage()
+			pdf.SetFont("Arial", "", 9)
+			// Re-draw header on new page for continuity
+			pdf.SetFillColor(230, 230, 230)
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(85, 10, "Item", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(45, 10, "Score/Max", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(50, 10, "Risk Level", "1", 1, "C", true, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			fill = false // Reset fill pattern
+		}
+
+		if fill {
+			pdf.SetFillColor(250, 250, 250)
+		} else {
+			pdf.SetFillColor(255, 255, 255)
+		}
+
+		// Ensure text fits in the cell - truncate if too long
+		itemText := k
+		if pdf.GetStringWidth(itemText) > 80 {
+			// Truncate with ellipsis
+			for len(itemText) > 0 && pdf.GetStringWidth(itemText+"...") > 80 {
+				itemText = itemText[:len(itemText)-1]
+			}
+			itemText += "..."
+		}
+
+		// Get max score and risk level
+		maxScore := maxScores[k]
+		riskLevel := riskLevels[k]
+		
+		// Format risk level for display
+		riskDisplay := formatRiskLevel(riskLevel)
+
+		// 3 columns: Item, Score/Max, Risk Level
+		pdf.CellFormat(85, 8, itemText, "1", 0, "L", fill, 0, "")
+		pdf.CellFormat(45, 8, fmt.Sprintf("%.1f / %.0f", v, maxScore), "1", 0, "C", fill, 0, "")
+		
+		// Color-code risk level text
+		pdf.SetTextColor(getRiskColor(riskLevel))
+		pdf.CellFormat(50, 8, riskDisplay, "1", 1, "C", fill, 0, "")
+		pdf.SetTextColor(0, 0, 0) // Reset to black
+		
+		fill = !fill
+	}
+	pdf.Ln(5) // Add some space after table
+}
+
+// formatRiskLevel converts risk level to readable format
+func formatRiskLevel(level string) string {
+	switch level {
+	case "nulo":
+		return "Nulo"
+	case "bajo":
+		return "Bajo"
+	case "medio":
+		return "Medio"
+	case "alto":
+		return "Alto"
+	case "muy_alto":
+		return "Muy Alto"
+	default:
+		return strings.Title(level)
+	}
+}
+
+// getRiskColor returns RGB color based on risk level
+func getRiskColor(level string) (r, g, b int) {
+	switch level {
+	case "nulo":
+		return 34, 197, 94 // Green
+	case "bajo":
+		return 132, 204, 22 // Light green
+	case "medio":
+		return 234, 179, 8 // Yellow
+	case "alto":
+		return 249, 115, 22 // Orange
+	case "muy_alto":
+		return 239, 68, 68 // Red
+	default:
+		return 0, 0, 0 // Black
+	}
+}
+
+// Legacy function kept for compatibility (not used anymore)
 func drawTable(pdf *gofpdf.Fpdf, title string, data map[string]float64) {
 	pdf.SetFont("Arial", "B", 12)
 	pdf.Cell(0, 10, title)
