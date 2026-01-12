@@ -1,4 +1,4 @@
-.PHONY: help build run test clean docker-up docker-down migrate-up migrate-down
+.PHONY: help build run test clean docker-up docker-down migrate-up migrate-down setup
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
