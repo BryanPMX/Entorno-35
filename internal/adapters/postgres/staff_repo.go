@@ -1,8 +1,10 @@
 package postgres
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+	"hash/fnv"
 
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/domain"
@@ -147,5 +149,158 @@ func (r *staffRepository) HasCompletedAssessments(staffID uuid.UUID) (bool, erro
 	}
 
 	return count > 0, nil
+}
+
+// GenerateAndReserveEmployeeID atomically generates and reserves a unique employee ID
+// Uses PostgreSQL advisory locks to prevent race conditions across concurrent requests
+func (r *staffRepository) GenerateAndReserveEmployeeID(companyID uuid.UUID, prefix string) (string, error) {
+	var employeeID string
+	prefixPattern := prefix + "%"
+
+	// Generate a unique lock key based on company ID
+	// PostgreSQL advisory locks use bigint, so we hash the UUID string to int64
+	// This ensures the same company always uses the same lock key
+	h := fnv.New64a()
+	h.Write([]byte(companyID.String()))
+	lockKey := int64(h.Sum64())
+	// Ensure positive value for advisory lock (PostgreSQL requires positive)
+	if lockKey < 0 {
+		lockKey = -lockKey
+	}
+
+	// Use transaction with advisory lock to ensure atomicity
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// Acquire advisory lock (blocks until available, prevents concurrent ID generation)
+		// pg_advisory_xact_lock is automatically released when transaction ends
+		lockQuery := `SELECT pg_advisory_xact_lock(?)`
+		if err := tx.Exec(lockQuery, lockKey).Error; err != nil {
+			return fmt.Errorf("failed to acquire advisory lock: %w", err)
+		}
+
+		var maxSeq sql.NullInt64
+
+		// Now safely query for max sequence (we have exclusive lock)
+		query := `
+			SELECT MAX(
+				CAST(
+					SUBSTRING(employee_id FROM POSITION('-' IN employee_id) + 1) AS INTEGER
+				)
+			) as max_seq
+			FROM staff
+			WHERE company_id = ?
+			  AND employee_id IS NOT NULL
+			  AND employee_id LIKE ?
+			  AND deleted_at IS NULL
+		`
+
+		if err := tx.Raw(query, companyID, prefixPattern).Scan(&maxSeq).Error; err != nil {
+			return fmt.Errorf("failed to get max employee ID sequence: %w", err)
+		}
+
+		// Calculate next sequence number
+		nextSequence := 1
+		if maxSeq.Valid {
+			nextSequence = int(maxSeq.Int64) + 1
+		}
+
+		// Format as 4-digit zero-padded number
+		employeeID = fmt.Sprintf("%s%04d", prefix, nextSequence)
+
+		// Double-check the ID doesn't exist (shouldn't happen with lock, but safety check)
+		var exists bool
+		checkQuery := `SELECT EXISTS(SELECT 1 FROM staff WHERE employee_id = ? AND deleted_at IS NULL)`
+		if err := tx.Raw(checkQuery, employeeID).Scan(&exists).Error; err != nil {
+			return fmt.Errorf("failed to verify employee ID availability: %w", err)
+		}
+
+		if exists {
+			// If it exists, increment (shouldn't happen with proper locking, but handle it)
+			nextSequence++
+			employeeID = fmt.Sprintf("%s%04d", prefix, nextSequence)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return employeeID, nil
+}
+
+// CreateWithEmployeeID generates an employee ID and creates the staff record atomically
+// This prevents race conditions where ID generation and insertion happen separately
+func (r *staffRepository) CreateWithEmployeeID(staff *domain.Staff, companyID uuid.UUID, prefix string) error {
+	prefixPattern := prefix + "%"
+
+	// Generate a unique lock key based on company ID
+	h := fnv.New64a()
+	h.Write([]byte(companyID.String()))
+	lockKey := int64(h.Sum64())
+	if lockKey < 0 {
+		lockKey = -lockKey
+	}
+
+	// Use transaction with advisory lock to ensure atomicity
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Acquire advisory lock (blocks until available, prevents concurrent ID generation)
+		lockQuery := `SELECT pg_advisory_xact_lock(?)`
+		if err := tx.Exec(lockQuery, lockKey).Error; err != nil {
+			return fmt.Errorf("failed to acquire advisory lock: %w", err)
+		}
+
+		var maxSeq sql.NullInt64
+
+		// Query for max sequence (we have exclusive lock)
+		query := `
+			SELECT MAX(
+				CAST(
+					SUBSTRING(employee_id FROM POSITION('-' IN employee_id) + 1) AS INTEGER
+				)
+			) as max_seq
+			FROM staff
+			WHERE company_id = ?
+			  AND employee_id IS NOT NULL
+			  AND employee_id LIKE ?
+			  AND deleted_at IS NULL
+		`
+
+		if err := tx.Raw(query, companyID, prefixPattern).Scan(&maxSeq).Error; err != nil {
+			return fmt.Errorf("failed to get max employee ID sequence: %w", err)
+		}
+
+		// Calculate next sequence number
+		nextSequence := 1
+		if maxSeq.Valid {
+			nextSequence = int(maxSeq.Int64) + 1
+		}
+
+		// Format as 4-digit zero-padded number
+		employeeID := fmt.Sprintf("%s%04d", prefix, nextSequence)
+
+		// Double-check the ID doesn't exist (shouldn't happen with lock, but safety check)
+		var exists bool
+		checkQuery := `SELECT EXISTS(SELECT 1 FROM staff WHERE employee_id = ? AND deleted_at IS NULL)`
+		if err := tx.Raw(checkQuery, employeeID).Scan(&exists).Error; err != nil {
+			return fmt.Errorf("failed to verify employee ID availability: %w", err)
+		}
+
+		if exists {
+			// If it exists, increment (shouldn't happen with proper locking, but handle it)
+			nextSequence++
+			employeeID = fmt.Sprintf("%s%04d", prefix, nextSequence)
+		}
+
+		// Set the employee ID on the staff record
+		staff.EmployeeID = sql.NullString{String: employeeID, Valid: true}
+
+		// Create the staff record in the same transaction
+		if err := tx.Create(staff).Error; err != nil {
+			return fmt.Errorf("failed to create staff: %w", err)
+		}
+
+		return nil
+	})
 }
 

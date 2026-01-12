@@ -80,6 +80,7 @@ type DepartmentRiskHeatmap struct {
 	Department string     `json:"department"`
 	RiskLevel  RiskLevel  `json:"risk_level"`
 	Count      int64      `json:"count"`
+	AvgScore   *float64   `json:"avg_score,omitempty"` // Average total_score per department
 }
 
 // DemographicDistribution represents the count of staff/assessments by a demographic category

@@ -223,13 +223,20 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 	}
 
 	// Aggregation 4: Department heatmap (JOIN assessments + staff, GROUP BY department AND risk_level)
+	// Also calculate average total_score per department for accurate score display
 	var heatmapData []struct {
 		Department string           `gorm:"column:department"`
 		RiskLevel  domain.RiskLevel `gorm:"column:risk_level"`
 		Count      int64            `gorm:"column:count"`
 	}
 
-	heatmapQuery := r.db.Table("assessments").
+	var avgScoreData []struct {
+		Department string  `gorm:"column:department"`
+		AvgScore   float64 `gorm:"column:avg_score"`
+		Count      int64   `gorm:"column:count"`
+	}
+
+	heatmapQuery := r.db.Model(&domain.Assessment{}).
 		Select("staff.demographics->>'department' as department, assessments.risk_level, COUNT(*) as count").
 		Joins("INNER JOIN staff ON assessments.staff_id = staff.id").
 		Where("assessments.company_id = ? AND assessments.status = ? AND assessments.risk_level IS NOT NULL", companyID, domain.AssessmentStatusCompleted).
@@ -245,27 +252,55 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 		return nil, fmt.Errorf("failed to get department heatmap: %w", err)
 	}
 
+	// Calculate average total_score per department
+	avgScoreQuery := r.db.Model(&domain.Assessment{}).
+		Select("staff.demographics->>'department' as department, AVG(assessments.total_score) as avg_score, COUNT(*) as count").
+		Joins("INNER JOIN staff ON assessments.staff_id = staff.id").
+		Where("assessments.company_id = ? AND assessments.status = ? AND assessments.total_score IS NOT NULL", companyID, domain.AssessmentStatusCompleted).
+		Where("staff.demographics->>'department' IS NOT NULL AND staff.demographics->>'department' != ''")
+
+	if period != nil {
+		avgScoreQuery = avgScoreQuery.Where("assessments.period = ?", *period)
+	}
+
+	if err := avgScoreQuery.
+		Group("staff.demographics->>'department'").
+		Scan(&avgScoreData).Error; err != nil {
+		return nil, fmt.Errorf("failed to get department average scores: %w", err)
+	}
+
+	// Build a map of department -> average score
+	avgScoreMap := make(map[string]float64)
+	for _, avg := range avgScoreData {
+		avgScoreMap[avg.Department] = avg.AvgScore
+	}
+
 	// Convert to DTO format
 	departmentHeatmap := make([]domain.DepartmentRiskHeatmap, 0, len(heatmapData))
 	for _, hd := range heatmapData {
-		departmentHeatmap = append(departmentHeatmap, domain.DepartmentRiskHeatmap{
+		dept := domain.DepartmentRiskHeatmap{
 			Department: hd.Department,
 			RiskLevel:  hd.RiskLevel,
 			Count:      hd.Count,
-		})
+		}
+		// Add average score if available
+		if avgScore, exists := avgScoreMap[hd.Department]; exists {
+			dept.AvgScore = &avgScore
+		}
+		departmentHeatmap = append(departmentHeatmap, dept)
 	}
 
-	// Aggregation 5: Age distribution (GROUP BY age_range)
-	ageDistribution := r.getDemographicDistribution(companyID, "age_range")
+	// Aggregation 5: Age distribution (GROUP BY age_range) - based on staff with completed assessments
+	ageDistribution := r.getDemographicDistribution(companyID, "age_range", period)
 
-	// Aggregation 6: Marital status distribution
-	maritalStatusDistribution := r.getDemographicDistribution(companyID, "marital_status")
+	// Aggregation 6: Marital status distribution - based on staff with completed assessments
+	maritalStatusDistribution := r.getDemographicDistribution(companyID, "marital_status", period)
 
-	// Aggregation 7: Shift type distribution
-	shiftTypeDistribution := r.getDemographicDistribution(companyID, "shift_type")
+	// Aggregation 7: Shift type distribution - based on staff with completed assessments
+	shiftTypeDistribution := r.getDemographicDistribution(companyID, "shift_type", period)
 
-	// Aggregation 8: Experience distribution
-	experienceDistribution := r.getDemographicDistribution(companyID, "total_work_experience")
+	// Aggregation 8: Experience distribution - based on staff with completed assessments
+	experienceDistribution := r.getDemographicDistribution(companyID, "total_work_experience", period)
 
 	// Aggregation 9: Age risk distribution (cross-analysis)
 	ageRiskDistribution := r.getDemographicRiskDistribution(companyID, "age_range", period)
@@ -568,20 +603,32 @@ func (r *reportRepository) getRiskLevelFromPercentage(score, maxScore float64) s
 }
 
 // getDemographicDistribution retrieves the distribution of staff by a demographic field
-func (r *reportRepository) getDemographicDistribution(companyID uuid.UUID, demographicField string) []domain.DemographicDistribution {
+// Filters by completed assessments to ensure data reflects actual assessment participants
+// Uses Model to ensure soft deletes are properly handled
+func (r *reportRepository) getDemographicDistribution(companyID uuid.UUID, demographicField string, period *int) []domain.DemographicDistribution {
 	var results []struct {
 		Category string `gorm:"column:category"`
 		Count    int64  `gorm:"column:count"`
 	}
 
-	query := fmt.Sprintf("staff.demographics->>'%s'", demographicField)
-	r.db.Table("staff").
-		Select(query+" as category, COUNT(*) as count").
-		Where("company_id = ?", companyID).
-		Where(query+" IS NOT NULL AND "+query+" != ''").
-		Group(query).
+	demographicQuery := fmt.Sprintf("staff.demographics->>'%s'", demographicField)
+	query := r.db.Model(&domain.Assessment{}).
+		Select(demographicQuery + " as category, COUNT(DISTINCT assessments.staff_id) as count").
+		Joins("INNER JOIN staff ON assessments.staff_id = staff.id").
+		Where("assessments.company_id = ? AND assessments.status = ?", companyID, domain.AssessmentStatusCompleted).
+		Where(demographicQuery + " IS NOT NULL AND " + demographicQuery + " != ''")
+
+	if period != nil {
+		query = query.Where("assessments.period = ?", *period)
+	}
+
+	if err := query.
+		Group(demographicQuery).
 		Order("count DESC").
-		Scan(&results)
+		Scan(&results).Error; err != nil {
+		// Return empty distribution on error rather than failing the entire report
+		return []domain.DemographicDistribution{}
+	}
 
 	distribution := make([]domain.DemographicDistribution, 0, len(results))
 	for _, res := range results {
@@ -603,7 +650,7 @@ func (r *reportRepository) getDemographicRiskDistribution(companyID uuid.UUID, d
 	}
 
 	demographicQuery := fmt.Sprintf("staff.demographics->>'%s'", demographicField)
-	query := r.db.Table("assessments").
+	query := r.db.Model(&domain.Assessment{}).
 		Select(demographicQuery+" as category, assessments.risk_level, COUNT(*) as count").
 		Joins("INNER JOIN staff ON assessments.staff_id = staff.id").
 		Where("assessments.company_id = ? AND assessments.status = ? AND assessments.risk_level IS NOT NULL",

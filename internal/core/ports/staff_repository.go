@@ -29,5 +29,13 @@ type StaffRepository interface {
 
 	// HasCompletedAssessments checks if a staff member has any completed assessments
 	HasCompletedAssessments(staffID uuid.UUID) (bool, error)
+
+	// GenerateAndReserveEmployeeID atomically generates and reserves a unique employee ID
+	// This uses a transaction with row locking to prevent race conditions
+	GenerateAndReserveEmployeeID(companyID uuid.UUID, prefix string) (string, error)
+
+	// CreateWithEmployeeID generates an employee ID and creates the staff record atomically
+	// This prevents race conditions where ID generation and insertion happen separately
+	CreateWithEmployeeID(staff *domain.Staff, companyID uuid.UUID, prefix string) error
 }
 

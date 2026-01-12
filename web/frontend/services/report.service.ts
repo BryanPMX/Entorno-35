@@ -9,6 +9,7 @@ export interface DepartmentHeatmap {
   department: string;
   risk_level: string;
   count: number;
+  avg_score?: number; // Average total_score per department
 }
 
 export interface DemographicDistribution {
@@ -49,6 +50,7 @@ export interface IndividualReportDTO {
   department?: string;
   shift?: string;
   total_score: number;
+  total_max_score: number;
   risk_level: string;
   category_scores: Record<string, number>;
   category_risk_levels: Record<string, string>;

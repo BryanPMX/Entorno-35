@@ -231,7 +231,9 @@ export default function AssessmentReportPage() {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold mb-1">{report.total_score}/100</div>
+                  <div className="text-2xl font-bold mb-1">
+                    {report.total_score.toFixed(1)} / {report.total_max_score.toFixed(0)}
+                  </div>
                   <div className="text-sm text-gray-600">{translations.reports.totalScore}</div>
                 </div>
                 <div className="text-right">
@@ -245,7 +247,7 @@ export default function AssessmentReportPage() {
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
                   className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(report.risk_level)}`}
-                  style={{ width: `${Math.min((report.total_score / 100) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((report.total_score / report.total_max_score) * 100, 100)}%` }}
                 ></div>
               </div>
 

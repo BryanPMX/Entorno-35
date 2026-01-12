@@ -39,8 +39,8 @@ type ImportRecord struct {
 
 // StaffService handles staff-related business logic
 type StaffService struct {
-	staffRepo       ports.StaffRepository
-	csvDetector     *csvdetect.DetectionService
+	staffRepo   ports.StaffRepository
+	csvDetector *csvdetect.DetectionService
 }
 
 // NewStaffService creates a new staff service
@@ -53,16 +53,16 @@ func NewStaffService(staffRepo ports.StaffRepository) *StaffService {
 
 // CreateStaffRequest represents the request to create a staff member
 type CreateStaffRequest struct {
-	CURP         string                    `json:"curp,omitempty"` // Optional for staff without CURPs
-	FullName     string                    `json:"full_name" binding:"required"`
-	Email        string                    `json:"email,omitempty"`
+	CURP         string                   `json:"curp,omitempty"` // Optional for staff without CURPs
+	FullName     string                   `json:"full_name" binding:"required"`
+	Email        string                   `json:"email,omitempty"`
 	Demographics domain.DemographicsJSONB `json:"demographics,omitempty"`
 }
 
 // UpdateStaffRequest represents the request to update a staff member
 type UpdateStaffRequest struct {
-	FullName     string                    `json:"full_name,omitempty"`
-	Email        string                    `json:"email,omitempty"`
+	FullName     string                   `json:"full_name,omitempty"`
+	Email        string                   `json:"email,omitempty"`
 	Demographics domain.DemographicsJSONB `json:"demographics,omitempty"`
 }
 
@@ -91,45 +91,25 @@ func (s *StaffService) CreateStaff(req CreateStaffRequest, companyID uuid.UUID) 
 		normalizedCURP := strings.ToUpper(curp)
 		staff.CURP = &normalizedCURP
 		staff.EmployeeID = sql.NullString{Valid: false} // Explicitly set to NULL for CURP users
+
+		// Create staff with CURP (no employee ID needed)
+		if err := s.staffRepo.Create(staff); err != nil {
+			return nil, fmt.Errorf("failed to create staff: %w", err)
+		}
 	} else {
-		// No CURP provided - auto-generate employee ID
-		employeeID, err := s.generateEmployeeID(companyID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate employee ID: %w", err)
-		}
-		staff.EmployeeID = sql.NullString{String: employeeID, Valid: true} // Set as valid string
+		// No CURP provided - atomically generate employee ID and create staff in one transaction
+		// This prevents race conditions where ID generation and insertion happen separately
+		companyShortID := companyID.String()[:3]
+		prefix := fmt.Sprintf("CMP%s-", strings.ToUpper(companyShortID))
 		staff.CURP = nil // Explicitly set to nil
+
+		// Create staff with employee ID generation in a single atomic transaction
+		if err := s.staffRepo.CreateWithEmployeeID(staff, companyID, prefix); err != nil {
+			return nil, fmt.Errorf("failed to create staff: %w", err)
+		}
 	}
 
-	// Attempt to create staff, with retry logic for employee ID conflicts
-	maxRetries := 3
-	for attempt := 0; attempt < maxRetries; attempt++ {
-		err := s.staffRepo.Create(staff)
-		if err == nil {
-			// Success
-			return staff, nil
-		}
-
-		// Check if this is a duplicate employee_id error
-		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") &&
-		   strings.Contains(err.Error(), "uni_staff_employee_id") {
-			// This is a duplicate employee ID error - regenerate and retry
-			if curp == "" { // Only retry if we're using auto-generated employee IDs
-				newEmployeeID, genErr := s.generateEmployeeID(companyID)
-				if genErr != nil {
-					return nil, fmt.Errorf("failed to regenerate employee ID: %w", genErr)
-				}
-				staff.EmployeeID = sql.NullString{String: newEmployeeID, Valid: true} // Set as valid string
-				continue // Retry with new employee ID
-			}
-		}
-
-		// Not a duplicate employee ID error, or we've exhausted retries
-		return nil, fmt.Errorf("failed to create staff: %w", err)
-	}
-
-	// If we get here, we've exhausted all retries
-	return nil, fmt.Errorf("failed to create staff after %d attempts due to employee ID conflicts", maxRetries)
+	return staff, nil
 }
 
 // AnalyzeCSV analyzes a CSV file and returns column mapping suggestions
@@ -236,49 +216,6 @@ func (s *StaffService) validateImportRecord(record *ImportRecord) {
 			record.Errors = append(record.Errors, "invalid email format")
 		}
 	}
-}
-
-// generateEmployeeID generates a unique employee ID for staff without CURPs
-// Format: CMP{COMPANY_ID}-{SEQUENCE} (e.g., CMP001-0001, CMP001-0002)
-func (s *StaffService) generateEmployeeID(companyID uuid.UUID) (string, error) {
-	// Get the short company ID (first 3 characters of UUID)
-	companyShortID := companyID.String()[:3]
-
-	// Find the highest existing employee ID for this company
-	// This is a simplified approach - in production, you might want a dedicated sequence table
-	prefix := fmt.Sprintf("CMP%s-", strings.ToUpper(companyShortID))
-
-	// Query existing employee IDs with this prefix
-	// For now, we'll use a simple approach - in production, consider using database sequences
-	maxSequence := 0
-
-	// Get all staff for this company and find the highest employee ID sequence
-	staffList, _, err := s.staffRepo.ListByCompany(companyID, 1000, 0) // Get first 1000 records
-	if err != nil {
-		return "", fmt.Errorf("failed to query existing staff: %w", err)
-	}
-
-	// Find the highest sequence number for this company's prefix
-	for _, staff := range staffList {
-		if staff.EmployeeID.Valid && strings.HasPrefix(staff.EmployeeID.String, prefix) {
-			// Extract sequence number from employee ID (format: CMPXXX-NNNN)
-			parts := strings.Split(staff.EmployeeID.String, "-")
-			if len(parts) == 2 {
-				var seq int
-				if _, err := fmt.Sscanf(parts[1], "%d", &seq); err == nil {
-					if seq > maxSequence {
-						maxSequence = seq
-					}
-				}
-			}
-		}
-	}
-
-	// Generate next sequence number
-	nextSequence := maxSequence + 1
-
-	// Format as 4-digit zero-padded number
-	return fmt.Sprintf("%s%04d", prefix, nextSequence), nil
 }
 
 // UpdateStaff updates an existing staff member
@@ -482,7 +419,7 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 		name := strings.TrimSpace(row[nameIdx])
 		curp := strings.TrimSpace(row[curpIdx])
 		email := strings.TrimSpace(row[emailIdx])
-		
+
 		// Optional core fields - check if header exists and row has enough columns
 		area := ""
 		if hasArea && len(row) > areaIdx {
@@ -500,7 +437,7 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 		if hasGender && len(row) > genderIdx {
 			gender = strings.TrimSpace(row[genderIdx])
 		}
-		
+
 		// Optional demographic fields - check if header exists and row has enough columns
 		ageRange := ""
 		if hasAge && len(row) > ageIdx {
@@ -594,4 +531,3 @@ func max(nums ...int) int {
 	}
 	return maxNum
 }
-

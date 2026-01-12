@@ -3,6 +3,7 @@
 import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { translations } from "@/lib/translations";
 
 interface RiskData {
   risk_level: string;
@@ -43,7 +44,7 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
       return (
         <div className="bg-popover p-3 rounded-md shadow-md border">
           <p className="font-medium">{data.name}</p>
-          <p className="text-sm text-muted-foreground">{data.value} assessments</p>
+          <p className="text-sm text-muted-foreground">{data.value} {translations.charts.totalAssessments.toLowerCase()}</p>
         </div>
       );
     }
@@ -54,11 +55,11 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
     return (
       <Card className="animate-in fade-in slide-in-from-bottom-4">
         <CardHeader>
-          <CardTitle>Risk Distribution</CardTitle>
-          <CardDescription>Distribution of risk levels across assessments</CardDescription>
+          <CardTitle>{translations.charts.riskDistribution}</CardTitle>
+          <CardDescription>{translations.charts.riskDistributionDesc}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
+          <div className="h-[240px] flex items-center justify-center">
             <div className="animate-pulse bg-muted rounded-full w-32 h-32"></div>
           </div>
         </CardContent>
@@ -70,12 +71,12 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
     return (
       <Card className="animate-in fade-in slide-in-from-bottom-4">
         <CardHeader>
-          <CardTitle>Risk Distribution</CardTitle>
-          <CardDescription>Distribution of risk levels across assessments</CardDescription>
+          <CardTitle>{translations.charts.riskDistribution}</CardTitle>
+          <CardDescription>{translations.charts.riskDistributionDesc}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">No assessment data available</p>
+          <div className="h-[240px] flex items-center justify-center">
+            <p className="text-muted-foreground">{translations.charts.noDataAvailable}</p>
           </div>
         </CardContent>
       </Card>
@@ -85,18 +86,18 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
   return (
     <Card className="animate-in fade-in slide-in-from-bottom-4">
       <CardHeader>
-        <CardTitle>Risk Distribution</CardTitle>
-        <CardDescription>Distribution of risk levels across assessments</CardDescription>
+        <CardTitle>{translations.charts.riskDistribution}</CardTitle>
+        <CardDescription>{translations.charts.riskDistributionDesc}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
+        <ResponsiveContainer width="100%" height={240}>
+          <PieChart margin={{ bottom: 15 }}>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={100}
+              innerRadius={55}
+              outerRadius={95}
               paddingAngle={2}
               dataKey="value"
             >

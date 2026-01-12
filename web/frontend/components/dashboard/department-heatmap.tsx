@@ -3,6 +3,7 @@
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { translations } from "@/lib/translations";
 
 interface DepartmentData {
   department: string;
@@ -24,43 +25,47 @@ const RISK_COLORS = {
 };
 
 export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmapProps) {
-  // Group data by department and calculate average risk score
+  // Group data by department and use actual average scores from backend
   const departmentStats = data.reduce((acc, item) => {
     if (!acc[item.department]) {
       acc[item.department] = {
         department: item.department,
         totalAssessments: 0,
-        riskScore: 0,
+        avgScore: item.avg_score ?? null, // Use actual average score from backend
       };
     }
 
     acc[item.department].totalAssessments += item.count;
-
-    // Convert risk level to numeric score for averaging
-    const riskScores = {
-      nulo: 10,
-      bajo: 25,
-      medio: 35,
-      alto: 45,
-      muy_alto: 55,
-    };
-
-    acc[item.department].riskScore +=
-      (riskScores[item.risk_level as keyof typeof riskScores] || 0) * item.count;
+    // avg_score should be the same for all entries of the same department
+    if (item.avg_score !== undefined && acc[item.department].avgScore === null) {
+      acc[item.department].avgScore = item.avg_score;
+    }
 
     return acc;
-  }, {} as Record<string, { department: string; totalAssessments: number; riskScore: number }>);
+  }, {} as Record<string, { department: string; totalAssessments: number; avgScore: number | null }>);
 
-  const chartData = Object.values(departmentStats).map((dept) => ({
-    department: dept.department,
-    averageRisk: Math.round(dept.riskScore / dept.totalAssessments),
-    totalAssessments: dept.totalAssessments,
-    color: dept.riskScore / dept.totalAssessments < 20 ? RISK_COLORS.nulo :
-           dept.riskScore / dept.totalAssessments < 30 ? RISK_COLORS.bajo :
-           dept.riskScore / dept.totalAssessments < 40 ? RISK_COLORS.medio :
-           dept.riskScore / dept.totalAssessments < 50 ? RISK_COLORS.alto :
-           RISK_COLORS.muy_alto,
-  }));
+  // Helper function to get risk color based on actual NOM-035 score thresholds
+  // Guide II: nulo: 0-20, bajo: 20-45, medio: 45-70, alto: 70-90, muy_alto: 90+
+  // Guide III: nulo: 0-50, bajo: 50-75, medio: 75-99, alto: 99-140, muy_alto: 140+
+  // Using Guide III thresholds as default (more common for larger organizations)
+  const getRiskColor = (score: number | null): string => {
+    if (score === null) return RISK_COLORS.nulo;
+    if (score < 50) return RISK_COLORS.nulo;
+    if (score < 75) return RISK_COLORS.bajo;
+    if (score < 99) return RISK_COLORS.medio;
+    if (score < 140) return RISK_COLORS.alto;
+    return RISK_COLORS.muy_alto;
+  };
+
+  const chartData = Object.values(departmentStats).map((dept) => {
+    const avgScore = dept.avgScore ?? 0;
+    return {
+      department: dept.department,
+      averageRisk: Math.round(avgScore),
+      totalAssessments: dept.totalAssessments,
+      color: getRiskColor(dept.avgScore),
+    };
+  });
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -69,10 +74,10 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
         <div className="bg-popover p-3 rounded-md shadow-md border">
           <p className="font-medium">{label}</p>
           <p className="text-sm text-muted-foreground">
-            Average Risk: {data.averageRisk}/100
+            Riesgo Promedio: {data.averageRisk}
           </p>
           <p className="text-sm text-muted-foreground">
-            Total Assessments: {data.totalAssessments}
+            {translations.charts.totalAssessments}: {data.totalAssessments}
           </p>
         </div>
       );
@@ -84,11 +89,11 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
     return (
       <Card className="animate-in fade-in slide-in-from-bottom-4">
         <CardHeader>
-          <CardTitle>Department Risk Heatmap</CardTitle>
-          <CardDescription>Average risk levels by department</CardDescription>
+          <CardTitle>{translations.charts.departmentHeatmap}</CardTitle>
+          <CardDescription>{translations.charts.departmentHeatmapDesc}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
+          <div className="h-[400px] flex items-center justify-center">
             <div className="animate-pulse bg-muted rounded w-full h-32"></div>
           </div>
         </CardContent>
@@ -100,12 +105,12 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
     return (
       <Card className="animate-in fade-in slide-in-from-bottom-4">
         <CardHeader>
-          <CardTitle>Department Risk Heatmap</CardTitle>
-          <CardDescription>Average risk levels by department</CardDescription>
+          <CardTitle>{translations.charts.departmentHeatmap}</CardTitle>
+          <CardDescription>{translations.charts.departmentHeatmapDesc}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">No department data available</p>
+          <div className="h-[400px] flex items-center justify-center">
+            <p className="text-muted-foreground">{translations.charts.noDataAvailable}</p>
           </div>
         </CardContent>
       </Card>
@@ -115,12 +120,12 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
   return (
     <Card className="animate-in fade-in slide-in-from-bottom-4">
       <CardHeader>
-        <CardTitle>Department Risk Heatmap</CardTitle>
-        <CardDescription>Average risk levels by department</CardDescription>
+        <CardTitle>{translations.charts.departmentHeatmap}</CardTitle>
+        <CardDescription>{translations.charts.departmentHeatmapDesc}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={chartData} margin={{ left: 80, bottom: 60, right: 20, top: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="department"
@@ -130,8 +135,8 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
               fontSize={12}
             />
             <YAxis
-              label={{ value: 'Risk Score', angle: -90, position: 'insideLeft' }}
-              domain={[0, 60]}
+              label={{ value: translations.charts.riskScore, angle: -90, position: 'left', offset: 0 }}
+              domain={[0, 100]}
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar
