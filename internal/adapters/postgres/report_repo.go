@@ -73,7 +73,7 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 	categoryScores, domainScores = r.validateAndClampScores(categoryScores, domainScores, categoryMaxScores, domainMaxScores)
 
 	// Calculate category and domain risk levels using NOM-035 thresholds
-	categoryRiskLevels, domainRiskLevels, err := r.calculateRiskLevelsFromScores(categoryScores, domainScores, assessment.GuideType)
+	categoryRiskLevels, domainRiskLevels, err := r.calculateRiskLevelsFromScores(categoryScores, domainScores, assessment.GuideType, categoryMaxScores, domainMaxScores)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate risk levels: %w", err)
 	}
@@ -90,21 +90,21 @@ func (r *reportRepository) GetIndividualReport(assessmentID uuid.UUID, companyID
 
 	// Build DTO
 	dto := &domain.IndividualReportDTO{
-		AssessmentID:        assessment.ID,
-		Period:              assessment.Period,
-		GuideType:           assessment.GuideType,
-		StaffName:           assessment.Staff.FullName,
-		Department:          department,
-		Shift:               shift,
-		TotalScore:          *assessment.TotalScore,
-		RiskLevel:           *assessment.RiskLevel,
-		CategoryScores:      categoryScores,
-		CategoryRiskLevels:  categoryRiskLevels,
-		CategoryMaxScores:   categoryMaxScores,
-		DomainScores:        domainScores,
-		DomainRiskLevels:    domainRiskLevels,
-		DomainMaxScores:     domainMaxScores,
-		RequiresMedical:     assessment.RequiresMedicalAttention,
+		AssessmentID:       assessment.ID,
+		Period:             assessment.Period,
+		GuideType:          assessment.GuideType,
+		StaffName:          assessment.Staff.FullName,
+		Department:         department,
+		Shift:              shift,
+		TotalScore:         *assessment.TotalScore,
+		RiskLevel:          *assessment.RiskLevel,
+		CategoryScores:     categoryScores,
+		CategoryRiskLevels: categoryRiskLevels,
+		CategoryMaxScores:  categoryMaxScores,
+		DomainScores:       domainScores,
+		DomainRiskLevels:   domainRiskLevels,
+		DomainMaxScores:    domainMaxScores,
+		RequiresMedical:    assessment.RequiresMedicalAttention,
 		CompletedAt:        assessment.CompletedAt,
 	}
 
@@ -133,7 +133,7 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 	var completedAssessments int64
 	assessmentQuery := r.db.Model(&domain.Assessment{}).
 		Where("company_id = ? AND status = ?", companyID, domain.AssessmentStatusCompleted)
-	
+
 	if period != nil {
 		assessmentQuery = assessmentQuery.Where("period = ?", *period)
 	}
@@ -157,7 +157,7 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 	riskQuery := r.db.Model(&domain.Assessment{}).
 		Select("risk_level, COUNT(*) as count").
 		Where("company_id = ? AND status = ? AND risk_level IS NOT NULL", companyID, domain.AssessmentStatusCompleted)
-	
+
 	if period != nil {
 		riskQuery = riskQuery.Where("period = ?", *period)
 	}
@@ -179,7 +179,7 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 
 	// Aggregation 4: Department heatmap (JOIN assessments + staff, GROUP BY department AND risk_level)
 	var heatmapData []struct {
-		Department string          `gorm:"column:department"`
+		Department string           `gorm:"column:department"`
 		RiskLevel  domain.RiskLevel `gorm:"column:risk_level"`
 		Count      int64            `gorm:"column:count"`
 	}
@@ -189,7 +189,7 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 		Joins("INNER JOIN staff ON assessments.staff_id = staff.id").
 		Where("assessments.company_id = ? AND assessments.status = ? AND assessments.risk_level IS NOT NULL", companyID, domain.AssessmentStatusCompleted).
 		Where("staff.demographics->>'department' IS NOT NULL AND staff.demographics->>'department' != ''")
-	
+
 	if period != nil {
 		heatmapQuery = heatmapQuery.Where("assessments.period = ?", *period)
 	}
@@ -212,14 +212,14 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 
 	// Build DTO
 	dto := &domain.GeneralReportDTO{
-		CompanyID:             company.ID,
-		CompanyName:           company.Name,
-		Period:                period,
-		TotalStaff:            totalStaff,
+		CompanyID:            company.ID,
+		CompanyName:          company.Name,
+		Period:               period,
+		TotalStaff:           totalStaff,
 		CompletedAssessments: completedAssessments,
-		ParticipationRate:     participationRate,
-		RiskDistribution:      riskDistribution,
-		DepartmentHeatmap:     departmentHeatmap,
+		ParticipationRate:    participationRate,
+		RiskDistribution:     riskDistribution,
+		DepartmentHeatmap:    departmentHeatmap,
 	}
 
 	return dto, nil
@@ -377,7 +377,7 @@ func (r *reportRepository) validateAndClampScores(
 }
 
 // calculateRiskLevelsFromScores calculates risk levels for categories and domains using NOM-035 thresholds
-func (r *reportRepository) calculateRiskLevelsFromScores(categoryScores, domainScores map[string]float64, guideType domain.GuideType) (map[string]string, map[string]string, error) {
+func (r *reportRepository) calculateRiskLevelsFromScores(categoryScores, domainScores map[string]float64, guideType domain.GuideType, categoryMaxScores, domainMaxScores map[string]float64) (map[string]string, map[string]string, error) {
 	categoryRiskLevels := make(map[string]string)
 	domainRiskLevels := make(map[string]string)
 
@@ -427,8 +427,12 @@ func (r *reportRepository) calculateRiskLevelsFromScores(categoryScores, domainS
 			if thresholds, exists := guideII.Domains[domain]; exists {
 				domainRiskLevels[domain] = string(thresholds.GetRiskLevel(score))
 			} else {
-				// Fallback to percentage-based calculation
-				domainRiskLevels[domain] = string(r.getRiskLevelFromPercentage(score, 15))
+				// Fallback to percentage-based calculation using actual max score
+				maxScore := domainMaxScores[domain]
+				if maxScore == 0 {
+					maxScore = 15 // Safety fallback if max score is unavailable
+				}
+				domainRiskLevels[domain] = string(r.getRiskLevelFromPercentage(score, maxScore))
 			}
 		}
 	} else if guideIII, ok := guideRules.(scoring.GuideIIIScoringRules); ok {
@@ -436,8 +440,12 @@ func (r *reportRepository) calculateRiskLevelsFromScores(categoryScores, domainS
 			if thresholds, exists := guideIII.Domains[domain]; exists {
 				domainRiskLevels[domain] = string(thresholds.GetRiskLevel(score))
 			} else {
-				// Fallback to percentage-based calculation
-				domainRiskLevels[domain] = string(r.getRiskLevelFromPercentage(score, 15))
+				// Fallback to percentage-based calculation using actual max score
+				maxScore := domainMaxScores[domain]
+				if maxScore == 0 {
+					maxScore = 15 // Safety fallback if max score is unavailable
+				}
+				domainRiskLevels[domain] = string(r.getRiskLevelFromPercentage(score, maxScore))
 			}
 		}
 	}
@@ -482,4 +490,3 @@ func (r *reportRepository) getRiskLevelFromPercentage(score, maxScore float64) s
 	}
 	return "muy_alto"
 }
-
