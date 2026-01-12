@@ -11,6 +11,7 @@ import (
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // LoginRequest represents the login request payload
@@ -65,11 +66,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		if err != nil {
 			// If company not found, auto-create it for demo purposes
 			if errors.Is(err, postgres.ErrCompanyNotFound) {
+				// Generate UUID in Go to ensure we have it after creation
+				// (database default won't populate the struct field)
 				company = &domain.Company{
+					ID:                 uuid.New(),
 					RFC:                req.Identifier,
-					Name:              "Demo Company - " + req.Identifier,
+					Name:               "Demo Company - " + req.Identifier,
 					SubscriptionStatus: domain.SubscriptionStatusActive,
-					EmployeeCount:     50, // Default for demo
+					EmployeeCount:      50, // Default for demo
 				}
 				// Create company in database
 				if createErr := h.authRepo.CreateCompany(company); createErr != nil {
