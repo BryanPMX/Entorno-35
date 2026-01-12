@@ -109,10 +109,6 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.SetFillColor(255, 255, 255)
 	pdf.RoundedRect(15, pdf.GetY(), 180, 50, 4, "1234", "F")
 
-	// Left accent bar
-	pdf.SetFillColor(riskConfig.barR, riskConfig.barG, riskConfig.barB)
-	pdf.Rect(15, pdf.GetY(), 4, 50, "F")
-
 	scoreY := pdf.GetY() + 8
 
 	// Score section
