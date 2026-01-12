@@ -434,9 +434,13 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 		jobIdx := headerMap["job"]
 		shiftIdx := headerMap["shift"]
 		genderIdx := headerMap["gender"]
+		ageIdx := headerMap["age_range"]
+		maritalIdx := headerMap["marital_status"]
+		experienceIdx := headerMap["experience"]
 
-		// Validate row has enough columns
-		if len(row) <= max(nameIdx, curpIdx, emailIdx, areaIdx, jobIdx, shiftIdx, genderIdx) {
+		// Validate row has enough columns for required fields
+		requiredMaxIdx := max(nameIdx, curpIdx, emailIdx, areaIdx, jobIdx, shiftIdx, genderIdx)
+		if len(row) <= requiredMaxIdx {
 			result.Errors = append(result.Errors, fmt.Sprintf("Row %d: insufficient columns", rowNum-1))
 			result.SkippedCount++
 			continue
@@ -449,6 +453,20 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 		job := strings.TrimSpace(row[jobIdx])
 		shift := strings.TrimSpace(row[shiftIdx])
 		gender := strings.TrimSpace(row[genderIdx])
+		
+		// Optional demographic fields - check if index exists and row has enough columns
+		ageRange := ""
+		if ageIdx >= 0 && len(row) > ageIdx {
+			ageRange = strings.TrimSpace(row[ageIdx])
+		}
+		maritalStatus := ""
+		if maritalIdx >= 0 && len(row) > maritalIdx {
+			maritalStatus = strings.TrimSpace(row[maritalIdx])
+		}
+		experience := ""
+		if experienceIdx >= 0 && len(row) > experienceIdx {
+			experience = strings.TrimSpace(row[experienceIdx])
+		}
 
 		// Strict validation using validation functions
 		if err := ValidateName(name); err != nil {
@@ -478,12 +496,15 @@ func (s *StaffService) ImportFromCSV(r io.Reader, companyID uuid.UUID) (*ImportR
 			continue
 		}
 
-		// Map demographics (CSV columns: Area -> Department, Job -> Role, Shift -> ShiftType)
+		// Map demographics (CSV columns to JSONB fields)
 		demographics := domain.DemographicsJSONB{
-			Department: area,
-			Role:       job,
-			ShiftType:  shift,
-			Gender:     gender,
+			Department:          area,
+			Role:                job,
+			ShiftType:           shift,
+			Gender:              gender,
+			AgeRange:            ageRange,
+			MaritalStatus:       maritalStatus,
+			TotalWorkExperience: experience,
 		}
 
 		// Create staff record

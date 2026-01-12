@@ -68,8 +68,13 @@ export function DemographicChart({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-48 flex items-center justify-center text-muted-foreground">
-            No hay datos disponibles
+          <div className="h-48 flex flex-col items-center justify-center text-center px-4">
+            <p className="text-muted-foreground text-sm">
+              Sin datos registrados
+            </p>
+            <p className="text-muted-foreground/70 text-xs mt-1">
+              Importa personal con este campo para ver el analisis
+            </p>
           </div>
         </CardContent>
       </Card>

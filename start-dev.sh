@@ -2,13 +2,15 @@
 # Development startup script for Entorno35
 # Starts backend and frontend servers with proper environment configuration
 
-set -e
-
 BACKEND_PORT=8080
 FRONTEND_PORT=3000
 
+# Store the project root directory
+PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+
 echo "Starting Entorno35 Development Environment..."
 echo "=============================================="
+echo "Project root: $PROJECT_ROOT"
 
 # Function to kill process on a specific port
 kill_port() {
@@ -37,7 +39,7 @@ echo "Ports $BACKEND_PORT and $FRONTEND_PORT are now available."
 # Start infrastructure
 echo ""
 echo "Step 1: Starting PostgreSQL and Redis..."
-make docker-up
+docker-compose -f "$PROJECT_ROOT/docker-compose.yml" up -d
 
 # Wait for PostgreSQL to be ready
 echo ""
@@ -62,10 +64,9 @@ echo "Step 3: Starting Backend API Server..."
 echo "Backend will run on http://localhost:$BACKEND_PORT"
 echo ""
 
-# Start backend in background
-cd cmd/api && go run main.go &
+# Start backend in background using subshell with absolute path
+(cd "$PROJECT_ROOT/cmd/api" && go run main.go) &
 BACKEND_PID=$!
-cd ../..
 
 # Wait for backend to start
 sleep 3
@@ -75,10 +76,9 @@ echo "Step 4: Starting Frontend Development Server..."
 echo "Frontend will run on http://localhost:$FRONTEND_PORT"
 echo ""
 
-# Start frontend in background
-cd web/frontend && npm run dev &
+# Start frontend in background using subshell with absolute path
+(cd "$PROJECT_ROOT/web/frontend" && npm run dev) &
 FRONTEND_PID=$!
-cd ../..
 
 echo ""
 echo "=============================================="
@@ -96,10 +96,11 @@ cleanup() {
     echo ""
     echo "Stopping services..."
     kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+    sleep 1
     # Also kill any remaining processes on the ports
     kill_port $BACKEND_PORT
     kill_port $FRONTEND_PORT
-    make docker-down
+    docker-compose -f "$PROJECT_ROOT/docker-compose.yml" down
     echo "All services stopped."
     exit 0
 }

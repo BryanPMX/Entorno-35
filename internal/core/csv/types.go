@@ -118,6 +118,30 @@ var ExpectedFields = []ExpectedField{
 		Validator:   &EnumValidator{AllowedValues: []string{"masculino", "femenino", "otro", "male", "female", "other", "m", "f"}},
 		Synonyms:    []string{"sexo", "genero", "sex"},
 	},
+	{
+		Name:        "age_range",
+		Type:        FieldTypeEnum,
+		Required:    false,
+		Description: "Age range",
+		Validator:   &EnumValidator{AllowedValues: []string{"18-25", "26-35", "36-45", "46-55", "56+"}},
+		Synonyms:    []string{"age", "edad", "rango_edad", "rango de edad", "grupo_edad"},
+	},
+	{
+		Name:        "marital_status",
+		Type:        FieldTypeEnum,
+		Required:    false,
+		Description: "Marital status",
+		Validator:   &EnumValidator{AllowedValues: []string{"soltero", "casado", "divorciado", "viudo", "union_libre", "single", "married", "divorced", "widowed"}},
+		Synonyms:    []string{"estado_civil", "estado civil", "civil_status"},
+	},
+	{
+		Name:        "experience",
+		Type:        FieldTypeEnum,
+		Required:    false,
+		Description: "Total work experience",
+		Validator:   &EnumValidator{AllowedValues: []string{"<1 anio", "1-5 anios", "5-10 anios", "10+ anios", "<1 year", "1-5 years", "5-10 years", "10+ years"}},
+		Synonyms:    []string{"total_work_experience", "experiencia", "experiencia_laboral", "work_experience", "antiguedad"},
+	},
 }
 
 // Validators

@@ -21,7 +21,7 @@ func NewReportPDFService() *ReportPDFService {
 // GenerateIndividualReportPDF creates a professional PDF report for an individual assessment
 func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.IndividualReportDTO, companyName string) ([]byte, error) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.SetAutoPageBreak(true, 25.0) // More conservative page breaks
+	pdf.SetAutoPageBreak(true, 25.0)
 	pdf.AddPage()
 
 	// Set up footer
@@ -29,7 +29,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 		pdf.SetY(-15)
 		pdf.SetFont("Arial", "", 8)
 		pdf.SetTextColor(128, 128, 128)
-		pdf.Cell(0, 0, "Entorno35 Platform - NOM-035 Compliance Report - Page "+fmt.Sprintf("%d", pdf.PageNo()))
+		pdf.Cell(0, 0, "Plataforma Entorno35 - Reporte de Cumplimiento NOM-035 - Pagina "+fmt.Sprintf("%d", pdf.PageNo()))
 	})
 
 	// 1. Header (Dark Slate Banner)
@@ -37,45 +37,65 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.Rect(0, 0, 210, 30, "F")
 	pdf.SetTextColor(255, 255, 255)
 	pdf.SetFont("Arial", "B", 16)
-	pdf.Text(10, 12, "Entorno35 Platform")
+	pdf.Text(10, 12, "Plataforma Entorno35")
 	pdf.SetFont("Arial", "", 10)
-	pdf.Text(10, 20, fmt.Sprintf("Report Generated: %s", time.Now().Format("2006-01-02")))
+	pdf.Text(10, 20, fmt.Sprintf("Fecha de Generacion: %s", time.Now().Format("2006-01-02")))
 	pdf.SetFont("Arial", "B", 12)
-	pdf.Text(150, 12, "CONFIDENTIAL")
+	pdf.Text(150, 12, "CONFIDENCIAL")
 
 	// 2. Title Section
 	pdf.SetTextColor(0, 0, 0)
 	pdf.SetY(40)
 	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(0, 10, "NOM-035 Psychosocial Risk Assessment")
+	pdf.Cell(0, 10, "Evaluacion de Riesgo Psicosocial NOM-035")
 	pdf.Ln(8)
 	pdf.SetFont("Arial", "I", 12)
 	pdf.SetTextColor(100, 100, 100)
-	pdf.Cell(0, 10, "Individual Report - Guide II/III Analysis")
+	guideText := fmt.Sprintf("Reporte Individual - Analisis Guia %s", string(report.GuideType))
+	pdf.Cell(0, 10, guideText)
 	pdf.Ln(15)
 
 	// 3. Staff Info Box
 	pdf.SetFillColor(245, 245, 245)
-	pdf.Rect(10, pdf.GetY(), 190, 30, "F")
+	pdf.Rect(10, pdf.GetY(), 190, 35, "F")
 	pdf.SetFont("Arial", "", 11)
 	pdf.SetTextColor(0, 0, 0)
 	yStart := pdf.GetY() + 8
 
 	pdf.SetXY(15, yStart)
-	pdf.Cell(0, 0, fmt.Sprintf("Staff Member: %s", report.StaffName))
+	pdf.Cell(0, 0, fmt.Sprintf("Empleado: %s", report.StaffName))
 
 	pdf.SetXY(15, yStart+8)
-	pdf.Cell(0, 0, fmt.Sprintf("Department: %s", report.Department))
+	department := report.Department
+	if department == "" {
+		department = "No especificado"
+	}
+	pdf.Cell(0, 0, fmt.Sprintf("Departamento: %s", department))
 
 	pdf.SetXY(15, yStart+16)
-	pdf.Cell(0, 0, fmt.Sprintf("Total Score: %.2f / 100", report.TotalScore))
+	shift := report.Shift
+	if shift == "" {
+		shift = "No especificado"
+	}
+	pdf.Cell(0, 0, fmt.Sprintf("Turno: %s", shift))
 
-	pdf.SetY(yStart + 24)
+	pdf.SetXY(15, yStart+24)
+	pdf.Cell(0, 0, fmt.Sprintf("Periodo de Evaluacion: %d", report.Period))
+
+	pdf.SetXY(110, yStart)
+	pdf.SetFont("Arial", "B", 11)
+	pdf.Cell(0, 0, fmt.Sprintf("Puntuacion Total: %.1f", report.TotalScore))
+
+	pdf.SetXY(110, yStart+8)
+	riskLabel := formatRiskLevel(string(report.RiskLevel))
+	pdf.Cell(0, 0, fmt.Sprintf("Nivel de Riesgo: %s", riskLabel))
+
+	pdf.SetY(yStart + 30)
 	pdf.Ln(10)
 
 	// 4. Risk Thermometer (Robust Primitive)
 	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(0, 10, "Risk Level Visualization")
+	pdf.Cell(0, 10, "Visualizacion del Nivel de Riesgo")
 	pdf.Ln(8)
 
 	// Draw Background Bar
@@ -120,51 +140,64 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.Cell(0, 0, strings.ToUpper(riskLevelStr))
 	pdf.Ln(15) // Less spacing after risk label
 
-	// 5. Data Tables (Fixed 2 Columns to avoid alignment issues)
-	// Check if we need a new page for tables
+	// 5. Data Tables
 	if pdf.GetY() > 220 {
 		pdf.AddPage()
 	}
 
-	drawTableWithRiskLevels(pdf, "Category Scores", report.CategoryScores, report.CategoryMaxScores, report.CategoryRiskLevels)
+	drawTableWithRiskLevels(pdf, "Puntuacion por Categoria", report.CategoryScores, report.CategoryMaxScores, report.CategoryRiskLevels)
 	pdf.Ln(10)
 
 	if pdf.GetY() > 220 {
 		pdf.AddPage()
 	}
 
-	drawTableWithRiskLevels(pdf, "Domain Scores", report.DomainScores, report.DomainMaxScores, report.DomainRiskLevels)
+	drawTableWithRiskLevels(pdf, "Puntuacion por Dominio", report.DomainScores, report.DomainMaxScores, report.DomainRiskLevels)
 	pdf.Ln(12)
 
-	// 6. Recommendations - Fixed to flow naturally
-	if pdf.GetY() > 200 {
-		pdf.AddPage()
-	}
-
-	pdf.SetFont("Arial", "B", 14)
-	pdf.SetFillColor(240, 240, 255)
-	pdf.CellFormat(0, 12, " Recommendations", "0", 1, "", true, 0, "")
-	pdf.SetFont("Arial", "", 10)
-	pdf.Ln(6)
-
-	for i, rec := range report.Recommendations {
-		// Check page break only if we're actually at the bottom (> 270mm)
-		// Standard A4 height is 297mm, so 270 gives us 27mm margin
-		currentY := pdf.GetY()
-		if currentY > 270 {
+	// 6. Recommendations - Only show if there are recommendations
+	if len(report.Recommendations) > 0 {
+		if pdf.GetY() > 200 {
 			pdf.AddPage()
-			pdf.SetFont("Arial", "", 10)
 		}
 
-		pdf.SetX(15)
-		// Bullet point
-		pdf.SetFillColor(100, 100, 100)
-		pdf.Circle(17, pdf.GetY()+3, 1, "F")
-		pdf.SetX(22)
+		pdf.SetFont("Arial", "B", 14)
+		pdf.SetFillColor(240, 240, 255)
+		pdf.CellFormat(0, 12, " Recomendaciones", "0", 1, "", true, 0, "")
+		pdf.SetFont("Arial", "", 10)
+		pdf.Ln(6)
 
-		// Use MultiCell for proper text wrapping with better line height
-		pdf.MultiCell(175, 7, fmt.Sprintf("%d. %s", i+1, rec), "", "", false)
-		pdf.Ln(4)
+		for i, rec := range report.Recommendations {
+			currentY := pdf.GetY()
+			if currentY > 270 {
+				pdf.AddPage()
+				pdf.SetFont("Arial", "", 10)
+			}
+
+			pdf.SetX(15)
+			pdf.SetFillColor(100, 100, 100)
+			pdf.Circle(17, pdf.GetY()+3, 1, "F")
+			pdf.SetX(22)
+
+			pdf.MultiCell(175, 7, fmt.Sprintf("%d. %s", i+1, rec), "", "", false)
+			pdf.Ln(4)
+		}
+	} else {
+		// For low risk, add a positive summary instead of empty section
+		if pdf.GetY() > 200 {
+			pdf.AddPage()
+		}
+
+		pdf.SetFont("Arial", "B", 14)
+		pdf.SetFillColor(220, 252, 231) // Light green background
+		pdf.CellFormat(0, 12, " Resultado de la Evaluacion", "0", 1, "", true, 0, "")
+		pdf.SetFont("Arial", "", 10)
+		pdf.Ln(6)
+
+		pdf.SetX(15)
+		riskLabel := formatRiskLevel(string(report.RiskLevel))
+		summaryText := fmt.Sprintf("El empleado presenta un nivel de riesgo %s. No se requieren acciones correctivas inmediatas. Se recomienda mantener las condiciones laborales actuales y continuar con el monitoreo periodico.", riskLabel)
+		pdf.MultiCell(180, 6, summaryText, "", "", false)
 	}
 
 	var buf bytes.Buffer
@@ -180,12 +213,12 @@ func drawTableWithRiskLevels(pdf *gofpdf.Fpdf, title string, scores map[string]f
 	pdf.Cell(0, 10, title)
 	pdf.Ln(10)
 
-	// Header - 3 columns: Item, Score/Max, Risk Level
+	// Header - 3 columns with Spanish labels
 	pdf.SetFillColor(230, 230, 230)
 	pdf.SetFont("Arial", "B", 9)
-	pdf.CellFormat(85, 10, "Item", "1", 0, "L", true, 0, "")
-	pdf.CellFormat(45, 10, "Score/Max", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(50, 10, "Risk Level", "1", 1, "C", true, 0, "")
+	pdf.CellFormat(85, 10, "Elemento", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(45, 10, "Puntaje/Max", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(50, 10, "Nivel de Riesgo", "1", 1, "C", true, 0, "")
 
 	// Rows - 3 columns
 	pdf.SetFont("Arial", "", 9)
@@ -198,9 +231,9 @@ func drawTableWithRiskLevels(pdf *gofpdf.Fpdf, title string, scores map[string]f
 			// Re-draw header on new page for continuity
 			pdf.SetFillColor(230, 230, 230)
 			pdf.SetFont("Arial", "B", 9)
-			pdf.CellFormat(85, 10, "Item", "1", 0, "L", true, 0, "")
-			pdf.CellFormat(45, 10, "Score/Max", "1", 0, "C", true, 0, "")
-			pdf.CellFormat(50, 10, "Risk Level", "1", 1, "C", true, 0, "")
+			pdf.CellFormat(85, 10, "Elemento", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(45, 10, "Puntaje/Max", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(50, 10, "Nivel de Riesgo", "1", 1, "C", true, 0, "")
 			pdf.SetFont("Arial", "", 9)
 			fill = false // Reset fill pattern
 		}
