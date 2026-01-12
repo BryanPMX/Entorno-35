@@ -129,6 +129,34 @@ class AssessmentService {
     });
     return response.data;
   }
+
+  /**
+   * Delete Assessment
+   * Deletes a pending assessment (only pending assessments can be deleted)
+   *
+   * @param id - Assessment UUID
+   * @returns Promise resolving when deletion is complete
+   * @throws AxiosError on API failure (404 if not found, 400 if not pending)
+   */
+  async delete(id: string): Promise<void> {
+    await axiosClient.delete(`/api/v1/assessments/${id}`);
+  }
+
+  /**
+   * Send Assessment Email
+   * Sends an assessment link via email to the staff member
+   *
+   * @param assessmentId - Assessment UUID
+   * @param email - Recipient email address
+   * @returns Promise resolving to success message
+   * @throws AxiosError on API failure
+   */
+  async sendEmail(assessmentId: string, email: string): Promise<{ message: string }> {
+    const response = await axiosClient.post(`/api/v1/assessments/${assessmentId}/send-email`, {
+      email,
+    });
+    return response.data;
+  }
 }
 
 // Export singleton instance

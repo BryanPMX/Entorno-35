@@ -21,6 +21,12 @@ export interface CreateStaffRequest {
   demographics?: Demographics;
 }
 
+export interface UpdateStaffRequest {
+  full_name?: string;
+  email?: string;
+  demographics?: Demographics;
+}
+
 class StaffService {
   /**
    * Get All Staff
@@ -69,7 +75,6 @@ class StaffService {
    * @throws AxiosError on API failure
    */
   async create(staffData: CreateStaffRequest): Promise<Staff> {
-    // Transform the data to match backend expectations
     const payload = {
       full_name: staffData.full_name,
       email: staffData.email || undefined,
@@ -79,6 +84,38 @@ class StaffService {
 
     const response = await axiosClient.post<Staff>("/api/v1/staff", payload);
     return response.data;
+  }
+
+  /**
+   * Update Staff
+   * Updates an existing staff member
+   *
+   * @param id - Staff member UUID
+   * @param staffData - Staff update data
+   * @returns Promise resolving to updated Staff
+   * @throws AxiosError on API failure (404 if not found)
+   */
+  async update(id: string, staffData: UpdateStaffRequest): Promise<Staff> {
+    const payload = {
+      full_name: staffData.full_name || undefined,
+      email: staffData.email || undefined,
+      demographics: staffData.demographics || undefined,
+    };
+
+    const response = await axiosClient.put<Staff>(`/api/v1/staff/${id}`, payload);
+    return response.data;
+  }
+
+  /**
+   * Delete Staff
+   * Soft deletes a staff member
+   *
+   * @param id - Staff member UUID
+   * @returns Promise resolving when deletion is complete
+   * @throws AxiosError on API failure (404 if not found)
+   */
+  async delete(id: string): Promise<void> {
+    await axiosClient.delete(`/api/v1/staff/${id}`);
   }
 
   /**
