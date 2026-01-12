@@ -44,7 +44,7 @@ interface AssessmentTableProps {
   onViewReport?: (assessmentId: string) => void;
   onGenerateLink?: (assessmentId: string) => void;
   onFiltersChange?: (filters: { status?: string; period?: number }) => void;
-  onSendEmail?: (assessmentId: string, email: string) => void;
+  onSendEmail?: (assessmentId: string) => void;
 }
 
 type SortField = "created_at" | "staff_name" | "status" | "risk_level" | "period";
@@ -318,7 +318,7 @@ export function AssessmentTable({
                                 </DropdownMenuItem>
                                 {getStaffEmail(assessment) && onSendEmail && (
                                   <DropdownMenuItem 
-                                    onClick={() => onSendEmail(assessment.id, getStaffEmail(assessment)!)}
+                                    onClick={() => onSendEmail(assessment.id)}
                                   >
                                     <Mail className="h-4 w-4 mr-2" />
                                     Enviar por Correo

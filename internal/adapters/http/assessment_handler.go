@@ -365,13 +365,9 @@ func (h *AssessmentHandler) DeleteAssessment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Evaluacion eliminada exitosamente"})
 }
 
-// SendAssessmentEmailRequest represents the request body for sending an assessment email
-type SendAssessmentEmailRequest struct {
-	Email string `json:"email" binding:"required,email"`
-}
-
 // SendAssessmentEmail sends an assessment link via email
 // POST /api/v1/assessments/:id/send-email
+// The email address is securely retrieved from the staff member's record in the database
 func (h *AssessmentHandler) SendAssessmentEmail(c *gin.Context) {
 	companyID, ok := middleware.RequireCompanyID(c)
 	if !ok {
@@ -385,13 +381,7 @@ func (h *AssessmentHandler) SendAssessmentEmail(c *gin.Context) {
 		return
 	}
 
-	var req SendAssessmentEmailRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Correo electronico invalido"})
-		return
-	}
-
-	err = h.assessmentService.SendAssessmentEmail(assessmentID, companyID, req.Email)
+	err = h.assessmentService.SendAssessmentEmail(assessmentID, companyID)
 	if err != nil {
 		errMsg := err.Error()
 		if strings.Contains(errMsg, "not found") {
@@ -400,6 +390,10 @@ func (h *AssessmentHandler) SendAssessmentEmail(c *gin.Context) {
 		}
 		if strings.Contains(errMsg, "pending") {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Solo se pueden enviar correos para evaluaciones pendientes"})
+			return
+		}
+		if strings.Contains(errMsg, "does not have an email") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "El empleado no tiene un correo electronico configurado"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})

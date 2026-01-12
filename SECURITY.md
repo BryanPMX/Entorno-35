@@ -30,7 +30,18 @@ JWT_SECRET=your-secret-key  # NEVER commit this
 
 # Redis (if password protected)
 REDIS_PASSWORD=your_redis_password  # NEVER commit this
+
+# SMTP Email Configuration
+SMTP_HOST=smtp.gmail.com  # SMTP server hostname
+SMTP_PORT=587  # SMTP port (587 for TLS, 465 for SSL)
+SMTP_USER=your-email@example.com  # SMTP username/email
+SMTP_PASSWORD=your-app-password  # NEVER commit this - Use App Passwords for Gmail
+SMTP_FROM_ADDRESS=noreply@example.com  # Sender email address
+SMTP_FROM_NAME=Entorno35 - NOM-035  # Sender display name
+APP_BASE_URL=http://localhost:3000  # Base URL of your application
 ```
+
+**For detailed SMTP setup instructions, see [docs/SMTP_CONFIGURATION.md](../docs/SMTP_CONFIGURATION.md)**
 
 ### Development Setup
 

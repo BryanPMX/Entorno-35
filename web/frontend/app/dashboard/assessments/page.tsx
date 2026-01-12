@@ -111,16 +111,17 @@ export default function AssessmentsPage() {
     }
   };
 
-  const handleSendEmail = async (assessmentId: string, email: string) => {
+  const handleSendEmail = async (assessmentId: string) => {
     try {
-      await assessmentService.sendEmail(assessmentId, email);
+      await assessmentService.sendEmail(assessmentId);
       toast.success("Correo enviado exitosamente", {
-        description: `El enlace de evaluacion ha sido enviado a ${email}`,
+        description: "El enlace de evaluacion ha sido enviado al correo del empleado.",
       });
       refetch();
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || "Error desconocido";
       toast.error("Error al enviar el correo", {
-        description: "Por favor verifica el correo e intenta de nuevo.",
+        description: errorMessage,
       });
       console.error("Error al enviar correo:", error);
     }

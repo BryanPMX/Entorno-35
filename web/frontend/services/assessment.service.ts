@@ -145,16 +145,14 @@ class AssessmentService {
   /**
    * Send Assessment Email
    * Sends an assessment link via email to the staff member
+   * The email address is securely retrieved from the staff member's record in the database
    *
    * @param assessmentId - Assessment UUID
-   * @param email - Recipient email address
    * @returns Promise resolving to success message
    * @throws AxiosError on API failure
    */
-  async sendEmail(assessmentId: string, email: string): Promise<{ message: string }> {
-    const response = await axiosClient.post(`/api/v1/assessments/${assessmentId}/send-email`, {
-      email,
-    });
+  async sendEmail(assessmentId: string): Promise<{ message: string }> {
+    const response = await axiosClient.post(`/api/v1/assessments/${assessmentId}/send-email`);
     return response.data;
   }
 }

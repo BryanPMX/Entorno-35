@@ -312,7 +312,8 @@ func (s *AssessmentService) DeleteAssessment(assessmentID uuid.UUID, companyID u
 
 // SendAssessmentEmail sends an assessment link via email to the staff member
 // This creates a new link if needed and sends it via the configured email service
-func (s *AssessmentService) SendAssessmentEmail(assessmentID uuid.UUID, companyID uuid.UUID, email string) error {
+// The email address is securely retrieved from the staff member's record in the database
+func (s *AssessmentService) SendAssessmentEmail(assessmentID uuid.UUID, companyID uuid.UUID) error {
 	// Verify assessment exists and belongs to company
 	assessment, err := s.assessmentRepo.GetByIDAndCompany(assessmentID, companyID)
 	if err != nil {
@@ -322,6 +323,12 @@ func (s *AssessmentService) SendAssessmentEmail(assessmentID uuid.UUID, companyI
 	// Only allow sending emails for pending assessments
 	if assessment.Status != domain.AssessmentStatusPending {
 		return fmt.Errorf("only pending assessments can be sent via email")
+	}
+
+	// Get staff email from database (securely matched to the assessment's staff member)
+	staffEmail := assessment.Staff.Email
+	if staffEmail == "" {
+		return fmt.Errorf("staff member does not have an email address configured")
 	}
 
 	// Create a new link for the assessment (7 days expiry)
@@ -362,8 +369,8 @@ func (s *AssessmentService) SendAssessmentEmail(assessmentID uuid.UUID, companyI
 		Period:        assessment.Period,
 	}
 
-	// Send the email
-	if err := emailService.SendAssessmentInvitation(email, emailData); err != nil {
+	// Send the email to the staff member's email from the database
+	if err := emailService.SendAssessmentInvitation(staffEmail, emailData); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
