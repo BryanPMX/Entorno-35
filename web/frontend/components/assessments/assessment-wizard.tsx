@@ -42,7 +42,6 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>("select-staff");
   const [selectedStaff, setSelectedStaff] = useState<SelectedStaff[]>([]);
   const [period, setPeriod] = useState(new Date().getFullYear());
-  const [guideType, setGuideType] = useState<"II" | "III">("II");
 
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -127,7 +126,6 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
     setCurrentStep("select-staff");
     setSelectedStaff([]);
     setPeriod(new Date().getFullYear());
-    setGuideType("II");
   };
 
   const handleClose = () => {
@@ -203,20 +201,12 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
               />
             </div>
 
-            <div>
-              <Label>Guide Type</Label>
-              <p className="text-sm text-muted-foreground mb-3">
-                Automatically determined based on company size
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> The assessment guide type (Guide II or Guide III) is automatically 
+                determined based on your company's employee count. Guide II is used for companies with 
+                16-50 employees, and Guide III for companies with more than 50 employees.
               </p>
-              <Select value={guideType} onValueChange={(value: "II" | "III") => setGuideType(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="II">Guide II (16-50 employees)</SelectItem>
-                  <SelectItem value="III">Guide III (50+ employees)</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         );

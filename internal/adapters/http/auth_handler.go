@@ -112,11 +112,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		// Find staff by CURP or employee_id and company ID
 		staff, err := h.authRepo.GetStaffByIdentifier(req.Identifier, req.CompanyID)
 		if err != nil {
-			statusCode := http.StatusInternalServerError
+			// Return 401 Unauthorized for authentication failures
 			if errors.Is(err, postgres.ErrStaffNotFound) || errors.Is(err, postgres.ErrCompanyInactive) || errors.Is(err, postgres.ErrCompanyNotFound) {
-				statusCode = http.StatusUnauthorized
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+				return
 			}
-			c.JSON(statusCode, gin.H{"error": err.Error()})
+			// Log internal errors but return generic message to client
+			fmt.Printf("Staff authentication error: %v\n", err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 			return
 		}
 

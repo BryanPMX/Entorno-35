@@ -230,11 +230,11 @@ go test ./tests/integration/...
 
 ### API Documentation
 
-Detailed endpoint documentation is available in `docs/`:
-- `ASSESSMENT_ENDPOINTS.md` - Assessment management and public endpoints
-- `AUTH_ENDPOINTS.md` - Authentication
-- `STAFF_ENDPOINTS.md` - Staff management
-- `REPORT_ENDPOINTS.md` - Reporting, analytics, and PDF export
+Comprehensive API documentation available in `docs/`:
+- `COMPLETE_API_REFERENCE.md` - Complete API endpoint reference
+- `Scoring.md` - NOM-035 scoring algorithm and thresholds
+- `CSV_IMPORT_VALIDATION.md` - Staff CSV import specifications
+- `BUGFIXES_JAN2026.md` - Recent bug fixes and known issues
 
 ## Data Files
 

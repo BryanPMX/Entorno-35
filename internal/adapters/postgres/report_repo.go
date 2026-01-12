@@ -246,6 +246,7 @@ func (r *reportRepository) getResponsesWithQuestions(assessmentID uuid.UUID) ([]
 
 // calculateScoresFromResponses recalculates category and domain scores from responses
 // This mirrors the logic in risk_strategy.go but only calculates category/domain scores
+// IMPORTANT: Always recalculates from SelectedValue and Polarity to ensure accuracy
 func (r *reportRepository) calculateScoresFromResponses(responses []domain.Response, guideType domain.GuideType) (map[string]float64, map[string]float64, error) {
 	categoryScores := make(map[string]float64)
 	domainScores := make(map[string]float64)
@@ -268,18 +269,24 @@ func (r *reportRepository) calculateScoresFromResponses(responses []domain.Respo
 			continue
 		}
 
-		calculatedScore := float64(response.CalculatedScore)
+		// CRITICAL FIX: Recalculate score from SelectedValue and Polarity
+		// DO NOT use stored CalculatedScore as it may be from old buggy logic
+		calculatedScore, err := scoring.ApplyPolarity(response.SelectedValue, *question.Polarity)
+		if err != nil {
+			continue // Skip invalid responses
+		}
+		calculatedScoreFloat := float64(calculatedScore)
 
 		// Aggregate by domain
 		if question.DomainID != nil && question.Domain != nil {
 			domainName := question.Domain.Name
-			domainScores[domainName] += calculatedScore
+			domainScores[domainName] += calculatedScoreFloat
 		}
 
 		// Aggregate by category
 		if question.CategoryID != nil && question.Category != nil {
 			categoryName := question.Category.Name
-			categoryScores[categoryName] += calculatedScore
+			categoryScores[categoryName] += calculatedScoreFloat
 		}
 	}
 
