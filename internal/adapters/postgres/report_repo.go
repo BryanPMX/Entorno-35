@@ -210,16 +210,40 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 		})
 	}
 
+	// Aggregation 5: Age distribution (GROUP BY age_range)
+	ageDistribution := r.getDemographicDistribution(companyID, "age_range")
+
+	// Aggregation 6: Marital status distribution
+	maritalStatusDistribution := r.getDemographicDistribution(companyID, "marital_status")
+
+	// Aggregation 7: Shift type distribution
+	shiftTypeDistribution := r.getDemographicDistribution(companyID, "shift_type")
+
+	// Aggregation 8: Experience distribution
+	experienceDistribution := r.getDemographicDistribution(companyID, "total_work_experience")
+
+	// Aggregation 9: Age risk distribution (cross-analysis)
+	ageRiskDistribution := r.getDemographicRiskDistribution(companyID, "age_range", period)
+
+	// Aggregation 10: Shift risk distribution (cross-analysis)
+	shiftRiskDistribution := r.getDemographicRiskDistribution(companyID, "shift_type", period)
+
 	// Build DTO
 	dto := &domain.GeneralReportDTO{
-		CompanyID:            company.ID,
-		CompanyName:          company.Name,
-		Period:               period,
-		TotalStaff:           totalStaff,
-		CompletedAssessments: completedAssessments,
-		ParticipationRate:    participationRate,
-		RiskDistribution:     riskDistribution,
-		DepartmentHeatmap:    departmentHeatmap,
+		CompanyID:                  company.ID,
+		CompanyName:                company.Name,
+		Period:                     period,
+		TotalStaff:                 totalStaff,
+		CompletedAssessments:       completedAssessments,
+		ParticipationRate:          participationRate,
+		RiskDistribution:           riskDistribution,
+		DepartmentHeatmap:          departmentHeatmap,
+		AgeDistribution:            ageDistribution,
+		MaritalStatusDistribution:  maritalStatusDistribution,
+		ShiftTypeDistribution:      shiftTypeDistribution,
+		ExperienceDistribution:     experienceDistribution,
+		AgeRiskDistribution:        ageRiskDistribution,
+		ShiftRiskDistribution:      shiftRiskDistribution,
 	}
 
 	return dto, nil
@@ -496,4 +520,67 @@ func (r *reportRepository) getRiskLevelFromPercentage(score, maxScore float64) s
 		return "alto"
 	}
 	return "muy_alto"
+}
+
+// getDemographicDistribution retrieves the distribution of staff by a demographic field
+func (r *reportRepository) getDemographicDistribution(companyID uuid.UUID, demographicField string) []domain.DemographicDistribution {
+	var results []struct {
+		Category string `gorm:"column:category"`
+		Count    int64  `gorm:"column:count"`
+	}
+
+	query := fmt.Sprintf("staff.demographics->>'%s'", demographicField)
+	r.db.Table("staff").
+		Select(query+" as category, COUNT(*) as count").
+		Where("company_id = ?", companyID).
+		Where(query+" IS NOT NULL AND "+query+" != ''").
+		Group(query).
+		Order("count DESC").
+		Scan(&results)
+
+	distribution := make([]domain.DemographicDistribution, 0, len(results))
+	for _, res := range results {
+		distribution = append(distribution, domain.DemographicDistribution{
+			Category: res.Category,
+			Count:    res.Count,
+		})
+	}
+
+	return distribution
+}
+
+// getDemographicRiskDistribution retrieves risk distribution cross-referenced with a demographic field
+func (r *reportRepository) getDemographicRiskDistribution(companyID uuid.UUID, demographicField string, period *int) []domain.DemographicRiskDistribution {
+	var results []struct {
+		Category  string           `gorm:"column:category"`
+		RiskLevel domain.RiskLevel `gorm:"column:risk_level"`
+		Count     int64            `gorm:"column:count"`
+	}
+
+	demographicQuery := fmt.Sprintf("staff.demographics->>'%s'", demographicField)
+	query := r.db.Table("assessments").
+		Select(demographicQuery+" as category, assessments.risk_level, COUNT(*) as count").
+		Joins("INNER JOIN staff ON assessments.staff_id = staff.id").
+		Where("assessments.company_id = ? AND assessments.status = ? AND assessments.risk_level IS NOT NULL",
+			companyID, domain.AssessmentStatusCompleted).
+		Where(demographicQuery + " IS NOT NULL AND " + demographicQuery + " != ''")
+
+	if period != nil {
+		query = query.Where("assessments.period = ?", *period)
+	}
+
+	query.Group(demographicQuery + ", assessments.risk_level").
+		Order("category, risk_level").
+		Scan(&results)
+
+	distribution := make([]domain.DemographicRiskDistribution, 0, len(results))
+	for _, res := range results {
+		distribution = append(distribution, domain.DemographicRiskDistribution{
+			Category:  res.Category,
+			RiskLevel: res.RiskLevel,
+			Count:     res.Count,
+		})
+	}
+
+	return distribution
 }

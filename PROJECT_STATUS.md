@@ -565,3 +565,48 @@ feat(frontend): implement Phase 5.2 Auth UI and Gatekeeper
 **Project Summary**: COMPLETE NOM-035 compliance platform with advanced features. Professional assessment experience with smooth animations, full accessibility, high-fidelity PDF reports, and enterprise-grade UI/UX. Production-ready for Mexican organizations' psychosocial risk compliance needs.
 
 **Quality Assurance**: Comprehensive test coverage with unit tests, integration tests, and end-to-end validation. Bug-free report generation with accurate NOM-035 risk level calculations.
+
+---
+
+### 15. Critical Issues Resolution (January 2026)
+**Status**: COMPLETED
+**Date**: January 12, 2026
+
+**Issues Resolved**:
+
+1. **Visual Bars Colors** - VERIFIED FIXED
+   - Backend uses dynamic max scores and proper NOM-035 thresholds
+   - Frontend correctly displays backend-provided risk levels
+   - Category and domain bars show accurate risk colors
+
+2. **Demographic Analysis Graphs** - IMPLEMENTED
+   - Added age distribution chart
+   - Added marital status distribution chart
+   - Added shift type distribution chart
+   - Added experience level distribution chart
+   - Added age/shift risk cross-analysis
+   - New `DemographicChart` component with color schemes
+
+3. **Spanish Language Support** - IMPLEMENTED
+   - Created comprehensive translations module (`lib/translations.ts`)
+   - Dashboard fully translated to Spanish
+   - Assessment reports translated to Spanish
+   - Risk levels display in Spanish (Nulo, Bajo, Medio, Alto, Muy Alto)
+   - Onboarding cards and quick actions in Spanish
+
+4. **Quick Actions Navigation** - FIXED
+   - "Gestionar Personal" navigates to /dashboard/staff
+   - "Ver Reportes" navigates to /dashboard/assessments
+   - Proper useRouter and onClick handlers added
+
+**Files Modified**:
+- `internal/domain/dto.go` - Demographic distribution types
+- `internal/adapters/postgres/report_repo.go` - Demographic aggregation queries
+- `internal/adapters/http/auth_handler.go` - Missing import fix
+- `web/frontend/lib/translations.ts` - New Spanish translations
+- `web/frontend/services/report.service.ts` - TypeScript types
+- `web/frontend/components/dashboard/demographic-chart.tsx` - New component
+- `web/frontend/app/dashboard/page.tsx` - Dashboard with Spanish UI and demographics
+- `web/frontend/app/dashboard/assessments/[id]/report/page.tsx` - Spanish report UI
+
+**Verification**: Both frontend and backend builds pass successfully.

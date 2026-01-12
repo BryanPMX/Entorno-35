@@ -1,14 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Users, FileText, TrendingUp, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Users, FileText, TrendingUp, Plus, Calendar, Heart, Clock, Briefcase } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { RiskDistributionChart } from "@/components/dashboard/risk-distribution-chart";
 import { DepartmentHeatmap } from "@/components/dashboard/department-heatmap";
+import { DemographicChart } from "@/components/dashboard/demographic-chart";
 import { AssessmentWizard } from "@/components/assessments/assessment-wizard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { reportService } from "@/services/report.service";
+import { translations } from "@/lib/translations";
 
 /**
  * Dashboard Page
@@ -17,6 +20,8 @@ import { reportService } from "@/services/report.service";
  * Features professional interactivity, smooth animations, and data visualization.
  */
 export default function DashboardPage() {
+  const router = useRouter();
+
   // Fetch general report data for dashboard metrics and charts
   const { data: reportData, isLoading: reportLoading } = useQuery({
     queryKey: ["general-report"],
@@ -25,29 +30,29 @@ export default function DashboardPage() {
 
   const metrics = [
     {
-      title: "Total Staff",
+      title: translations.dashboard.totalStaff,
       value: reportData?.total_staff || 0,
       icon: Users,
-      trend: reportData ? { value: 5, label: "from last period", isPositive: true } : undefined,
+      trend: reportData ? { value: 5, label: translations.dashboard.fromLastPeriod, isPositive: true } : undefined,
     },
     {
-      title: "Completed Assessments",
+      title: translations.dashboard.completedAssessments,
       value: reportData?.completed_assessments || 0,
       icon: FileText,
       trend: reportData ? {
         value: Math.round(((reportData.completed_assessments || 0) / (reportData.total_staff || 1)) * 100),
-        label: "participation rate",
+        label: translations.dashboard.participationRate,
         isPositive: true
       } : undefined,
     },
     {
-      title: "Risk Distribution",
-      value: reportData?.risk_distribution.length || 0,
+      title: translations.dashboard.riskDistribution,
+      value: reportData?.risk_distribution?.length || 0,
       icon: TrendingUp,
       trend: reportData ? {
-        value: (reportData.risk_distribution.find(r => r.risk_level === 'alto')?.count || 0) +
-               (reportData.risk_distribution.find(r => r.risk_level === 'muy_alto')?.count || 0),
-        label: "high risk cases",
+        value: (reportData.risk_distribution?.find(r => r.risk_level === 'alto')?.count || 0) +
+               (reportData.risk_distribution?.find(r => r.risk_level === 'muy_alto')?.count || 0),
+        label: translations.dashboard.highRiskCases,
         isPositive: false
       } : undefined,
     },
@@ -59,9 +64,9 @@ export default function DashboardPage() {
     return (
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
         <div>
-          <h1 className="heading-1">Dashboard</h1>
+          <h1 className="heading-1">{translations.dashboard.title}</h1>
           <p className="label-muted mt-2">
-            Welcome to Entorno 35 - NOM-035 Compliance Platform
+            {translations.dashboard.welcome}
           </p>
         </div>
 
@@ -70,9 +75,9 @@ export default function DashboardPage() {
             <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
               <FileText className="h-8 w-8 text-muted-foreground" />
             </div>
-            <CardTitle className="heading-2">Get Started with NOM-035 Assessments</CardTitle>
+            <CardTitle className="heading-2">{translations.dashboard.getStarted}</CardTitle>
             <CardDescription className="text-lg">
-              Create your first assessment cycle and begin tracking workplace psychosocial risk factors.
+              {translations.dashboard.getStartedDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
@@ -80,7 +85,7 @@ export default function DashboardPage() {
               trigger={
                 <Button size="lg" className="flex items-center space-x-2">
                   <Plus className="h-5 w-5" />
-                  <span>Create First Assessment</span>
+                  <span>{translations.dashboard.createFirstAssessment}</span>
                 </Button>
               }
             />
@@ -92,15 +97,15 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5" />
-                <span>Staff Management</span>
+                <span>{translations.onboarding.staffManagement}</span>
               </CardTitle>
               <CardDescription>
-                Import and manage your staff members
+                {translations.onboarding.staffManagementDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="label-muted">
-                Start by importing your staff list via CSV upload for easy bulk management.
+                {translations.onboarding.staffManagementHint}
               </p>
             </CardContent>
           </Card>
@@ -109,15 +114,15 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
-                <span>Assessment Creation</span>
+                <span>{translations.onboarding.assessmentCreation}</span>
               </CardTitle>
               <CardDescription>
-                Generate secure assessment links
+                {translations.onboarding.assessmentCreationDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="label-muted">
-                Create assessment cycles and automatically generate secure links for staff participation.
+                {translations.onboarding.assessmentCreationHint}
               </p>
             </CardContent>
           </Card>
@@ -126,15 +131,15 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5" />
-                <span>Compliance Reports</span>
+                <span>{translations.onboarding.complianceReports}</span>
               </CardTitle>
               <CardDescription>
-                Generate NOM-035 compliance reports
+                {translations.onboarding.complianceReportsDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="label-muted">
-                Access individual assessments and company-wide compliance reports with actionable recommendations.
+                {translations.onboarding.complianceReportsHint}
               </p>
             </CardContent>
           </Card>
@@ -147,9 +152,9 @@ export default function DashboardPage() {
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="heading-1">Dashboard</h1>
+          <h1 className="heading-1">{translations.dashboard.title}</h1>
           <p className="label-muted mt-2">
-            NOM-035 Compliance Overview - {reportData?.period || new Date().getFullYear()}
+            {translations.dashboard.subtitle} - {reportData?.period || new Date().getFullYear()}
           </p>
         </div>
 
@@ -157,7 +162,7 @@ export default function DashboardPage() {
           trigger={
             <Button className="flex items-center space-x-2">
               <Plus className="h-4 w-4" />
-              <span>Create Assessment</span>
+              <span>{translations.dashboard.createAssessment}</span>
             </Button>
           }
         />
@@ -179,7 +184,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Charts */}
+      {/* Risk Charts */}
       <div className="grid gap-8 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '200ms' }}>
         <RiskDistributionChart
           data={reportData?.risk_distribution || []}
@@ -191,29 +196,79 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Demographic Analysis */}
+      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
+        <h2 className="text-xl font-semibold text-gray-900">{translations.dashboard.demographicAnalysis}</h2>
+        <p className="text-sm text-muted-foreground">
+          {translations.dashboard.demographicDesc}
+        </p>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <DemographicChart
+            title={translations.dashboard.age}
+            description={translations.dashboard.ageDesc}
+            icon={Calendar}
+            data={reportData?.age_distribution || []}
+            isLoading={reportLoading}
+            colorScheme="blue"
+          />
+          <DemographicChart
+            title={translations.dashboard.maritalStatus}
+            description={translations.dashboard.maritalStatusDesc}
+            icon={Heart}
+            data={reportData?.marital_status_distribution || []}
+            isLoading={reportLoading}
+            colorScheme="purple"
+          />
+          <DemographicChart
+            title={translations.dashboard.shiftType}
+            description={translations.dashboard.shiftTypeDesc}
+            icon={Clock}
+            data={reportData?.shift_type_distribution || []}
+            isLoading={reportLoading}
+            colorScheme="green"
+          />
+          <DemographicChart
+            title={translations.dashboard.experience}
+            description={translations.dashboard.experienceDesc}
+            icon={Briefcase}
+            data={reportData?.experience_distribution || []}
+            isLoading={reportLoading}
+            colorScheme="orange"
+          />
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <Card className="animate-in fade-in slide-in-from-bottom-4 shadow-sm hover:shadow-md transition-all" style={{ animationDelay: '400ms' }}>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle>{translations.dashboard.quickActions}</CardTitle>
           <CardDescription>
-            Common tasks to manage your NOM-035 compliance program
+            {translations.dashboard.quickActionsDesc}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-6">
-            <Button variant="outline" className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center space-x-2"
+              onClick={() => router.push("/dashboard/staff")}
+            >
               <Users className="h-4 w-4" />
-              <span>Manage Staff</span>
+              <span>{translations.dashboard.manageStaff}</span>
             </Button>
-            <Button variant="outline" className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center space-x-2"
+              onClick={() => router.push("/dashboard/assessments")}
+            >
               <FileText className="h-4 w-4" />
-              <span>View Reports</span>
+              <span>{translations.dashboard.viewReports}</span>
             </Button>
             <AssessmentWizard
               trigger={
                 <Button variant="outline" className="flex items-center space-x-2">
                   <Plus className="h-4 w-4" />
-                  <span>New Assessment Cycle</span>
+                  <span>{translations.dashboard.newAssessmentCycle}</span>
                 </Button>
               }
             />

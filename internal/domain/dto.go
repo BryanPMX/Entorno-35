@@ -68,15 +68,36 @@ type DepartmentRiskHeatmap struct {
 	Count      int64      `json:"count"`
 }
 
+// DemographicDistribution represents the count of staff/assessments by a demographic category
+type DemographicDistribution struct {
+	Category string `json:"category"`
+	Count    int64  `json:"count"`
+}
+
+// DemographicRiskDistribution represents risk distribution within a demographic category
+type DemographicRiskDistribution struct {
+	Category  string    `json:"category"`
+	RiskLevel RiskLevel `json:"risk_level"`
+	Count     int64     `json:"count"`
+}
+
 // GeneralReportDTO represents the data structure for a company-wide general report
 type GeneralReportDTO struct {
-	CompanyID            uuid.UUID              `json:"company_id"`
-	CompanyName          string                  `json:"company_name"`
-	Period               *int                    `json:"period,omitempty"`
-	TotalStaff            int64                   `json:"total_staff"`
-	CompletedAssessments int64                   `json:"completed_assessments"`
-	ParticipationRate    float64                 `json:"participation_rate"` // percentage
-	RiskDistribution     []RiskDistribution      `json:"risk_distribution"`
-	DepartmentHeatmap    []DepartmentRiskHeatmap `json:"department_heatmap"`
+	CompanyID            uuid.UUID                     `json:"company_id"`
+	CompanyName          string                        `json:"company_name"`
+	Period               *int                          `json:"period,omitempty"`
+	TotalStaff           int64                         `json:"total_staff"`
+	CompletedAssessments int64                         `json:"completed_assessments"`
+	ParticipationRate    float64                       `json:"participation_rate"`
+	RiskDistribution     []RiskDistribution            `json:"risk_distribution"`
+	DepartmentHeatmap    []DepartmentRiskHeatmap       `json:"department_heatmap"`
+	// Demographic distributions
+	AgeDistribution            []DemographicDistribution     `json:"age_distribution"`
+	MaritalStatusDistribution  []DemographicDistribution     `json:"marital_status_distribution"`
+	ShiftTypeDistribution      []DemographicDistribution     `json:"shift_type_distribution"`
+	ExperienceDistribution     []DemographicDistribution     `json:"experience_distribution"`
+	// Demographic risk distributions (for cross-analysis)
+	AgeRiskDistribution        []DemographicRiskDistribution `json:"age_risk_distribution"`
+	ShiftRiskDistribution      []DemographicRiskDistribution `json:"shift_risk_distribution"`
 }
 

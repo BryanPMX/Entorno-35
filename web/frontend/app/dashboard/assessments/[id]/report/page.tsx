@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { reportService, IndividualReportDTO } from "@/services/report.service";
+import { translations, getRiskLevelLabel, getRiskLevelDescription } from "@/lib/translations";
 
 /**
  * Individual Assessment Report Page
@@ -51,11 +52,11 @@ export default function AssessmentReportPage() {
 
   const getRiskBadge = (riskLevel: string) => {
     const riskConfig = {
-      nulo: { label: "Nulo", color: "bg-emerald-100 text-emerald-800 border-emerald-200", description: "Very Low Risk" },
-      bajo: { label: "Bajo", color: "bg-sky-100 text-sky-800 border-sky-200", description: "Low Risk" },
-      medio: { label: "Medio", color: "bg-amber-100 text-amber-800 border-amber-200", description: "Medium Risk" },
-      alto: { label: "Alto", color: "bg-orange-100 text-orange-800 border-orange-200", description: "High Risk" },
-      muy_alto: { label: "Muy Alto", color: "bg-red-100 text-red-800 border-red-200", description: "Very High Risk" },
+      nulo: { color: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+      bajo: { color: "bg-sky-100 text-sky-800 border-sky-200" },
+      medio: { color: "bg-amber-100 text-amber-800 border-amber-200" },
+      alto: { color: "bg-orange-100 text-orange-800 border-orange-200" },
+      muy_alto: { color: "bg-red-100 text-red-800 border-red-200" },
     };
 
     const config = riskConfig[riskLevel as keyof typeof riskConfig];
@@ -63,20 +64,9 @@ export default function AssessmentReportPage() {
 
     return (
       <Badge className={`${config.color} border text-sm px-3 py-1 font-medium`}>
-        {config.label}
+        {getRiskLevelLabel(riskLevel)}
       </Badge>
     );
-  };
-
-  const getRiskDescription = (riskLevel: string) => {
-    const descriptions = {
-      nulo: "No significant psychosocial risk factors detected",
-      bajo: "Minimal psychosocial risk factors present",
-      medio: "Moderate psychosocial risk factors requiring attention",
-      alto: "High psychosocial risk factors requiring intervention",
-      muy_alto: "Severe psychosocial risk factors requiring immediate action",
-    };
-    return descriptions[riskLevel as keyof typeof descriptions] || "Risk level assessment";
   };
 
   const formatScore = (score: number, maxScore: number = 100) => {
@@ -158,13 +148,13 @@ export default function AssessmentReportPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center space-x-4 mb-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => router.back()}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Assessments
-                </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {translations.reports.backToAssessments}
+            </Button>
                 <Button
                   onClick={() => refetch()}
                   disabled={isLoading}
@@ -172,7 +162,7 @@ export default function AssessmentReportPage() {
                   className="mr-2"
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh
+                  {translations.reports.refresh}
                 </Button>
                 <Button
                   onClick={handleDownloadPDF}
@@ -180,12 +170,12 @@ export default function AssessmentReportPage() {
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                  {translations.reports.downloadPDF}
                 </Button>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">Assessment Report</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{translations.reports.title}</h1>
               <p className="text-gray-600 mt-2">
-                NOM-035 Psychosocial Risk Assessment Results
+                {translations.reports.subtitle}
               </p>
             </div>
             <div className="text-right">
@@ -201,35 +191,35 @@ export default function AssessmentReportPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <User className="h-5 w-5" />
-                <span>Staff Information</span>
+                <span>{translations.reports.staffInfo}</span>
               </CardTitle>
               <CardDescription>
-                Staff details for this specific assessment period ({report.period})
+                {translations.reports.assessmentPeriod}: {report.period}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Name</div>
+                    <div className="text-sm font-medium text-gray-500">Nombre</div>
                     <div className="text-lg font-semibold">{report.staff_name}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Department</div>
-                    <div>{report.department || "Not specified"}</div>
+                    <div className="text-sm font-medium text-gray-500">Departamento</div>
+                    <div>{report.department || "No especificado"}</div>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Assessment Period</div>
+                    <div className="text-sm font-medium text-gray-500">{translations.reports.assessmentPeriod}</div>
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4" />
                       <span className="font-semibold">{report.period}</span>
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Shift</div>
-                    <div>{report.shift || "Not specified"}</div>
+                    <div className="text-sm font-medium text-gray-500">Turno</div>
+                    <div>{report.shift || "No especificado"}</div>
                   </div>
                 </div>
               </div>
@@ -241,22 +231,22 @@ export default function AssessmentReportPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Target className="h-5 w-5" />
-                <span>Risk Assessment</span>
+                <span>{translations.reports.riskAssessment}</span>
               </CardTitle>
               <CardDescription>
-                Overall psychosocial risk evaluation based on NOM-035 methodology
+                {translations.reports.subtitle}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-2xl font-bold mb-1">{report.total_score}/100</div>
-                  <div className="text-sm text-gray-600">Total Score</div>
+                  <div className="text-sm text-gray-600">{translations.reports.totalScore}</div>
                 </div>
                 <div className="text-right">
                   <div className="mb-2">{getRiskBadge(report.risk_level)}</div>
                   <div className="text-sm text-gray-600 max-w-xs">
-                    {getRiskDescription(report.risk_level)}
+                    {getRiskLevelDescription(report.risk_level)}
                   </div>
                 </div>
               </div>
@@ -272,7 +262,7 @@ export default function AssessmentReportPage() {
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    This assessment indicates a need for medical attention. Please consult with occupational health services.
+                    {translations.reports.medicalAttention}
                   </AlertDescription>
                 </Alert>
               )}
@@ -282,9 +272,9 @@ export default function AssessmentReportPage() {
           {/* Category Scores */}
           <Card>
             <CardHeader>
-              <CardTitle>Category Analysis</CardTitle>
+              <CardTitle>{translations.reports.categoryAnalysis}</CardTitle>
               <CardDescription>
-                Breakdown by NOM-035 psychosocial risk categories
+                Analisis por categorias de riesgo psicosocial NOM-035
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -337,9 +327,9 @@ export default function AssessmentReportPage() {
           {/* Domain Scores */}
           <Card>
             <CardHeader>
-              <CardTitle>Domain Analysis</CardTitle>
+              <CardTitle>{translations.reports.domainAnalysis}</CardTitle>
               <CardDescription>
-                Detailed breakdown by psychosocial risk domains
+                Analisis detallado por dominios de riesgo psicosocial
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -395,10 +385,10 @@ export default function AssessmentReportPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <CheckCircle className="h-5 w-5" />
-                  <span>Recommendations</span>
+                  <span>{translations.reports.recommendations}</span>
                 </CardTitle>
                 <CardDescription>
-                  Actions to address identified psychosocial risk factors
+                  Acciones para atender los factores de riesgo psicosocial identificados
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -421,39 +411,39 @@ export default function AssessmentReportPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
-                <span>Assessment Timeline</span>
+                <span>{translations.reports.assessmentTimeline}</span>
               </CardTitle>
               <CardDescription>
-                Important dates and context for this assessment
+                Fechas y contexto importante de esta evaluacion
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <div className="font-medium text-gray-500">Guide Type</div>
+                  <div className="font-medium text-gray-500">Tipo de Guia</div>
                   <div className="flex items-center space-x-2">
                     <span>NOM-035 {report.guide_type}</span>
                     <Badge variant="outline" className="text-xs">
-                      {report.guide_type === "I" ? "Trauma" : report.guide_type === "II" ? "Risk Factors" : "Work Environment"}
+                      {report.guide_type === "I" ? "Trauma" : report.guide_type === "II" ? "Factores de Riesgo" : "Entorno Laboral"}
                     </Badge>
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-500">Assessment Period</div>
+                  <div className="font-medium text-gray-500">{translations.reports.assessmentPeriod}</div>
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4" />
                     <span>{report.period}</span>
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-500">Status</div>
+                  <div className="font-medium text-gray-500">Estado</div>
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Completed</span>
+                    <span>Completado</span>
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-500">Completed At</div>
+                  <div className="font-medium text-gray-500">Fecha de Finalizacion</div>
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4" />
                     <span>
@@ -465,7 +455,7 @@ export default function AssessmentReportPage() {
                             hour: "2-digit",
                             minute: "2-digit",
                           })
-                        : "Not completed"
+                        : "No completado"
                       }
                     </span>
                   </div>
@@ -473,8 +463,8 @@ export default function AssessmentReportPage() {
               </div>
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <p className="text-sm text-blue-800">
-                  <strong>Important:</strong> This report reflects the psychosocial risk assessment results for the {report.period} period only.
-                  If this staff member has multiple assessments, each report is independent and specific to its assessment period.
+                  <strong>Importante:</strong> Este reporte refleja los resultados de la evaluacion de riesgo psicosocial solo para el periodo {report.period}.
+                  {translations.reports.multipleAssessmentsNote}
                 </p>
               </div>
             </CardContent>

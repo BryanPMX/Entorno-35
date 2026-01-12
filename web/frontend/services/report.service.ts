@@ -11,6 +11,17 @@ export interface DepartmentHeatmap {
   count: number;
 }
 
+export interface DemographicDistribution {
+  category: string;
+  count: number;
+}
+
+export interface DemographicRiskDistribution {
+  category: string;
+  risk_level: string;
+  count: number;
+}
+
 export interface GeneralReportDTO {
   company_id: string;
   company_name?: string;
@@ -20,6 +31,14 @@ export interface GeneralReportDTO {
   participation_rate: number;
   risk_distribution: RiskDistribution[];
   department_heatmap: DepartmentHeatmap[];
+  // Demographic distributions
+  age_distribution: DemographicDistribution[];
+  marital_status_distribution: DemographicDistribution[];
+  shift_type_distribution: DemographicDistribution[];
+  experience_distribution: DemographicDistribution[];
+  // Demographic risk distributions (for cross-analysis)
+  age_risk_distribution: DemographicRiskDistribution[];
+  shift_risk_distribution: DemographicRiskDistribution[];
 }
 
 export interface IndividualReportDTO {
