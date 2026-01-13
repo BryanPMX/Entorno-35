@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -182,11 +183,19 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.AddUTF8Font("DejaVu", "", regularFontName)
 	pdf.AddUTF8Font("DejaVu", "B", boldFontName)
 
-	pdf.SetAutoPageBreak(true, 20.0)
+	pdf.SetAutoPageBreak(true, 30.0)
 	pdf.AddPage()
 
-	// Professional footer
+	// Professional footer with confidential notice
 	pdf.SetFooterFunc(func() {
+		// Confidential notice at bottom
+		pdf.SetY(-20)
+		pdf.SetFont("DejaVu", "", 7)
+		pdf.SetTextColor(100, 116, 139)
+		confidentialText := "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida."
+		pdf.MultiCell(180, 3, confidentialText, "", "C", false)
+
+		// Page info above confidential notice
 		pdf.SetY(-12)
 		pdf.SetFont("DejaVu", "", 8)
 		pdf.SetTextColor(128, 128, 128)
@@ -417,7 +426,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 		pdf.Cell(0, 0, "Resultado Favorable")
 
 		pdf.SetFont("DejaVu", "", 10)
-		pdf.SetXY(22, pdf.GetY()+10)
+		pdf.SetXY(22, pdf.GetY()+4)
 		riskLabel := formatRiskLevel(riskLevel)
 		pdf.MultiCell(165, 5, fmt.Sprintf("El empleado presenta un nivel de riesgo %s. No se requieren acciones correctivas inmediatas.", riskLabel), "", "L", false)
 	}
@@ -542,19 +551,124 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 		}
 	}
 
-	// ========== LEGAL FOOTER ==========
-	if pdf.GetY() > 240 {
+	// ========== PAGE 5: OFFICIAL DOCUMENTATION APPENDIX ==========
+	pdf.AddPage()
+
+	// Header
+	pdf.SetFillColor(15, 23, 42) // Dark blue #1A1F36 (26, 31, 54)
+	pdf.Rect(0, 0, 210, 35, "F")
+
+	// Accent stripe
+	pdf.SetFillColor(59, 130, 246) // Blue-500
+	pdf.Rect(0, 35, 210, 3, "F")
+
+	// Header text
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("DejaVu", "B", 18)
+	pdf.SetXY(15, 10)
+	pdf.Cell(0, 0, "Apéndice de Documentación Oficial")
+
+	pdf.SetFont("DejaVu", "", 11)
+	pdf.SetXY(15, 20)
+	pdf.Cell(0, 0, "NOM-035-STPS-2018 | Referencias y Glosario")
+
+	// Confidential badge
+	pdf.SetFillColor(255, 77, 79) // Red #FF4D4F
+	badgeX = 155.0
+	badgeY = 8.0
+	badgeWidth = 42.0
+	badgeHeight = 8.0
+	pdf.RoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, "1234", "F")
+	pdf.SetFont("DejaVu", "B", 8)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetXY(badgeX, badgeY)
+	pdf.CellFormat(badgeWidth, badgeHeight, "CONFIDENCIAL", "", 0, "CM", false, 0, "")
+
+	pdf.SetY(48)
+
+	// ========== GLOSSARY ==========
+	pdf.SetFont("DejaVu", "B", 14)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Glosario de Términos")
+	pdf.Ln(10)
+
+	glossary := []struct {
+		term       string
+		definition string
+	}{
+		{
+			term:       "Riesgo Psicosocial",
+			definition: "Factores que pueden provocar trastornos de ansiedad, estrés, depresión u otros problemas de salud mental en los trabajadores.",
+		},
+		{
+			term:       "NOM-035-STPS-2018",
+			definition: "Norma Oficial Mexicana que establece los elementos para identificar, analizar y prevenir los factores de riesgo psicosocial en los centros de trabajo.",
+		},
+		{
+			term:       "Nivel de Riesgo",
+			definition: "Clasificación del riesgo psicosocial según los umbrales establecidos en la NOM-035: Nulo (<20), Bajo (20-<45), Medio (45-<70), Alto (70-<90), Muy Alto (≥90).",
+		},
+		{
+			term:       "Factores de Riesgo Organizacional",
+			definition: "Condiciones peligrosas o nocivas inherentes al trabajo, relacionadas con la organización del mismo.",
+		},
+		{
+			term:       "Atención Médica Ocupacional",
+			definition: "Servicios médicos especializados para trabajadores expuestos a factores de riesgo psicosocial.",
+		},
+	}
+
+	pdf.SetFont("DejaVu", "", 10)
+	for _, item := range glossary {
+		if pdf.GetY() > 250 {
+			pdf.AddPage()
+		}
+		pdf.SetFont("DejaVu", "B", 10)
+		pdf.SetTextColor(30, 41, 59)
+		pdf.SetX(20)
+		pdf.Cell(0, 6, item.term+":")
+		pdf.Ln(8)
+		pdf.SetFont("DejaVu", "", 9)
+		pdf.SetTextColor(71, 85, 105)
+		pdf.SetX(25)
+		pdf.MultiCell(160, 4, item.definition, "", "L", false)
+		pdf.Ln(4)
+	}
+
+	pdf.Ln(8)
+
+	// ========== OFFICIAL LINKS ==========
+	if pdf.GetY() > 200 {
 		pdf.AddPage()
 	}
 
-	pdf.Ln(15)
-	pdf.SetFillColor(241, 245, 249)
-	pdf.RoundedRect(15, pdf.GetY(), 180, 25, 3, "1234", "F")
+	pdf.SetFont("DejaVu", "B", 14)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Enlaces a Documentación Oficial")
+	pdf.Ln(10)
 
+	// Single NOM-035 link
+	nom035Title := "NOM-035-STPS-2018 - Texto Completo"
+	nom035URL := "https://www.gob.mx/stps/articulos/norma-oficial-mexicana-nom-035-stps-2018-factores-de-riesgo-psicosocial-en-el-trabajo-identificacion-analisis-y-prevencion"
+
+	pdf.SetFont("DejaVu", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	pdf.SetX(20)
+	pdf.Cell(5, 6, "1.")
+	pdf.SetX(25)
+	pdf.SetTextColor(59, 130, 246) // Blue for links
+	pdf.SetFont("DejaVu", "U", 10) // Underlined
+	pdf.MultiCell(165, 5, nom035Title, "", "L", false)
 	pdf.SetFont("DejaVu", "", 8)
 	pdf.SetTextColor(100, 116, 139)
-	pdf.SetXY(22, pdf.GetY()+6)
-	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)
+	pdf.SetX(25)
+	pdf.MultiCell(165, 4, nom035URL, "", "L", false)
+	pdf.Ln(3)
+	pdf.SetFont("DejaVu", "", 10)
+
+	pdf.Ln(8)
 
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
@@ -594,9 +708,10 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 	pdf.SetTextColor(71, 85, 105)
 
 	pdf.SetX(15)
-	pdf.CellFormat(95, 10, "Elemento", "", 0, "L", true, 0, "")
+	pdf.CellFormat(85, 10, "Elemento", "", 0, "L", true, 0, "")
 	pdf.CellFormat(40, 10, "Puntuacion", "", 0, "C", true, 0, "")
-	pdf.CellFormat(45, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
+	pdf.CellFormat(25, 10, "Progreso", "", 0, "C", true, 0, "")
+	pdf.CellFormat(30, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
 
 	// Rows
 	pdf.SetFont("DejaVu", "", 9)
@@ -610,9 +725,10 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 			pdf.SetFont("DejaVu", "B", 9)
 			pdf.SetTextColor(71, 85, 105)
 			pdf.SetX(15)
-			pdf.CellFormat(95, 10, "Elemento", "", 0, "L", true, 0, "")
+			pdf.CellFormat(85, 10, "Elemento", "", 0, "L", true, 0, "")
 			pdf.CellFormat(40, 10, "Puntuacion", "", 0, "C", true, 0, "")
-			pdf.CellFormat(45, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
+			pdf.CellFormat(25, 10, "Progreso", "", 0, "C", true, 0, "")
+			pdf.CellFormat(30, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
 			pdf.SetFont("DejaVu", "", 9)
 			fill = false
 		}
@@ -630,8 +746,8 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 
 		// Item name (truncate if needed)
 		itemText := k
-		if pdf.GetStringWidth(itemText) > 90 {
-			for len(itemText) > 0 && pdf.GetStringWidth(itemText+"...") > 90 {
+		if pdf.GetStringWidth(itemText) > 80 {
+			for len(itemText) > 0 && pdf.GetStringWidth(itemText+"...") > 80 {
 				itemText = itemText[:len(itemText)-1]
 			}
 			itemText += "..."
@@ -639,16 +755,51 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 
 		pdf.SetTextColor(30, 41, 59)
 		pdf.SetX(15)
-		pdf.CellFormat(95, 9, itemText, "", 0, "L", fill, 0, "")
+		pdf.CellFormat(85, 9, itemText, "", 0, "L", fill, 0, "")
 
 		// Score
 		pdf.SetTextColor(71, 85, 105)
 		pdf.CellFormat(40, 9, fmt.Sprintf("%.1f / %.0f", score, maxScore), "", 0, "C", fill, 0, "")
 
+		// Color-coded progress bar
+		progressBarX := pdf.GetX()
+		progressBarY := pdf.GetY()
+		progressBarWidth := 23.0
+		progressBarHeight := 6.0
+
+		// Calculate percentage
+		percentage := float64(0)
+		if maxScore > 0 {
+			percentage = (score / maxScore) * 100
+			if percentage > 100 {
+				percentage = 100
+			}
+		}
+
+		// Background bar
+		pdf.SetFillColor(241, 245, 249)
+		pdf.RoundedRect(progressBarX, progressBarY+1.5, progressBarWidth, progressBarHeight, 2, "1234", "F")
+
+		// Colored fill based on risk level
+		fillWidth := (percentage / 100.0) * progressBarWidth
+		if fillWidth > 0 {
+			// Color based on risk level: green for Nulo/Bajo, yellow for Medio, orange for Alto
+			if riskLevel == "nulo" || riskLevel == "bajo" {
+				pdf.SetFillColor(40, 167, 69) // Green #28A745
+			} else if riskLevel == "medio" {
+				pdf.SetFillColor(255, 193, 7) // Yellow #FFC107
+			} else {
+				pdf.SetFillColor(255, 152, 0) // Orange
+			}
+			pdf.RoundedRect(progressBarX, progressBarY+1.5, fillWidth, progressBarHeight, 2, "1234", "F")
+		}
+
+		pdf.CellFormat(25, 9, "", "", 0, "C", fill, 0, "")
+
 		// Risk level badge
 		riskLabel := formatRiskLevel(riskLevel)
 		pdf.SetTextColor(config.textR, config.textG, config.textB)
-		pdf.CellFormat(45, 9, riskLabel, "", 1, "C", fill, 0, "")
+		pdf.CellFormat(30, 9, riskLabel, "", 1, "C", fill, 0, "")
 
 		fill = !fill
 	}
@@ -781,11 +932,19 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.AddUTF8Font("DejaVu", "", regularFontName)
 	pdf.AddUTF8Font("DejaVu", "B", boldFontName)
 
-	pdf.SetAutoPageBreak(true, 20.0)
+	pdf.SetAutoPageBreak(true, 30.0)
 	pdf.AddPage()
 
-	// Professional footer with consistent format
+	// Professional footer with confidential notice
 	pdf.SetFooterFunc(func() {
+		// Confidential notice at bottom
+		pdf.SetY(-20)
+		pdf.SetFont("DejaVu", "", 7)
+		pdf.SetTextColor(100, 116, 139)
+		confidentialText := "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida."
+		pdf.MultiCell(180, 3, confidentialText, "", "C", false)
+
+		// Page info above confidential notice
 		pdf.SetY(-12)
 		pdf.SetFont("DejaVu", "", 8)
 		pdf.SetTextColor(128, 128, 128)
@@ -895,8 +1054,8 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.Ln(10)
 
 	metricsY := pdf.GetY()
-	metricWidth := 58.0
-	metricHeight := 50.0
+	metricWidth := 55.0
+	metricHeight := 45.0
 	// Calculate spacing for even distribution
 	availableWidth := 180.0
 	totalMetricsWidth := 3 * metricWidth
@@ -908,26 +1067,28 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	drawEnhancedMetricCard(pdf, startX, metricsY, metricWidth, metricHeight,
 		fmt.Sprintf("%d", report.TotalStaff), "Personal Total",
 		30, 41, 59, // Dark text
-		230, 240, 255) // Light blue background
+		230, 240, 255, // Light blue background
+		"") // No icon
 
 	// Metric 2: Completed - Light green (#E6FFE6 = 230, 255, 230)
 	drawEnhancedMetricCard(pdf, startX+metricWidth+spacing, metricsY, metricWidth, metricHeight,
 		fmt.Sprintf("%d", report.CompletedAssessments), "Evaluaciones Completas",
 		30, 41, 59, // Dark text
-		230, 255, 230) // Light green background
+		230, 255, 230, // Light green background
+		"") // No icon
 
 	// Metric 3: Participation - Light yellow (#FFFBE6 = 255, 251, 230)
 	drawEnhancedMetricCard(pdf, startX+2*(metricWidth+spacing), metricsY, metricWidth, metricHeight,
 		fmt.Sprintf("%.1f%%", report.ParticipationRate), "Tasa de Participacion",
 		30, 41, 59, // Dark text
-		255, 251, 230) // Light yellow background
+		255, 251, 230, // Light yellow background
+		"") // No icon
 
 	pdf.SetY(metricsY + metricHeight + 15)
 
 	// ========== RISK DISTRIBUTION ==========
-	if pdf.GetY() > 200 {
-		pdf.AddPage()
-	}
+	// Always start on a new page (page 2) to ensure the chart doesn't get split
+	pdf.AddPage()
 
 	// Subtitle
 	pdf.SetFont("DejaVu", "B", 16)
@@ -949,108 +1110,31 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	if len(report.RiskDistribution) > 0 {
 		riskOrder := []string{"nulo", "bajo", "medio", "alto", "muy_alto"}
 		riskMap := make(map[string]int64)
-		maxCount := int64(1)
 		totalCount := int64(0)
 
-		// Calculate total count and max count
+		// Calculate total count
 		for _, rd := range report.RiskDistribution {
 			riskMap[string(rd.RiskLevel)] = rd.Count
 			totalCount += rd.Count
-			if rd.Count > maxCount {
-				maxCount = rd.Count
-			}
 		}
 
-		// Improved spacing and layout - optimized for page width (210mm)
-		labelWidth := 50.0
-		barMaxWidth := 80.0
-		barHeight := 18.0
-		countWidth := 20.0
-		percentWidth := 20.0
-		spacing := 5.0
-		barStartX := 15 + labelWidth + spacing
+		// Draw pie chart with legend
+		chartX := 15.0
+		chartY := pdf.GetY()
+		chartRadius := 40.0
+		chartCenterX := chartX + chartRadius
+		chartCenterY := chartY + chartRadius
 
-		// Professional table header with solid background
-		pdf.SetFillColor(249, 250, 251) // #F9FAFB - light gray background
-		pdf.SetFont("DejaVu", "B", 9)
-		pdf.SetTextColor(30, 41, 59) // Dark text for contrast
-		headerHeight := 12.0
-		pdf.SetX(15)
-		pdf.CellFormat(labelWidth, headerHeight, "Nivel de Riesgo", "1", 0, "L", true, 0, "")
-		pdf.CellFormat(barMaxWidth, headerHeight, "Distribucion", "1", 0, "C", true, 0, "")
-		pdf.CellFormat(countWidth, headerHeight, "Cantidad", "1", 0, "R", true, 0, "")     // Right-aligned for numbers
-		pdf.CellFormat(percentWidth, headerHeight, "Porcentaje", "1", 1, "R", true, 0, "") // Right-aligned for numbers
-		pdf.Ln(2)
+		// Draw pie chart
+		drawRiskPieChart(pdf, chartCenterX, chartCenterY, chartRadius, riskMap, totalCount, riskOrder)
 
-		for _, level := range riskOrder {
-			count, exists := riskMap[level]
-			if !exists {
-				continue
-			}
+		// Draw legend with NOM-035 thresholds
+		legendX := chartX + chartRadius*2 + 20
+		legendY := chartY
+		drawRiskLegend(pdf, legendX, legendY, riskMap, totalCount, riskOrder)
 
-			// Calculate percentage
-			percentage := float64(0)
-			if totalCount > 0 {
-				percentage = (float64(count) / float64(totalCount)) * 100
-			}
-
-			rowY := pdf.GetY()
-			rowHeight := barHeight
-
-			// Label - left-aligned
-			pdf.SetFont("DejaVu", "", 10)
-			pdf.SetTextColor(30, 41, 59)
-			pdf.SetX(15)
-			pdf.CellFormat(labelWidth, rowHeight, formatRiskLevel(level), "LR", 0, "L", false, 0, "")
-
-			// Bar background with padding
-			barY := rowY + 2
-			pdf.SetFillColor(241, 245, 249)
-			pdf.RoundedRect(barStartX, barY, barMaxWidth, barHeight-4, 3, "1234", "F")
-
-			// Bar fill - Green (#28A745 = 40, 167, 69) for all risk levels
-			barWidth := (float64(count) / float64(maxCount)) * barMaxWidth
-			if barWidth > 0 {
-				// Use green color for bars as specified
-				pdf.SetFillColor(40, 167, 69) // #28A745
-				pdf.RoundedRect(barStartX, barY, barWidth, barHeight-4, 3, "1234", "F")
-			}
-
-			// Count - right-aligned for numbers
-			pdf.SetFont("DejaVu", "B", 11)
-			pdf.SetTextColor(30, 41, 59)
-			countX := barStartX + barMaxWidth + spacing
-			countY := rowY + (barHeight-4)/2 - 2
-			pdf.SetXY(countX, countY)
-			pdf.CellFormat(countWidth, 0, fmt.Sprintf("%d", count), "", 0, "R", false, 0, "")
-
-			// Percentage - right-aligned for numbers
-			pdf.SetFont("DejaVu", "", 10)
-			pdf.SetTextColor(100, 116, 139)
-			percentX := countX + countWidth + spacing
-			pdf.SetXY(percentX, countY)
-			pdf.CellFormat(percentWidth, 0, fmt.Sprintf("%.1f%%", percentage), "", 0, "R", false, 0, "")
-
-			// Draw bottom border for row separation - light gray borders
-			pdf.SetDrawColor(229, 231, 235) // #E5E7EB
-			pdf.SetLineWidth(0.5)
-			pdf.Line(15, rowY+rowHeight, 15+labelWidth+barMaxWidth+countWidth+percentWidth+spacing*2, rowY+rowHeight)
-
-			pdf.SetY(rowY + rowHeight + 2)
-		}
-
-		// Total summary row with proper borders and right-aligned numbers
-		if totalCount > 0 {
-			pdf.Ln(2)
-			pdf.SetFillColor(249, 250, 251) // Light gray background
-			pdf.SetFont("DejaVu", "B", 11)
-			pdf.SetTextColor(30, 41, 59)
-			pdf.SetX(15)
-			pdf.CellFormat(labelWidth, 12, "Total", "1", 0, "L", true, 0, "")
-			pdf.CellFormat(barMaxWidth, 12, "", "1", 0, "C", true, 0, "")
-			pdf.CellFormat(countWidth, 12, fmt.Sprintf("%d", totalCount), "1", 0, "R", true, 0, "") // Right-aligned
-			pdf.CellFormat(percentWidth, 12, "100.0%", "1", 1, "R", true, 0, "")                    // Right-aligned
-		}
+		// Move Y position after chart
+		pdf.SetY(chartY + chartRadius*2 + 15)
 	} else {
 		pdf.SetFont("DejaVu", "", 10)
 		pdf.SetTextColor(148, 163, 184)
@@ -1162,7 +1246,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 				if count > 0 {
 					countStr = fmt.Sprintf("%d", count)
-					// Apply heat map color gradients based on risk level
+					// Apply heat map color gradients based on risk level (intensified colors)
 					switch level {
 					case "nulo":
 						// Very light green (almost white) for no risk
@@ -1175,18 +1259,18 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 						pdf.SetTextColor(255, 255, 255) // White text for contrast
 						cellFillColor = true
 					case "medio":
-						// Yellow/amber for medium risk
-						pdf.SetFillColor(255, 235, 59)
+						// Yellow (#FFC107 = 255, 193, 7) for medium risk
+						pdf.SetFillColor(255, 193, 7)
 						pdf.SetTextColor(30, 41, 59)
 						cellFillColor = true
 					case "alto":
-						// Orange for high risk
-						pdf.SetFillColor(255, 152, 0)
+						// Red (#DC3545 = 220, 53, 69) for high risk
+						pdf.SetFillColor(220, 53, 69)
 						pdf.SetTextColor(255, 255, 255)
 						cellFillColor = true
 					case "muy_alto":
-						// Red for very high risk
-						pdf.SetFillColor(244, 67, 54)
+						// Red (#DC3545 = 220, 53, 69) for very high risk
+						pdf.SetFillColor(220, 53, 69)
 						pdf.SetTextColor(255, 255, 255)
 						cellFillColor = true
 					default:
@@ -1243,28 +1327,28 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		chartHeight := 40.0
 		chartSpacing := 10.0
 
-		// Row 1: Age Distribution and Shift Type - Horizontal bar charts
+		// Row 1: Age Distribution and Shift Type - Donut charts
 		startY := pdf.GetY()
 
 		if len(report.AgeDistribution) > 0 {
-			drawDemoHorizontalBar(pdf, 15, startY, chartWidth, chartHeight, "Distribucion por Edad", report.AgeDistribution)
+			drawDemoDonutChart(pdf, 15, startY, chartWidth, chartHeight, "Distribucion por Edad", report.AgeDistribution)
 		}
 
 		if len(report.ShiftTypeDistribution) > 0 {
-			drawDemoHorizontalBar(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution)
+			drawDemoDonutChart(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution)
 		}
 
 		pdf.SetY(startY + chartHeight + 12)
 
-		// Row 2: Experience and Marital Status - Horizontal bar charts
+		// Row 2: Experience and Marital Status - Donut charts
 		startY = pdf.GetY()
 
 		if len(report.ExperienceDistribution) > 0 {
-			drawDemoHorizontalBar(pdf, 15, startY, chartWidth, chartHeight, "Experiencia Laboral", report.ExperienceDistribution)
+			drawDemoDonutChart(pdf, 15, startY, chartWidth, chartHeight, "Experiencia Laboral", report.ExperienceDistribution)
 		}
 
 		if len(report.MaritalStatusDistribution) > 0 {
-			drawDemoHorizontalBar(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution)
+			drawDemoDonutChart(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution)
 		}
 
 		pdf.SetY(startY + chartHeight + 12)
@@ -1312,8 +1396,8 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246)
 	pdf.SetX(15)
-	pdf.Cell(0, 8, "Declaracion de Politica de Prevencion de Riesgos Psicosociales")
-	pdf.Ln(10)
+	pdf.MultiCell(180, 8, "Declaracion de Politica de Prevencion de Riesgos Psicosociales", "", "L", false)
+	pdf.Ln(2)
 
 	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
@@ -1409,39 +1493,124 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		pdf.Ln(2)
 	}
 
-	// ========== CONFIDENTIALITY NOTE BOX ==========
-	if pdf.GetY() > 240 {
-		pdf.AddPage()
-	}
+	// ========== PAGE: OFFICIAL DOCUMENTATION APPENDIX ==========
+	pdf.AddPage()
 
-	pdf.Ln(10)
-	pdf.SetFillColor(230, 240, 255) // Light blue background
-	pdf.RoundedRect(15, pdf.GetY(), 180, 30, 4, "1234", "F")
+	// Header
+	pdf.SetFillColor(15, 23, 42) // Dark blue #1A1F36 (26, 31, 54)
+	pdf.Rect(0, 0, 210, 35, "F")
 
-	pdf.SetFont("DejaVu", "B", 11)
+	// Accent stripe
+	pdf.SetFillColor(59, 130, 246) // Blue-500
+	pdf.Rect(0, 35, 210, 3, "F")
+
+	// Header text
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("DejaVu", "B", 18)
+	pdf.SetXY(15, 10)
+	pdf.Cell(0, 0, "Apéndice de Documentación Oficial")
+
+	pdf.SetFont("DejaVu", "", 11)
+	pdf.SetXY(15, 20)
+	pdf.Cell(0, 0, "NOM-035-STPS-2018 | Referencias y Glosario")
+
+	// Confidential badge
+	pdf.SetFillColor(255, 77, 79) // Red #FF4D4F
+	badgeX = 155.0
+	badgeY = 8.0
+	badgeWidth = 42.0
+	badgeHeight = 8.0
+	pdf.RoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, "1234", "F")
+	pdf.SetFont("DejaVu", "B", 8)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetXY(badgeX, badgeY)
+	pdf.CellFormat(badgeWidth, badgeHeight, "CONFIDENCIAL", "", 0, "CM", false, 0, "")
+
+	pdf.SetY(48)
+
+	// ========== GLOSSARY ==========
+	pdf.SetFont("DejaVu", "B", 14)
 	pdf.SetTextColor(30, 41, 59)
-	pdf.SetXY(22, pdf.GetY()+6)
-	pdf.Cell(0, 0, "Nota de Confidencialidad")
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Glosario de Términos")
+	pdf.Ln(10)
 
-	pdf.SetFont("DejaVu", "", 9)
-	pdf.SetTextColor(71, 85, 105)
-	pdf.SetXY(22, pdf.GetY()+8)
-	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. "+
-		"Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)
+	glossary := []struct {
+		term       string
+		definition string
+	}{
+		{
+			term:       "Riesgo Psicosocial",
+			definition: "Factores que pueden provocar trastornos de ansiedad, estrés, depresión u otros problemas de salud mental en los trabajadores.",
+		},
+		{
+			term:       "NOM-035-STPS-2018",
+			definition: "Norma Oficial Mexicana que establece los elementos para identificar, analizar y prevenir los factores de riesgo psicosocial en los centros de trabajo.",
+		},
+		{
+			term:       "Nivel de Riesgo",
+			definition: "Clasificación del riesgo psicosocial según los umbrales establecidos en la NOM-035: Nulo (<20), Bajo (20-<45), Medio (45-<70), Alto (70-<90), Muy Alto (≥90).",
+		},
+		{
+			term:       "Factores de Riesgo Organizacional",
+			definition: "Condiciones peligrosas o nocivas inherentes al trabajo, relacionadas con la organización del mismo.",
+		},
+		{
+			term:       "Atención Médica Ocupacional",
+			definition: "Servicios médicos especializados para trabajadores expuestos a factores de riesgo psicosocial.",
+		},
+	}
 
-	// ========== LEGAL FOOTER ==========
-	if pdf.GetY() > 240 {
+	pdf.SetFont("DejaVu", "", 10)
+	for _, item := range glossary {
+		if pdf.GetY() > 250 {
+			pdf.AddPage()
+		}
+		pdf.SetFont("DejaVu", "B", 10)
+		pdf.SetTextColor(30, 41, 59)
+		pdf.SetX(20)
+		pdf.Cell(0, 6, item.term+":")
+		pdf.Ln(8)
+		pdf.SetFont("DejaVu", "", 9)
+		pdf.SetTextColor(71, 85, 105)
+		pdf.SetX(25)
+		pdf.MultiCell(160, 4, item.definition, "", "L", false)
+		pdf.Ln(4)
+	}
+
+	pdf.Ln(8)
+
+	// ========== OFFICIAL LINKS ==========
+	if pdf.GetY() > 200 {
 		pdf.AddPage()
 	}
 
-	pdf.Ln(15)
-	pdf.SetFillColor(241, 245, 249)
-	pdf.RoundedRect(15, pdf.GetY(), 180, 25, 3, "1234", "F")
+	pdf.SetFont("DejaVu", "B", 14)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Enlaces a Documentación Oficial")
+	pdf.Ln(10)
 
+	// Single NOM-035 link
+	nom035Title := "NOM-035-STPS-2018 - Texto Completo"
+	nom035URL = "https://www.gob.mx/stps/articulos/norma-oficial-mexicana-nom-035-stps-2018-factores-de-riesgo-psicosocial-en-el-trabajo-identificacion-analisis-y-prevencion"
+
+	pdf.SetFont("DejaVu", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	pdf.SetX(20)
+	pdf.Cell(5, 6, "1.")
+	pdf.SetX(25)
+	pdf.SetTextColor(59, 130, 246) // Blue for links
+	pdf.SetFont("DejaVu", "U", 10) // Underlined
+	pdf.MultiCell(165, 5, nom035Title, "", "L", false)
 	pdf.SetFont("DejaVu", "", 8)
 	pdf.SetTextColor(100, 116, 139)
-	pdf.SetXY(22, pdf.GetY()+6)
-	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)
+	pdf.SetX(25)
+	pdf.MultiCell(165, 4, nom035URL, "", "L", false)
+	pdf.Ln(3)
+	pdf.SetFont("DejaVu", "", 10)
+
+	pdf.Ln(8)
 
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
@@ -1469,24 +1638,38 @@ func drawMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, t
 	pdf.Cell(0, 0, label)
 }
 
-// drawEnhancedMetricCard draws an enhanced metric card with large numbers (32pt) and subtitle (12pt)
-func drawEnhancedMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, textR, textG, textB, bgR, bgG, bgB int) {
+// drawEnhancedMetricCard draws an enhanced metric card with shadows and large numbers (36pt)
+func drawEnhancedMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, textR, textG, textB, bgR, bgG, bgB int, icon string) {
+	// Draw shadow (2px elevation - offset by 2mm)
+	shadowOffset := 2.0
+	pdf.SetFillColor(0, 0, 0)
+	pdf.SetAlpha(0.1, "Normal")
+	pdf.RoundedRect(x+shadowOffset, y+shadowOffset, w, h, 4, "1234", "F")
+	pdf.SetAlpha(1.0, "Normal")
+
+	// Draw card background
 	pdf.SetFillColor(bgR, bgG, bgB)
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
-	// Large bold number (32pt)
-	pdf.SetFont("DejaVu", "B", 32)
-	pdf.SetTextColor(textR, textG, textB)
+	// Large bold number (36pt) - Dark blue #1A1F36 (26, 31, 54)
+	pdf.SetFont("DejaVu", "B", 36)
+	pdf.SetTextColor(26, 31, 54) // #1A1F36
 	valueWidth := pdf.GetStringWidth(value)
-	pdf.SetXY(x+(w-valueWidth)/2, y+18)
+	pdf.SetXY(x+(w-valueWidth)/2, y+12)
 	pdf.Cell(0, 0, value)
 
-	// Subtitle (12pt)
-	pdf.SetFont("DejaVu", "", 12)
+	// Subtitle (10pt) - smaller font and allow wrapping for longer labels
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
 	labelWidth := pdf.GetStringWidth(label)
-	pdf.SetXY(x+(w-labelWidth)/2, y+h-12)
-	pdf.Cell(0, 0, label)
+	// If label is too long, use MultiCell to wrap it
+	if labelWidth > w-8 {
+		pdf.SetXY(x+4, y+h-12)
+		pdf.MultiCell(w-8, 4, label, "", "C", false)
+	} else {
+		pdf.SetXY(x+(w-labelWidth)/2, y+h-10)
+		pdf.Cell(0, 0, label)
+	}
 }
 
 // drawDemoSummaryInline draws a demographic summary inline
@@ -1614,6 +1797,265 @@ func drawDemoPieChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data [
 
 		percentage := float64(d.Count) / float64(total) * 100
 		pdf.Cell(legendItemWidth-12, 6, fmt.Sprintf("%s: %.0f%%", categoryName, percentage))
+	}
+}
+
+// drawRiskPieChart draws a pie chart for risk distribution
+func drawRiskPieChart(pdf *gofpdf.Fpdf, centerX, centerY, radius float64, riskMap map[string]int64, totalCount int64, riskOrder []string) {
+	if totalCount == 0 {
+		return
+	}
+
+	// Risk level colors per NOM-035
+	riskColors := map[string]struct{ r, g, b int }{
+		"nulo":     {r: 220, g: 252, b: 231}, // Light green
+		"bajo":     {r: 40, g: 167, b: 69},   // Green #28A745
+		"medio":    {r: 255, g: 193, b: 7},   // Yellow #FFC107
+		"alto":     {r: 255, g: 152, b: 0},   // Orange
+		"muy_alto": {r: 220, g: 53, b: 69},   // Red #DC3545
+	}
+
+	startAngle := 90.0 // Start at top (12 o'clock)
+	for _, level := range riskOrder {
+		count, exists := riskMap[level]
+		if !exists || count == 0 {
+			continue
+		}
+
+		// Calculate angle for this slice
+		percentage := float64(count) / float64(totalCount)
+		angle := percentage * 360.0
+
+		// Get color for this risk level
+		color, hasColor := riskColors[level]
+		if !hasColor {
+			color = riskColors["bajo"] // Default to green
+		}
+
+		// Draw pie slice
+		pdf.SetFillColor(color.r, color.g, color.b)
+		pdf.SetDrawColor(255, 255, 255) // White border
+		pdf.SetLineWidth(1.0)
+
+		// Draw arc/pie slice
+		endAngle := startAngle + angle
+		drawPieSlice(pdf, centerX, centerY, radius, startAngle, endAngle)
+
+		// Draw label on slice if percentage > 5%
+		if percentage > 0.05 {
+			labelAngle := startAngle + angle/2
+			labelRadius := radius * 0.7
+			labelX := centerX + labelRadius*cosDeg(labelAngle)
+			labelY := centerY - labelRadius*sinDeg(labelAngle) // Negative because Y increases downward
+
+			pdf.SetFont("DejaVu", "B", 9)
+			pdf.SetTextColor(255, 255, 255)
+			labelText := fmt.Sprintf("%.1f%%", percentage*100)
+			labelWidth := pdf.GetStringWidth(labelText)
+			pdf.SetXY(labelX-labelWidth/2, labelY-3)
+			pdf.Cell(0, 0, labelText)
+		}
+
+		startAngle = endAngle
+	}
+}
+
+// drawPieSlice draws a pie slice using arcs
+func drawPieSlice(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float64) {
+	// Calculate start point
+	startX := cx + radius*cosDeg(startAngle)
+	startY := cy - radius*sinDeg(startAngle) // Negative because Y increases downward
+
+	// Draw path for pie slice
+	pdf.MoveTo(cx, cy)
+	pdf.LineTo(startX, startY)
+	// Draw arc
+	drawArc(pdf, cx, cy, radius, startAngle, endAngle)
+	pdf.LineTo(cx, cy)
+	pdf.ClosePath()
+	pdf.DrawPath("F") // Fill
+}
+
+// drawArc draws an arc segment
+func drawArc(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float64) {
+	// Approximate arc with small line segments
+	angleStep := 2.0 // degrees per segment
+	currentAngle := startAngle
+	for currentAngle < endAngle {
+		nextAngle := currentAngle + angleStep
+		if nextAngle > endAngle {
+			nextAngle = endAngle
+		}
+
+		x2 := cx + radius*cosDeg(nextAngle)
+		y2 := cy - radius*sinDeg(nextAngle)
+
+		pdf.LineTo(x2, y2)
+		currentAngle = nextAngle
+	}
+}
+
+// Helper functions for trigonometry
+func cosDeg(angle float64) float64 {
+	return math.Cos(angle * math.Pi / 180.0)
+}
+
+func sinDeg(angle float64) float64 {
+	return math.Sin(angle * math.Pi / 180.0)
+}
+
+// drawRiskLegend draws a legend with NOM-035 thresholds
+func drawRiskLegend(pdf *gofpdf.Fpdf, x, y float64, riskMap map[string]int64, totalCount int64, riskOrder []string) {
+	riskColors := map[string]struct{ r, g, b int }{
+		"nulo":     {r: 220, g: 252, b: 231},
+		"bajo":     {r: 40, g: 167, b: 69},
+		"medio":    {r: 255, g: 193, b: 7},
+		"alto":     {r: 255, g: 152, b: 0},
+		"muy_alto": {r: 220, g: 53, b: 69},
+	}
+
+	thresholds := map[string]string{
+		"nulo":     "<20",
+		"bajo":     "20-<45",
+		"medio":    "45-<70",
+		"alto":     "70-<90",
+		"muy_alto": "≥90",
+	}
+
+	currentY := y
+	itemHeight := 12.0
+	boxSize := 8.0
+
+	for _, level := range riskOrder {
+		count, exists := riskMap[level]
+		if !exists {
+			continue
+		}
+
+		percentage := float64(0)
+		if totalCount > 0 {
+			percentage = (float64(count) / float64(totalCount)) * 100
+		}
+
+		color := riskColors[level]
+		threshold := thresholds[level]
+
+		// Color box
+		pdf.SetFillColor(color.r, color.g, color.b)
+		pdf.Rect(x, currentY, boxSize, boxSize, "F")
+
+		// Label with threshold
+		pdf.SetFont("DejaVu", "B", 9)
+		pdf.SetTextColor(30, 41, 59)
+		pdf.SetXY(x+boxSize+4, currentY)
+		labelText := fmt.Sprintf("%s (%s): %d (%.1f%%)", formatRiskLevel(level), threshold, count, percentage)
+		pdf.Cell(0, boxSize, labelText)
+
+		currentY += itemHeight + 2
+	}
+}
+
+// drawDemoDonutChart draws a donut chart with blue color (#007BFF) and center label
+func drawDemoDonutChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data []domain.DemographicDistribution) {
+	if len(data) == 0 {
+		return
+	}
+
+	// Card background
+	pdf.SetFillColor(248, 250, 252)
+	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
+
+	// Title
+	pdf.SetFont("DejaVu", "B", 10)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.SetXY(x+4, y+4)
+	pdf.Cell(w-8, 5, title)
+
+	// Calculate total
+	var total int64
+	for _, d := range data {
+		total += d.Count
+	}
+	if total == 0 {
+		return
+	}
+
+	// Find max category for center label (100%)
+	maxCount := int64(0)
+	maxCategory := ""
+	for _, d := range data {
+		if d.Count > maxCount {
+			maxCount = d.Count
+			maxCategory = d.Category
+		}
+	}
+
+	// Donut chart dimensions
+	centerX := x + w/2
+	centerY := y + h/2 + 5
+	outerRadius := 18.0
+	innerRadius := 10.0
+
+	// Draw donut chart - blue (#007BFF = 0, 123, 255) for all segments
+	pdf.SetFillColor(0, 123, 255)
+	pdf.SetDrawColor(255, 255, 255)
+	pdf.SetLineWidth(1.0)
+
+	// Draw full circle (100% for max category)
+	drawDonutSlice(pdf, centerX, centerY, outerRadius, innerRadius, 0, 360)
+
+	// Center label showing 100% for max category
+	pdf.SetFont("DejaVu", "B", 12)
+	pdf.SetTextColor(0, 123, 255)
+	centerLabel := "100%"
+	labelWidth := pdf.GetStringWidth(centerLabel)
+	pdf.SetXY(centerX-labelWidth/2, centerY-4)
+	pdf.Cell(0, 0, centerLabel)
+
+	// Category name below percentage
+	pdf.SetFont("DejaVu", "", 8)
+	pdf.SetTextColor(71, 85, 105)
+	categoryName := maxCategory
+	if len(categoryName) > 15 {
+		categoryName = categoryName[:12] + "..."
+	}
+	catWidth := pdf.GetStringWidth(categoryName)
+	pdf.SetXY(centerX-catWidth/2, centerY+6)
+	pdf.Cell(0, 0, categoryName)
+}
+
+// drawDonutSlice draws a donut slice (ring segment)
+func drawDonutSlice(pdf *gofpdf.Fpdf, cx, cy, outerRadius, innerRadius, startAngle, endAngle float64) {
+	// Draw outer arc
+	drawArc(pdf, cx, cy, outerRadius, startAngle, endAngle)
+	// Draw connecting line at end angle
+	endX := cx + outerRadius*cosDeg(endAngle)
+	endY := cy - outerRadius*sinDeg(endAngle)
+	pdf.LineTo(endX, endY)
+	// Draw inner arc (reverse direction)
+	drawArcReverse(pdf, cx, cy, innerRadius, endAngle, startAngle)
+	// Draw connecting line at start angle
+	startX := cx + innerRadius*cosDeg(startAngle)
+	startY := cy - innerRadius*sinDeg(startAngle)
+	pdf.LineTo(startX, startY)
+	// Close path
+	pdf.ClosePath()
+	pdf.DrawPath("F")
+}
+
+// drawArcReverse draws an arc in reverse direction
+func drawArcReverse(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float64) {
+	angleStep := 2.0
+	currentAngle := startAngle
+	for currentAngle > endAngle {
+		nextAngle := currentAngle - angleStep
+		if nextAngle < endAngle {
+			nextAngle = endAngle
+		}
+		x2 := cx + radius*cosDeg(nextAngle)
+		y2 := cy - radius*sinDeg(nextAngle)
+		pdf.LineTo(x2, y2)
+		currentAngle = nextAngle
 	}
 }
 
