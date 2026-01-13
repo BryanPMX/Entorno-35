@@ -398,13 +398,13 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	return buf.Bytes(), nil
 }
 
-// drawModernSection draws a section header
+// drawModernSection draws a section header with improved spacing
 func drawModernSection(pdf *gofpdf.Fpdf, title, subtitle string) {
 	pdf.SetFont("Arial", "B", 14)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.SetX(15)
 	pdf.Cell(0, 8, title)
-	pdf.Ln(6)
+	pdf.Ln(10) // Increased from 6 to 10 for more space between title and subtitle
 
 	pdf.SetFont("Arial", "", 10)
 	pdf.SetTextColor(100, 116, 139)
@@ -570,7 +570,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.SetAutoPageBreak(true, 20.0)
 	pdf.AddPage()
 
-	// Professional footer
+	// Professional footer with consistent format
 	pdf.SetFooterFunc(func() {
 		pdf.SetY(-12)
 		pdf.SetFont("Arial", "", 8)
@@ -580,96 +580,188 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	})
 
 	// ========== HEADER ==========
-	pdf.SetFillColor(15, 23, 42)
-	pdf.Rect(0, 0, 210, 35, "F")
+	// Dark blue header background (#1A1F36 = 26, 31, 54)
+	pdf.SetFillColor(26, 31, 54)
+	pdf.Rect(0, 0, 210, 40, "F")
 
-	pdf.SetFillColor(34, 197, 94) // Green accent for general reports
-	pdf.Rect(0, 35, 210, 3, "F")
-
+	// Main title - white text, bold, 24pt
 	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("Arial", "B", 18)
-	pdf.SetXY(15, 10)
+	pdf.SetFont("Arial", "B", 24)
+	pdf.SetXY(15, 12)
 	pdf.Cell(0, 0, "Reporte General de Cumplimiento")
 
-	pdf.SetFont("Arial", "", 11)
-	pdf.SetXY(15, 20)
+	// Subtitle - lighter gray, 14pt
+	pdf.SetFont("Arial", "", 14)
+	pdf.SetTextColor(200, 200, 200)
+	pdf.SetXY(15, 24)
 	periodText := "Todos los Periodos"
 	if report.Period != nil {
 		periodText = fmt.Sprintf("Periodo %d", *report.Period)
 	}
 	pdf.Cell(0, 0, fmt.Sprintf("NOM-035-STPS-2018 | %s", periodText))
 
-	// Confidential badge
-	pdf.SetFillColor(239, 68, 68)
-	pdf.RoundedRect(155, 8, 42, 8, 2, "1234", "F")
-	pdf.SetFont("Arial", "B", 8)
-	pdf.SetXY(155, 10)
-	pdf.CellFormat(42, 0, "CONFIDENCIAL", "", 0, "C", false, 0, "")
+	// Red CONFIDENCIAL pill-shaped button (#FF4D4F = 255, 77, 79)
+	pdf.SetFillColor(255, 77, 79)
+	badgeX := 155.0
+	badgeY := 10.0
+	badgeWidth := 45.0
+	badgeHeight := 10.0
+	pdf.RoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 5, "1234", "F")
+	pdf.SetFont("Arial", "B", 9)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetXY(badgeX, badgeY)
+	pdf.CellFormat(badgeWidth, badgeHeight, "CONFIDENCIAL", "", 0, "CM", false, 0, "")
 
-	pdf.SetFont("Arial", "", 9)
-	pdf.SetXY(155, 22)
-	pdf.Cell(0, 0, time.Now().Format("02 de Enero, 2006"))
+	pdf.SetY(48) // Spacing after header
 
-	pdf.SetY(48)
+	// ========== COMPANY INFO CARD ==========
+	// Centered company details in gray text (12pt)
+	pdf.SetFont("Arial", "", 12)
+	pdf.SetTextColor(100, 116, 139) // Gray text
+	
+	// Center company name
+	companyNameWidth := pdf.GetStringWidth(report.CompanyName)
+	companyNameX := (210 - companyNameWidth) / 2
+	pdf.SetXY(companyNameX, pdf.GetY())
+	pdf.Cell(0, 0, report.CompanyName)
+	
+	// Center company ID
+	companyIDStr := report.CompanyID.String()
+	if len(companyIDStr) > 12 {
+		companyIDStr = companyIDStr[:12] + "..."
+	}
+	idText := fmt.Sprintf("ID: %s", companyIDStr)
+	idWidth := pdf.GetStringWidth(idText)
+	idX := (210 - idWidth) / 2
+	pdf.SetXY(idX, pdf.GetY()+8)
+	pdf.Cell(0, 0, idText)
+	
+	// Center date
+	dateText := time.Now().Format("02 de Enero, 2006")
+	dateWidth := pdf.GetStringWidth(dateText)
+	dateX := (210 - dateWidth) / 2
+	pdf.SetXY(dateX, pdf.GetY()+8)
+	pdf.Cell(0, 0, fmt.Sprintf("Fecha: %s", dateText))
 
-	// ========== COMPANY INFO ==========
-	pdf.SetFillColor(248, 250, 252)
-	pdf.RoundedRect(15, pdf.GetY(), 180, 20, 4, "1234", "F")
+	pdf.SetY(pdf.GetY() + 20) // Spacing after company details
 
+	// ========== EXECUTIVE SUMMARY ==========
+	if pdf.GetY() > 200 {
+		pdf.AddPage()
+	}
+	
 	pdf.SetFont("Arial", "B", 14)
 	pdf.SetTextColor(30, 41, 59)
-	pdf.SetXY(22, pdf.GetY()+7)
-	pdf.Cell(0, 0, report.CompanyName)
-
-	pdf.SetY(pdf.GetY() + 28)
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Resumen Ejecutivo")
+	pdf.Ln(10)
+	
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	pdf.SetX(15)
+	summaryText := fmt.Sprintf("Este reporte presenta un analisis integral del cumplimiento de la NOM-035-STPS-2018 para %s. "+
+		"El analisis incluye %d empleados, de los cuales %d han completado sus evaluaciones, "+
+		"representando una tasa de participacion del %.1f%%. Los resultados muestran la distribucion de riesgos psicosociales "+
+		"identificados y proporcionan recomendaciones para la prevencion y mejora continua.",
+		report.CompanyName, report.TotalStaff, report.CompletedAssessments, report.ParticipationRate)
+	pdf.MultiCell(180, 5, summaryText, "", "L", false)
+	pdf.Ln(8)
 
 	// ========== KEY METRICS ==========
-	drawModernSection(pdf, "Metricas Clave", "Resumen de participacion y evaluaciones")
-	pdf.Ln(4)
+	// Blue subtitle (16pt)
+	pdf.SetFont("Arial", "B", 16)
+	pdf.SetTextColor(59, 130, 246) // Blue
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Metricas Clave")
+	pdf.Ln(10)
 
 	metricsY := pdf.GetY()
 	metricWidth := 58.0
-	metricHeight := 40.0
-	spacing := 8.0
+	metricHeight := 50.0
+	// Calculate spacing for even distribution
+	availableWidth := 180.0
+	totalMetricsWidth := 3 * metricWidth
+	totalSpacing := availableWidth - totalMetricsWidth
+	spacing := totalSpacing / 4.0
+	startX := 15.0 + spacing
 
-	// Metric 1: Total Staff
-	drawMetricCard(pdf, 15, metricsY, metricWidth, metricHeight,
+	// Metric 1: Total Staff - Light blue (#E6F0FF = 230, 240, 255)
+	drawEnhancedMetricCard(pdf, startX, metricsY, metricWidth, metricHeight,
 		fmt.Sprintf("%d", report.TotalStaff), "Personal Total",
-		59, 130, 246, // Blue
-		239, 246, 255)
+		30, 41, 59, // Dark text
+		230, 240, 255) // Light blue background
 
-	// Metric 2: Completed
-	drawMetricCard(pdf, 15+metricWidth+spacing, metricsY, metricWidth, metricHeight,
+	// Metric 2: Completed - Light green (#E6FFE6 = 230, 255, 230)
+	drawEnhancedMetricCard(pdf, startX+metricWidth+spacing, metricsY, metricWidth, metricHeight,
 		fmt.Sprintf("%d", report.CompletedAssessments), "Evaluaciones Completas",
-		34, 197, 94, // Green
-		236, 253, 245)
+		30, 41, 59, // Dark text
+		230, 255, 230) // Light green background
 
-	// Metric 3: Participation
-	drawMetricCard(pdf, 15+2*(metricWidth+spacing), metricsY, metricWidth, metricHeight,
+	// Metric 3: Participation - Light yellow (#FFFBE6 = 255, 251, 230)
+	drawEnhancedMetricCard(pdf, startX+2*(metricWidth+spacing), metricsY, metricWidth, metricHeight,
 		fmt.Sprintf("%.1f%%", report.ParticipationRate), "Tasa de Participacion",
-		202, 138, 4, // Amber
-		254, 249, 195)
+		30, 41, 59, // Dark text
+		255, 251, 230) // Light yellow background
 
 	pdf.SetY(metricsY + metricHeight + 15)
 
 	// ========== RISK DISTRIBUTION ==========
-	drawModernSection(pdf, "Distribucion de Riesgo", "Cantidad de evaluaciones por nivel de riesgo")
-	pdf.Ln(4)
+	if pdf.GetY() > 200 {
+		pdf.AddPage()
+	}
+	
+	// Subtitle
+	pdf.SetFont("Arial", "B", 16)
+	pdf.SetTextColor(59, 130, 246) // Blue
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Distribucion de Riesgo")
+	pdf.Ln(10)
+	
+	// Interpretive analysis paragraph
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	pdf.SetX(15)
+	analysisText := "La distribucion de riesgo muestra la cantidad de evaluaciones clasificadas en cada nivel segun los "+
+		"criterios de la NOM-035-STPS-2018. Esta informacion es fundamental para identificar areas de atencion prioritaria "+
+		"y desarrollar estrategias de prevencion efectivas."
+	pdf.MultiCell(180, 5, analysisText, "", "L", false)
+	pdf.Ln(6)
 
 	if len(report.RiskDistribution) > 0 {
 		riskOrder := []string{"nulo", "bajo", "medio", "alto", "muy_alto"}
 		riskMap := make(map[string]int64)
 		maxCount := int64(1)
+		totalCount := int64(0)
 
+		// Calculate total count and max count
 		for _, rd := range report.RiskDistribution {
 			riskMap[string(rd.RiskLevel)] = rd.Count
+			totalCount += rd.Count
 			if rd.Count > maxCount {
 				maxCount = rd.Count
 			}
 		}
 
-		barMaxWidth := 110.0
-		barHeight := 14.0
+		// Improved spacing and layout - optimized for page width (210mm)
+		labelWidth := 50.0
+		barMaxWidth := 80.0
+		barHeight := 18.0
+		countWidth := 20.0
+		percentWidth := 20.0
+		spacing := 5.0
+		barStartX := 15 + labelWidth + spacing
+
+		// Professional table header with solid background
+		pdf.SetFillColor(249, 250, 251) // #F9FAFB - light gray background
+		pdf.SetFont("Arial", "B", 9)
+		pdf.SetTextColor(30, 41, 59) // Dark text for contrast
+		headerHeight := 12.0
+		pdf.SetX(15)
+		pdf.CellFormat(labelWidth, headerHeight, "Nivel de Riesgo", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(barMaxWidth, headerHeight, "Distribucion", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(countWidth, headerHeight, "Cantidad", "1", 0, "R", true, 0, "") // Right-aligned for numbers
+		pdf.CellFormat(percentWidth, headerHeight, "Porcentaje", "1", 1, "R", true, 0, "") // Right-aligned for numbers
+		pdf.Ln(2)
 
 		for _, level := range riskOrder {
 			count, exists := riskMap[level]
@@ -677,32 +769,68 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 				continue
 			}
 
-			config := getRiskColorConfig(level)
-
-			// Label
-			pdf.SetFont("Arial", "", 10)
-			pdf.SetTextColor(71, 85, 105)
-			pdf.SetX(15)
-			pdf.CellFormat(50, barHeight, formatRiskLevel(level), "", 0, "R", false, 0, "")
-
-			// Bar background
-			pdf.SetFillColor(241, 245, 249)
-			pdf.RoundedRect(70, pdf.GetY(), barMaxWidth, barHeight-2, 3, "1234", "F")
-
-			// Bar fill
-			barWidth := (float64(count) / float64(maxCount)) * barMaxWidth
-			if barWidth > 0 {
-				pdf.SetFillColor(config.barR, config.barG, config.barB)
-				pdf.RoundedRect(70, pdf.GetY(), barWidth, barHeight-2, 3, "1234", "F")
+			// Calculate percentage
+			percentage := float64(0)
+			if totalCount > 0 {
+				percentage = (float64(count) / float64(totalCount)) * 100
 			}
 
-			// Count
+			rowY := pdf.GetY()
+			rowHeight := barHeight
+
+			// Label - left-aligned
+			pdf.SetFont("Arial", "", 10)
+			pdf.SetTextColor(30, 41, 59)
+			pdf.SetX(15)
+			pdf.CellFormat(labelWidth, rowHeight, formatRiskLevel(level), "LR", 0, "L", false, 0, "")
+
+			// Bar background with padding
+			barY := rowY + 2
+			pdf.SetFillColor(241, 245, 249)
+			pdf.RoundedRect(barStartX, barY, barMaxWidth, barHeight-4, 3, "1234", "F")
+
+			// Bar fill - Green (#28A745 = 40, 167, 69) for all risk levels
+			barWidth := (float64(count) / float64(maxCount)) * barMaxWidth
+			if barWidth > 0 {
+				// Use green color for bars as specified
+				pdf.SetFillColor(40, 167, 69) // #28A745
+				pdf.RoundedRect(barStartX, barY, barWidth, barHeight-4, 3, "1234", "F")
+			}
+
+			// Count - right-aligned for numbers
 			pdf.SetFont("Arial", "B", 11)
 			pdf.SetTextColor(30, 41, 59)
-			pdf.SetXY(185, pdf.GetY()+2)
-			pdf.Cell(0, 0, fmt.Sprintf("%d", count))
+			countX := barStartX + barMaxWidth + spacing
+			countY := rowY + (barHeight-4)/2 - 2
+			pdf.SetXY(countX, countY)
+			pdf.CellFormat(countWidth, 0, fmt.Sprintf("%d", count), "", 0, "R", false, 0, "")
 
-			pdf.Ln(barHeight + 2)
+			// Percentage - right-aligned for numbers
+			pdf.SetFont("Arial", "", 10)
+			pdf.SetTextColor(100, 116, 139)
+			percentX := countX + countWidth + spacing
+			pdf.SetXY(percentX, countY)
+			pdf.CellFormat(percentWidth, 0, fmt.Sprintf("%.1f%%", percentage), "", 0, "R", false, 0, "")
+
+			// Draw bottom border for row separation - light gray borders
+			pdf.SetDrawColor(229, 231, 235) // #E5E7EB
+			pdf.SetLineWidth(0.5)
+			pdf.Line(15, rowY+rowHeight, 15+labelWidth+barMaxWidth+countWidth+percentWidth+spacing*2, rowY+rowHeight)
+
+			pdf.SetY(rowY + rowHeight + 2)
+		}
+
+		// Total summary row with proper borders and right-aligned numbers
+		if totalCount > 0 {
+			pdf.Ln(2)
+			pdf.SetFillColor(249, 250, 251) // Light gray background
+			pdf.SetFont("Arial", "B", 11)
+			pdf.SetTextColor(30, 41, 59)
+			pdf.SetX(15)
+			pdf.CellFormat(labelWidth, 12, "Total", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(barMaxWidth, 12, "", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(countWidth, 12, fmt.Sprintf("%d", totalCount), "1", 0, "R", true, 0, "") // Right-aligned
+			pdf.CellFormat(percentWidth, 12, "100.0%", "1", 1, "R", true, 0, "") // Right-aligned
 		}
 	} else {
 		pdf.SetFont("Arial", "I", 10)
@@ -719,8 +847,22 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		}
 
 		pdf.Ln(8)
-		drawModernSection(pdf, "Mapa de Calor por Departamento", "Distribucion de riesgo por area organizacional")
-		pdf.Ln(4)
+		// Subtitle
+		pdf.SetFont("Arial", "B", 16)
+		pdf.SetTextColor(59, 130, 246) // Blue
+		pdf.SetX(15)
+		pdf.Cell(0, 8, "Mapa de Calor por Departamento")
+		pdf.Ln(10)
+		
+		// Interpretive analysis paragraph
+		pdf.SetFont("Arial", "", 10)
+		pdf.SetTextColor(71, 85, 105)
+		pdf.SetX(15)
+		heatmapAnalysis := "El mapa de calor por departamento permite identificar areas organizacionales con mayor concentracion "+
+			"de riesgos psicosociales. Esta informacion es crucial para dirigir recursos y estrategias de prevencion de manera "+
+			"efectiva y priorizada."
+		pdf.MultiCell(180, 5, heatmapAnalysis, "", "L", false)
+		pdf.Ln(6)
 
 		// Group by department
 		deptMap := make(map[string]map[string]int64)
@@ -737,17 +879,18 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		}
 		sort.Strings(departments)
 
-		// Header
-		pdf.SetFillColor(241, 245, 249)
-		pdf.SetFont("Arial", "B", 8)
-		pdf.SetTextColor(71, 85, 105)
+		// Professional table header with light blue background
+		pdf.SetFillColor(230, 240, 255) // Light blue background
+		pdf.SetFont("Arial", "B", 9)
+		pdf.SetTextColor(30, 41, 59) // Dark text for contrast
+		headerHeight := 12.0
 		pdf.SetX(15)
-		pdf.CellFormat(55, 10, "Departamento", "", 0, "L", true, 0, "")
-		pdf.CellFormat(25, 10, "Nulo", "", 0, "C", true, 0, "")
-		pdf.CellFormat(25, 10, "Bajo", "", 0, "C", true, 0, "")
-		pdf.CellFormat(25, 10, "Medio", "", 0, "C", true, 0, "")
-		pdf.CellFormat(25, 10, "Alto", "", 0, "C", true, 0, "")
-		pdf.CellFormat(25, 10, "Muy Alto", "", 1, "C", true, 0, "")
+		pdf.CellFormat(55, headerHeight, "Departamento", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(25, headerHeight, "Nulo", "1", 0, "R", true, 0, "") // Right-aligned for numbers
+		pdf.CellFormat(25, headerHeight, "Bajo", "1", 0, "R", true, 0, "")
+		pdf.CellFormat(25, headerHeight, "Medio", "1", 0, "R", true, 0, "")
+		pdf.CellFormat(25, headerHeight, "Alto", "1", 0, "R", true, 0, "")
+		pdf.CellFormat(25, headerHeight, "Muy Alto", "1", 1, "R", true, 0, "")
 
 		// Rows
 		pdf.SetFont("Arial", "", 9)
@@ -757,23 +900,26 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		for _, dept := range departments {
 			if pdf.GetY() > 250 {
 				pdf.AddPage()
-				// Redraw header
-				pdf.SetFillColor(241, 245, 249)
-				pdf.SetFont("Arial", "B", 8)
-				pdf.SetTextColor(71, 85, 105)
+				// Redraw header with light blue background
+				pdf.SetFillColor(230, 240, 255) // Light blue background
+				pdf.SetFont("Arial", "B", 9)
+				pdf.SetTextColor(30, 41, 59)
 				pdf.SetX(15)
-				pdf.CellFormat(55, 10, "Departamento", "", 0, "L", true, 0, "")
-				pdf.CellFormat(25, 10, "Nulo", "", 0, "C", true, 0, "")
-				pdf.CellFormat(25, 10, "Bajo", "", 0, "C", true, 0, "")
-				pdf.CellFormat(25, 10, "Medio", "", 0, "C", true, 0, "")
-				pdf.CellFormat(25, 10, "Alto", "", 0, "C", true, 0, "")
-				pdf.CellFormat(25, 10, "Muy Alto", "", 1, "C", true, 0, "")
+				pdf.CellFormat(55, headerHeight, "Departamento", "1", 0, "L", true, 0, "")
+				pdf.CellFormat(25, headerHeight, "Nulo", "1", 0, "R", true, 0, "")
+				pdf.CellFormat(25, headerHeight, "Bajo", "1", 0, "R", true, 0, "")
+				pdf.CellFormat(25, headerHeight, "Medio", "1", 0, "R", true, 0, "")
+				pdf.CellFormat(25, headerHeight, "Alto", "1", 0, "R", true, 0, "")
+				pdf.CellFormat(25, headerHeight, "Muy Alto", "1", 1, "R", true, 0, "")
 				pdf.SetFont("Arial", "", 9)
 				fill = false
 			}
 
+			rowY := pdf.GetY()
+			rowHeight := 10.0
+
 			if fill {
-				pdf.SetFillColor(248, 250, 252)
+				pdf.SetFillColor(249, 250, 251) // Alternating row color
 			} else {
 				pdf.SetFillColor(255, 255, 255)
 			}
@@ -783,19 +929,69 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 				deptName = deptName[:19] + "..."
 			}
 
+			// Department name - left-aligned
 			pdf.SetTextColor(30, 41, 59)
+			pdf.SetFont("Arial", "", 9)
 			pdf.SetX(15)
-			pdf.CellFormat(55, 9, deptName, "", 0, "L", fill, 0, "")
+			pdf.CellFormat(55, rowHeight, deptName, "LR", 0, "L", fill, 0, "")
 
+			// Counts - right-aligned for numbers with heat map colors
 			for _, level := range riskLevels {
 				count := deptMap[dept][level]
 				countStr := "-"
+				cellFillColor := fill // Preserve row fill state
+				
 				if count > 0 {
 					countStr = fmt.Sprintf("%d", count)
+					// Apply heat map color gradients based on risk level
+					switch level {
+					case "nulo":
+						// Very light green (almost white) for no risk
+						pdf.SetFillColor(245, 255, 245)
+						pdf.SetTextColor(21, 128, 61)
+						cellFillColor = true
+					case "bajo":
+						// Green (#28A745 = 40, 167, 69) background for low risk
+						pdf.SetFillColor(40, 167, 69)
+						pdf.SetTextColor(255, 255, 255) // White text for contrast
+						cellFillColor = true
+					case "medio":
+						// Yellow/amber for medium risk
+						pdf.SetFillColor(255, 235, 59)
+						pdf.SetTextColor(30, 41, 59)
+						cellFillColor = true
+					case "alto":
+						// Orange for high risk
+						pdf.SetFillColor(255, 152, 0)
+						pdf.SetTextColor(255, 255, 255)
+						cellFillColor = true
+					case "muy_alto":
+						// Red for very high risk
+						pdf.SetFillColor(244, 67, 54)
+						pdf.SetTextColor(255, 255, 255)
+						cellFillColor = true
+					default:
+						pdf.SetTextColor(30, 41, 59)
+					}
+				} else {
+					pdf.SetTextColor(100, 116, 139)
 				}
-				pdf.CellFormat(25, 9, countStr, "", 0, "C", fill, 0, "")
+				pdf.CellFormat(25, rowHeight, countStr, "LR", 0, "R", cellFillColor, 0, "")
+				// Reset colors
+				pdf.SetTextColor(30, 41, 59)
+				if fill {
+					pdf.SetFillColor(249, 250, 251)
+				} else {
+					pdf.SetFillColor(255, 255, 255)
+				}
 			}
-			pdf.Ln(-1)
+			
+			// Draw bottom border for row separation (1px solid #E5E7EB = 229, 231, 235)
+			pdf.SetDrawColor(229, 231, 235)
+			pdf.SetLineWidth(0.5)
+			pdf.Line(15, rowY+rowHeight, 15+55+25*5, rowY+rowHeight)
+			
+			pdf.Ln(rowHeight)
 			fill = !fill
 		}
 	}
@@ -808,51 +1004,209 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 	if hasDemo {
 		pdf.AddPage()
-		drawModernSection(pdf, "Analisis Demografico", "Distribucion del personal por caracteristicas demograficas")
-		pdf.Ln(4)
+		// Subtitle
+		pdf.SetFont("Arial", "B", 16)
+		pdf.SetTextColor(59, 130, 246) // Blue
+		pdf.SetX(15)
+		pdf.Cell(0, 8, "Analisis Demografico")
+		pdf.Ln(10)
+		
+		// Interpretive analysis paragraph
+		pdf.SetFont("Arial", "", 10)
+		pdf.SetTextColor(71, 85, 105)
+		pdf.SetX(15)
+		demoAnalysis := "El analisis demografico proporciona insights sobre la composicion de la fuerza laboral, "+
+			"permitiendo identificar patrones y desarrollar estrategias personalizadas de prevencion de riesgos psicosociales."
+		pdf.MultiCell(180, 5, demoAnalysis, "", "L", false)
+		pdf.Ln(6)
 
-		// Colors for demographic charts
-		demoColors := []struct{ r, g, b int }{
-			{59, 130, 246},   // Blue
-			{34, 197, 94},    // Green
-			{245, 158, 11},   // Amber
-			{239, 68, 68},    // Red
-			{168, 85, 247},   // Purple
-			{14, 165, 233},   // Sky
-			{236, 72, 153},   // Pink
-			{107, 114, 128},  // Gray
-		}
-
-		chartWidth := 82.0
-		chartHeight := 55.0
+		chartWidth := 85.0
+		chartHeight := 40.0
 		chartSpacing := 10.0
 
-		// Row 1: Age Distribution and Shift Type
+		// Row 1: Age Distribution and Shift Type - Horizontal bar charts
 		startY := pdf.GetY()
 
 		if len(report.AgeDistribution) > 0 {
-			drawDemoPieChart(pdf, 15, startY, chartWidth, chartHeight, "Distribucion por Edad", report.AgeDistribution, demoColors)
+			drawDemoHorizontalBar(pdf, 15, startY, chartWidth, chartHeight, "Distribucion por Edad", report.AgeDistribution)
 		}
 
 		if len(report.ShiftTypeDistribution) > 0 {
-			drawDemoPieChart(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution, demoColors)
+			drawDemoHorizontalBar(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution)
 		}
 
-		pdf.SetY(startY + chartHeight + 15)
+		pdf.SetY(startY + chartHeight + 12)
 
-		// Row 2: Experience and Marital Status
+		// Row 2: Experience and Marital Status - Horizontal bar charts
 		startY = pdf.GetY()
 
 		if len(report.ExperienceDistribution) > 0 {
-			drawDemoPieChart(pdf, 15, startY, chartWidth, chartHeight, "Experiencia Laboral", report.ExperienceDistribution, demoColors)
+			drawDemoHorizontalBar(pdf, 15, startY, chartWidth, chartHeight, "Experiencia Laboral", report.ExperienceDistribution)
 		}
 
 		if len(report.MaritalStatusDistribution) > 0 {
-			drawDemoPieChart(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution, demoColors)
+			drawDemoHorizontalBar(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution)
 		}
 
-		pdf.SetY(startY + chartHeight + 15)
+		pdf.SetY(startY + chartHeight + 12)
 	}
+
+	// ========== PAGE 4: RECOMMENDATIONS AND ACTION PLAN ==========
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 16)
+	pdf.SetTextColor(59, 130, 246) // Blue
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Recomendaciones y Plan de Accion")
+	pdf.Ln(10)
+	
+	// Numbered list of actionable items
+	actionItems := []string{
+		"Incrementar la participacion al 100%% para Q2 2026 mediante campanas lideradas por RRHH, incluyendo comunicaciones dirigidas y seguimiento individual",
+		"Implementar capacitacion continua sobre factores psicosociales para supervisores y personal de RRHH, con enfoque en identificacion temprana y prevencion",
+		"Establecer comite de prevencion de riesgos psicosociales con representacion de empleados y directivos, con reuniones trimestrales",
+		"Desarrollar politicas de conciliacion trabajo-familia con horarios flexibles y apoyo para el equilibrio laboral",
+		"Crear canales de comunicacion abiertos y confidenciales para reportar situaciones de riesgo, con respuesta garantizada en 48 horas",
+		"Implementar programas de reconocimiento y desarrollo profesional para mejorar el sentido de pertenencia y retencion del talento",
+		"Realizar evaluaciones de seguimiento semestrales para monitorear la efectividad de las medidas implementadas",
+		"Establecer indicadores de desempeno (KPIs) para medir el impacto de las acciones preventivas en la reduccion de riesgos",
+	}
+	
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	for i, item := range actionItems {
+		if pdf.GetY() > 250 {
+			pdf.AddPage()
+		}
+		pdf.SetX(20)
+		pdf.Cell(5, 6, fmt.Sprintf("%d.", i+1))
+		pdf.SetX(25)
+		pdf.MultiCell(165, 5, item, "", "L", false)
+		pdf.Ln(3)
+	}
+
+	// ========== PSYCHOSOCIAL RISK PREVENTION POLICY STATEMENT ==========
+	if pdf.GetY() > 220 {
+		pdf.AddPage()
+	}
+	
+	pdf.Ln(8)
+	pdf.SetFont("Arial", "B", 16)
+	pdf.SetTextColor(59, 130, 246)
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Declaracion de Politica de Prevencion de Riesgos Psicosociales")
+	pdf.Ln(10)
+	
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	pdf.SetX(15)
+	// NOM-035 specific commitments
+	policyText := fmt.Sprintf("%s se compromete a prevenir y controlar los factores de riesgo psicosocial en el ambiente de trabajo, "+
+		"en estricto cumplimiento con la NOM-035-STPS-2018. Esta politica establece nuestros compromisos especificos conforme a la norma: "+
+		"(1) Identificacion: Realizar evaluaciones periodicas para identificar factores de riesgo psicosocial en el ambiente laboral, "+
+		"seguiendo los procedimientos establecidos en la NOM-035-STPS-2018. (2) Prevencion: Implementar medidas de prevencion y control para "+
+		"reducir o eliminar los factores de riesgo identificados, con enfasis en factores organizacionales y del entorno. "+
+		"(3) Promocion: Promover entornos organizacionales favorables mediante politicas de trabajo, comunicacion efectiva, "+
+		"y reconocimiento del desempeno. (4) Difusion: Difundir los resultados de las evaluaciones y las medidas implementadas "+
+		"a todos los niveles organizacionales, garantizando la confidencialidad y proteccion de datos personales conforme a la "+
+		"Ley Federal de Proteccion de Datos Personales en Posesion de los Particulares (LFPDPPP). Referencia NOM-035: ",
+		report.CompanyName)
+	
+	// Write policy text
+	pdf.MultiCell(180, 5, policyText, "", "L", false)
+	
+	// Add hyperlink to NOM-035 reference
+	nom035URL := "http://dof.gob.mx/normasOficiales/7544/stps2/stps2.htm"
+	pdf.SetTextColor(59, 130, 246) // Blue color for link
+	pdf.SetFont("Arial", "U", 10)  // Underlined for link appearance
+	linkText := nom035URL
+	pdf.SetX(15)
+	pdf.Cell(0, 5, linkText)
+	pdf.SetFont("Arial", "", 10)  // Reset font
+	pdf.SetTextColor(71, 85, 105) // Reset text color
+
+	// ========== LONG-TERM TRACKING NOTES ==========
+	if pdf.GetY() > 230 {
+		pdf.AddPage()
+	}
+	
+	pdf.Ln(10)
+	pdf.SetFont("Arial", "B", 16)
+	pdf.SetTextColor(59, 130, 246)
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Notas de Seguimiento a Largo Plazo")
+	pdf.Ln(10)
+	
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	pdf.SetX(15)
+	// Calculate next biennial assessment date (2 years from current date)
+	nextAssessmentDate := time.Now().AddDate(2, 0, 0)
+	nextAssessmentStr := nextAssessmentDate.Format("Enero de 2006")
+	
+	trackingText := fmt.Sprintf("Para garantizar la efectividad continua de las medidas de prevencion conforme a la NOM-035-STPS-2018: "+
+		"(1) Revaluaciones bienales programadas para %s, con preparacion iniciando 3 meses antes. "+
+		"(2) Mantener registros detallados de incidentes, acciones correctivas y su efectividad en sistema documentado. "+
+		"(3) Comparar resultados entre periodos para identificar tendencias y patrones de riesgo. "+
+		"(4) Ajustar estrategias basadas en datos cuantitativos y feedback cualitativo del personal. "+
+		"(5) Documentar mejoras implementadas y su impacto medible en la reduccion de riesgos psicosociales.",
+		nextAssessmentStr)
+	pdf.MultiCell(180, 5, trackingText, "", "L", false)
+
+	// ========== EMPLOYEE ENGAGEMENT TIPS ==========
+	if pdf.GetY() > 230 {
+		pdf.AddPage()
+	}
+	
+	pdf.Ln(10)
+	pdf.SetFont("Arial", "B", 16)
+	pdf.SetTextColor(59, 130, 246)
+	pdf.SetX(15)
+	pdf.Cell(0, 8, "Consejos para el Compromiso de los Empleados")
+	pdf.Ln(10)
+	
+	engagementTips := []string{
+		"Compartir este reporte a traves de portales internos con canales de retroalimentacion habilitados para comentarios y sugerencias",
+		"Organizar sesiones informativas departamentales para explicar los resultados y las medidas de prevencion implementadas",
+		"Establecer buzones de sugerencias digitales para que los empleados propongan mejoras al ambiente laboral",
+		"Fomentar la participacion activa en programas de bienestar y prevencion mediante incentivos y reconocimientos",
+		"Reconocer y celebrar los logros individuales y de equipo que contribuyan a un ambiente laboral saludable",
+		"Proporcionar oportunidades de desarrollo profesional y crecimiento mediante programas de capacitacion y mentoring",
+		"Establecer espacios de dialogo mensuales entre empleados y directivos para discutir preocupaciones y propuestas",
+		"Involucrar a los empleados en la toma de decisiones que les afectan directamente mediante comites representativos",
+	}
+	
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetTextColor(71, 85, 105)
+	for _, tip := range engagementTips {
+		if pdf.GetY() > 250 {
+			pdf.AddPage()
+		}
+		pdf.SetX(20)
+		pdf.Cell(5, 6, "•")
+		pdf.SetX(25)
+		pdf.MultiCell(165, 5, tip, "", "L", false)
+		pdf.Ln(2)
+	}
+
+	// ========== CONFIDENTIALITY NOTE BOX ==========
+	if pdf.GetY() > 240 {
+		pdf.AddPage()
+	}
+
+	pdf.Ln(10)
+	pdf.SetFillColor(230, 240, 255) // Light blue background
+	pdf.RoundedRect(15, pdf.GetY(), 180, 30, 4, "1234", "F")
+
+	pdf.SetFont("Arial", "B", 11)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.SetXY(22, pdf.GetY()+6)
+	pdf.Cell(0, 0, "Nota de Confidencialidad")
+	
+	pdf.SetFont("Arial", "", 9)
+	pdf.SetTextColor(71, 85, 105)
+	pdf.SetXY(22, pdf.GetY()+8)
+	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. "+
+		"Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)
 
 	// ========== LEGAL FOOTER ==========
 	if pdf.GetY() > 240 {
@@ -891,6 +1245,26 @@ func drawMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, t
 	pdf.SetTextColor(71, 85, 105)
 	labelWidth := pdf.GetStringWidth(label)
 	pdf.SetXY(x+(w-labelWidth)/2, y+h-10)
+	pdf.Cell(0, 0, label)
+}
+
+// drawEnhancedMetricCard draws an enhanced metric card with large numbers (32pt) and subtitle (12pt)
+func drawEnhancedMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, textR, textG, textB, bgR, bgG, bgB int) {
+	pdf.SetFillColor(bgR, bgG, bgB)
+	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
+
+	// Large bold number (32pt)
+	pdf.SetFont("Arial", "B", 32)
+	pdf.SetTextColor(textR, textG, textB)
+	valueWidth := pdf.GetStringWidth(value)
+	pdf.SetXY(x+(w-valueWidth)/2, y+18)
+	pdf.Cell(0, 0, value)
+
+	// Subtitle (12pt)
+	pdf.SetFont("Arial", "", 12)
+	pdf.SetTextColor(71, 85, 105)
+	labelWidth := pdf.GetStringWidth(label)
+	pdf.SetXY(x+(w-labelWidth)/2, y+h-12)
 	pdf.Cell(0, 0, label)
 }
 
@@ -1020,5 +1394,64 @@ func drawDemoPieChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data [
 		percentage := float64(d.Count) / float64(total) * 100
 		pdf.Cell(legendItemWidth-12, 6, fmt.Sprintf("%s: %.0f%%", categoryName, percentage))
 	}
+}
+
+// drawDemoHorizontalBar draws a horizontal bar chart with blue bars (#007BFF) and white text labels inside
+func drawDemoHorizontalBar(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data []domain.DemographicDistribution) {
+	if len(data) == 0 {
+		return
+	}
+
+	// Card background
+	pdf.SetFillColor(248, 250, 252)
+	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
+
+	// Title
+	pdf.SetFont("Arial", "B", 10)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.SetXY(x+4, y+4)
+	pdf.Cell(w-8, 5, title)
+
+	// Calculate total
+	var total int64
+	for _, d := range data {
+		total += d.Count
+	}
+	if total == 0 {
+		return
+	}
+
+	// Draw horizontal bar - find the largest category (100%)
+	maxCount := int64(0)
+	maxCategory := ""
+	for _, d := range data {
+		if d.Count > maxCount {
+			maxCount = d.Count
+			maxCategory = d.Category
+		}
+	}
+
+	// Bar dimensions
+	barX := x + 4
+	barY := y + 14
+	barWidth := w - 8
+	barHeight := 20.0
+
+	// Draw background bar
+	pdf.SetFillColor(226, 232, 240)
+	pdf.RoundedRect(barX, barY, barWidth, barHeight, 3, "1234", "F")
+
+	// Draw blue bar at 100% (#007BFF = 0, 123, 255)
+	pdf.SetFillColor(0, 123, 255)
+	pdf.RoundedRect(barX, barY, barWidth, barHeight, 3, "1234", "F")
+
+	// White text label inside bar
+	pdf.SetFont("Arial", "B", 9)
+	pdf.SetTextColor(255, 255, 255)
+	labelText := fmt.Sprintf("%s: 100%%", maxCategory)
+	labelWidth := pdf.GetStringWidth(labelText)
+	labelX := barX + (barWidth-labelWidth)/2
+	pdf.SetXY(labelX, barY+6)
+	pdf.Cell(0, 0, labelText)
 }
 

@@ -200,12 +200,13 @@ func (h *ReportHandler) GetGeneralReportPDF(c *gin.Context) {
 		return
 	}
 
-	// Set headers for PDF download
+	// Set headers for PDF download with date matching internal date
 	periodSuffix := "all"
 	if period != nil {
 		periodSuffix = fmt.Sprintf("%d", *period)
 	}
-	filename := fmt.Sprintf("NOM035_General_Report_%s_%s.pdf", report.CompanyName, periodSuffix)
+	dateStr := time.Now().Format("20060102") // YYYYMMDD format for filename
+	filename := fmt.Sprintf("NOM035_General_Report_%s_%s_%s.pdf", report.CompanyName, periodSuffix, dateStr)
 	c.Header("Content-Type", "application/pdf")
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
 	c.Header("Content-Length", fmt.Sprintf("%d", len(pdf)))
