@@ -3,6 +3,8 @@ package services
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -19,13 +21,166 @@ func NewReportPDFService() *ReportPDFService {
 	return &ReportPDFService{}
 }
 
+// getFontPath resolves the absolute path to a font file
+// It tries multiple strategies to find the fonts directory:
+// 1. Relative to project root (by finding go.mod) - PRIORITY
+// 2. Relative to current working directory (fonts/filename)
+// 3. Relative to executable location
+func getFontPath(filename string) (string, error) {
+	var attemptedPaths []string
+
+	// PRIORITY: Try from project root by finding go.mod first
+	// This works regardless of where the server is started from
+	cwd, err := os.Getwd()
+	if err == nil {
+		dir := cwd
+		for {
+			goModPath := filepath.Join(dir, "go.mod")
+			if _, err := os.Stat(goModPath); err == nil {
+				// Found project root - construct absolute path directly
+				fontPath := filepath.Join(dir, "fonts", filename)
+				// Since dir comes from os.Getwd(), it should already be absolute
+				// But ensure it's absolute and clean
+				if !filepath.IsAbs(fontPath) {
+					var absErr error
+					fontPath, absErr = filepath.Abs(fontPath)
+					if absErr != nil {
+						return "", fmt.Errorf("failed to get absolute path: %v", absErr)
+					}
+				}
+				// Clean the path to remove any redundant separators
+				fontPath = filepath.Clean(fontPath)
+				attemptedPaths = append(attemptedPaths, fontPath)
+
+				// Verify the file exists and path is absolute
+				if _, err := os.Stat(fontPath); err == nil {
+					// Double-check it's absolute before returning
+					if !filepath.IsAbs(fontPath) {
+						return "", fmt.Errorf("path is not absolute after cleaning: %s", fontPath)
+					}
+					return fontPath, nil
+				}
+				break
+			}
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break // Reached filesystem root
+			}
+			dir = parent
+		}
+	}
+
+	// Try relative path (works when running from project root)
+	relativePath := filepath.Join("fonts", filename)
+	attemptedPaths = append(attemptedPaths, relativePath)
+	if _, err := os.Stat(relativePath); err == nil {
+		absPath, absErr := filepath.Abs(relativePath)
+		if absErr != nil {
+			return "", fmt.Errorf("failed to get absolute path for %s: %v", relativePath, absErr)
+		}
+		return absPath, nil
+	}
+
+	// Try relative to executable location
+	if execPath, err := os.Executable(); err == nil {
+		execDir := filepath.Dir(execPath)
+		fontPath := filepath.Join(execDir, "fonts", filename)
+		attemptedPaths = append(attemptedPaths, fontPath)
+		// Ensure absolute path
+		if !filepath.IsAbs(fontPath) {
+			var absErr error
+			fontPath, absErr = filepath.Abs(fontPath)
+			if absErr != nil {
+				attemptedPaths = append(attemptedPaths, fmt.Sprintf("%s (abs failed: %v)", fontPath, absErr))
+			} else {
+				attemptedPaths[len(attemptedPaths)-1] = fontPath
+			}
+		}
+		if _, err := os.Stat(fontPath); err == nil {
+			return fontPath, nil
+		}
+		// Try going up from bin/ directory
+		if filepath.Base(execDir) == "bin" {
+			projectRoot := filepath.Dir(execDir)
+			fontPath := filepath.Join(projectRoot, "fonts", filename)
+			attemptedPaths = append(attemptedPaths, fontPath)
+			// Ensure absolute path
+			if !filepath.IsAbs(fontPath) {
+				var absErr error
+				fontPath, absErr = filepath.Abs(fontPath)
+				if absErr != nil {
+					attemptedPaths = append(attemptedPaths, fmt.Sprintf("%s (abs failed: %v)", fontPath, absErr))
+				} else {
+					attemptedPaths[len(attemptedPaths)-1] = fontPath
+				}
+			}
+			if _, err := os.Stat(fontPath); err == nil {
+				return fontPath, nil
+			}
+		}
+	}
+
+	// Get current working directory for error message
+	cwdStr := "unknown"
+	if cwd, err := os.Getwd(); err == nil {
+		cwdStr = cwd
+	}
+
+	// Return error with all attempted paths
+	return "", fmt.Errorf("font file '%s' not found. Attempted paths: %v. Current working directory: %s",
+		filename, attemptedPaths, cwdStr)
+}
+
 // GenerateIndividualReportPDF creates a professional PDF report for an individual assessment
 func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.IndividualReportDTO, companyName string) ([]byte, error) {
-	pdf := gofpdf.New("P", "mm", "A4", "")
-
 	// Load UTF-8 fonts for proper Spanish character support
-	pdf.AddUTF8Font("DejaVu", "", "fonts/DejaVuSans.ttf")
-	pdf.AddUTF8Font("DejaVu", "B", "fonts/DejaVuSans-Bold.ttf")
+	regularFontPath, err := getFontPath("DejaVuSans.ttf")
+	if err != nil {
+		return nil, fmt.Errorf("failed to locate regular font: %v", err)
+	}
+	boldFontPath, err := getFontPath("DejaVuSans-Bold.ttf")
+	if err != nil {
+		return nil, fmt.Errorf("failed to locate bold font: %v", err)
+	}
+
+	// Verify paths are absolute before using
+	if !filepath.IsAbs(regularFontPath) {
+		return nil, fmt.Errorf("regular font path is not absolute: %s", regularFontPath)
+	}
+	if !filepath.IsAbs(boldFontPath) {
+		return nil, fmt.Errorf("bold font path is not absolute: %s", boldFontPath)
+	}
+
+	// Clean paths to ensure they're properly formatted
+	regularFontPath = filepath.Clean(regularFontPath)
+	boldFontPath = filepath.Clean(boldFontPath)
+
+	// Get font directory and filenames
+	// Pass font directory as 4th parameter to gofpdf.New() to avoid path manipulation issues
+	fontDir := filepath.Dir(regularFontPath)
+	regularFontName := filepath.Base(regularFontPath)
+	boldFontName := filepath.Base(boldFontPath)
+
+	// Ensure font directory path uses forward slashes and is absolute
+	fontDir = filepath.ToSlash(fontDir)
+	if !filepath.IsAbs(fontDir) {
+		var absErr error
+		fontDir, absErr = filepath.Abs(fontDir)
+		if absErr != nil {
+			return nil, fmt.Errorf("failed to get absolute font directory: %v", absErr)
+		}
+		fontDir = filepath.ToSlash(fontDir)
+	}
+	if len(fontDir) > 0 && fontDir[0] != '/' {
+		fontDir = "/" + fontDir
+	}
+
+	// Initialize PDF with font directory as 4th parameter
+	pdf := gofpdf.New("P", "mm", "A4", fontDir)
+
+	// Add fonts using just the filename (relative to font directory)
+	pdf.AddUTF8Font("DejaVu", "", regularFontName)
+	pdf.AddUTF8Font("DejaVu", "B", boldFontName)
 
 	pdf.SetAutoPageBreak(true, 20.0)
 	pdf.AddPage()
@@ -396,7 +551,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.SetFillColor(241, 245, 249)
 	pdf.RoundedRect(15, pdf.GetY(), 180, 25, 3, "1234", "F")
 
-	pdf.SetFont("DejaVu", "I", 8)
+	pdf.SetFont("DejaVu", "", 8)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.SetXY(22, pdf.GetY()+6)
 	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)
@@ -577,11 +732,54 @@ func getRiskBarColor(level string) (r, g, b int) {
 
 // GenerateGeneralReportPDF creates a professional PDF report for company-wide assessment statistics
 func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReportDTO) ([]byte, error) {
-	pdf := gofpdf.New("P", "mm", "A4", "")
-
 	// Load UTF-8 fonts for proper Spanish character support
-	pdf.AddUTF8Font("DejaVu", "", "fonts/DejaVuSans.ttf")
-	pdf.AddUTF8Font("DejaVu", "B", "fonts/DejaVuSans-Bold.ttf")
+	regularFontPath, err := getFontPath("DejaVuSans.ttf")
+	if err != nil {
+		return nil, fmt.Errorf("failed to locate regular font: %v", err)
+	}
+	boldFontPath, err := getFontPath("DejaVuSans-Bold.ttf")
+	if err != nil {
+		return nil, fmt.Errorf("failed to locate bold font: %v", err)
+	}
+
+	// Verify paths are absolute before using
+	if !filepath.IsAbs(regularFontPath) {
+		return nil, fmt.Errorf("regular font path is not absolute: %s", regularFontPath)
+	}
+	if !filepath.IsAbs(boldFontPath) {
+		return nil, fmt.Errorf("bold font path is not absolute: %s", boldFontPath)
+	}
+
+	// Clean paths to ensure they're properly formatted
+	regularFontPath = filepath.Clean(regularFontPath)
+	boldFontPath = filepath.Clean(boldFontPath)
+
+	// Get font directory and filenames
+	// Pass font directory as 4th parameter to gofpdf.New() to avoid path manipulation issues
+	fontDir := filepath.Dir(regularFontPath)
+	regularFontName := filepath.Base(regularFontPath)
+	boldFontName := filepath.Base(boldFontPath)
+
+	// Ensure font directory path uses forward slashes and is absolute
+	fontDir = filepath.ToSlash(fontDir)
+	if !filepath.IsAbs(fontDir) {
+		var absErr error
+		fontDir, absErr = filepath.Abs(fontDir)
+		if absErr != nil {
+			return nil, fmt.Errorf("failed to get absolute font directory: %v", absErr)
+		}
+		fontDir = filepath.ToSlash(fontDir)
+	}
+	if len(fontDir) > 0 && fontDir[0] != '/' {
+		fontDir = "/" + fontDir
+	}
+
+	// Initialize PDF with font directory as 4th parameter
+	pdf := gofpdf.New("P", "mm", "A4", fontDir)
+
+	// Add fonts using just the filename (relative to font directory)
+	pdf.AddUTF8Font("DejaVu", "", regularFontName)
+	pdf.AddUTF8Font("DejaVu", "B", boldFontName)
 
 	pdf.SetAutoPageBreak(true, 20.0)
 	pdf.AddPage()
@@ -854,7 +1052,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 			pdf.CellFormat(percentWidth, 12, "100.0%", "1", 1, "R", true, 0, "")                    // Right-aligned
 		}
 	} else {
-		pdf.SetFont("DejaVu", "I", 10)
+		pdf.SetFont("DejaVu", "", 10)
 		pdf.SetTextColor(148, 163, 184)
 		pdf.SetX(15)
 		pdf.Cell(0, 10, "No hay datos de distribucion de riesgo disponibles")
@@ -1240,7 +1438,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.SetFillColor(241, 245, 249)
 	pdf.RoundedRect(15, pdf.GetY(), 180, 25, 3, "1234", "F")
 
-	pdf.SetFont("DejaVu", "I", 8)
+	pdf.SetFont("DejaVu", "", 8)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.SetXY(22, pdf.GetY()+6)
 	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)

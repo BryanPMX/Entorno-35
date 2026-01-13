@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -102,7 +103,9 @@ func (h *ReportHandler) GetIndividualReportPDF(c *gin.Context) {
 	// Generate PDF using the professional PDF service
 	pdf, err := h.reportPDFService.GenerateIndividualReportPDF(report, companyName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate PDF"})
+		// Log the actual error for debugging (will appear in server console)
+		log.Printf("ERROR: Failed to generate Individual Report PDF: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to generate PDF: %v", err)})
 		return
 	}
 
@@ -196,7 +199,9 @@ func (h *ReportHandler) GetGeneralReportPDF(c *gin.Context) {
 	// Generate PDF using the professional PDF service
 	pdf, err := h.reportPDFService.GenerateGeneralReportPDF(report)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate PDF"})
+		// Log the actual error for debugging (will appear in server console)
+		log.Printf("ERROR: Failed to generate General Report PDF: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to generate PDF: %v", err)})
 		return
 	}
 
