@@ -22,13 +22,18 @@ func NewReportPDFService() *ReportPDFService {
 // GenerateIndividualReportPDF creates a professional PDF report for an individual assessment
 func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.IndividualReportDTO, companyName string) ([]byte, error) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	// Load UTF-8 fonts for proper Spanish character support
+	pdf.AddUTF8Font("DejaVu", "", "fonts/DejaVuSans.ttf")
+	pdf.AddUTF8Font("DejaVu", "B", "fonts/DejaVuSans-Bold.ttf")
+
 	pdf.SetAutoPageBreak(true, 20.0)
 	pdf.AddPage()
 
 	// Professional footer
 	pdf.SetFooterFunc(func() {
 		pdf.SetY(-12)
-		pdf.SetFont("Arial", "", 8)
+		pdf.SetFont("DejaVu", "", 8)
 		pdf.SetTextColor(128, 128, 128)
 		footerText := fmt.Sprintf("Entorno35 | Reporte NOM-035 | %s | Pagina %d", time.Now().Format("02/01/2006"), pdf.PageNo())
 		pdf.CellFormat(0, 10, footerText, "", 0, "C", false, 0, "")
@@ -43,13 +48,13 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.SetFillColor(59, 130, 246) // Blue-500
 	pdf.Rect(0, 35, 210, 3, "F")
 
-	// Header text
+	// Header text - use UTF-8 font for Spanish characters
 	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("Arial", "B", 18)
+	pdf.SetFont("DejaVu", "B", 18)
 	pdf.SetXY(15, 10)
 	pdf.Cell(0, 0, "Reporte de Riesgo Psicosocial")
 
-	pdf.SetFont("Arial", "", 11)
+	pdf.SetFont("DejaVu", "", 11)
 	pdf.SetXY(15, 20)
 	pdf.Cell(0, 0, fmt.Sprintf("NOM-035-STPS-2018 | Guia %s", string(report.GuideType)))
 
@@ -60,14 +65,14 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	badgeWidth := 42.0
 	badgeHeight := 8.0
 	pdf.RoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, "1234", "F")
-	pdf.SetFont("Arial", "B", 8)
+	pdf.SetFont("DejaVu", "B", 8)
 	pdf.SetTextColor(255, 255, 255)
 	// Use CellFormat with badgeHeight to properly center text vertically
 	pdf.SetXY(badgeX, badgeY)
 	pdf.CellFormat(badgeWidth, badgeHeight, "CONFIDENCIAL", "", 0, "CM", false, 0, "")
 
 	// Date
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("DejaVu", "", 9)
 	pdf.SetXY(155, 22)
 	pdf.Cell(0, 0, time.Now().Format("02 de Enero, 2006"))
 
@@ -78,12 +83,12 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.RoundedRect(15, pdf.GetY(), 180, 32, 4, "1234", "F")
 
 	infoY := pdf.GetY() + 6
-	pdf.SetFont("Arial", "B", 12)
+	pdf.SetFont("DejaVu", "B", 12)
 	pdf.SetTextColor(30, 41, 59)
 	pdf.SetXY(22, infoY)
 	pdf.Cell(0, 0, report.StaffName)
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(100, 116, 139)
 
 	// Row 1: Department & Shift
@@ -118,7 +123,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	scoreY := pdf.GetY() + 8
 
 	// Score section
-	pdf.SetFont("Arial", "B", 36)
+	pdf.SetFont("DejaVu", "B", 36)
 	pdf.SetTextColor(30, 41, 59)
 	pdf.SetXY(28, scoreY)
 	pdf.Cell(0, 0, fmt.Sprintf("%.0f", report.TotalScore))
@@ -128,7 +133,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	if maxScore == 0 {
 		maxScore = 184
 	}
-	pdf.SetFont("Arial", "", 14)
+	pdf.SetFont("DejaVu", "", 14)
 	pdf.SetTextColor(148, 163, 184)
 	scoreWidth := pdf.GetStringWidth(fmt.Sprintf("%.0f", report.TotalScore))
 	pdf.SetXY(28+scoreWidth+3, scoreY+8)
@@ -139,7 +144,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	if percentage > 100 {
 		percentage = 100
 	}
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetXY(28, scoreY+18)
 	pdf.Cell(0, 0, fmt.Sprintf("%.1f%% del maximo posible", percentage))
 
@@ -150,14 +155,14 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.SetFillColor(riskConfig.bgR, riskConfig.bgG, riskConfig.bgB)
 	pdf.RoundedRect(riskBadgeX, riskBadgeY, 55, 28, 3, "1234", "F")
 
-	pdf.SetFont("Arial", "B", 12)
+	pdf.SetFont("DejaVu", "B", 12)
 	pdf.SetTextColor(riskConfig.textR, riskConfig.textG, riskConfig.textB)
 	riskLabel := formatRiskLevel(riskLevel)
 	labelWidth := pdf.GetStringWidth(riskLabel)
 	pdf.SetXY(riskBadgeX+(55-labelWidth)/2, riskBadgeY+8)
 	pdf.Cell(0, 0, riskLabel)
 
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("DejaVu", "", 9)
 	pdf.SetXY(riskBadgeX, riskBadgeY+18)
 	pdf.CellFormat(55, 0, "Nivel de Riesgo", "", 0, "C", false, 0, "")
 
@@ -178,7 +183,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	if report.RequiresMedical {
 		pdf.SetFillColor(254, 226, 226)
 		pdf.RoundedRect(15, pdf.GetY(), 180, 14, 3, "1234", "F")
-		pdf.SetFont("Arial", "B", 10)
+		pdf.SetFont("DejaVu", "B", 10)
 		pdf.SetTextColor(185, 28, 28)
 		pdf.SetXY(22, pdf.GetY()+5)
 		pdf.Cell(0, 0, "ATENCION: Esta evaluacion indica necesidad de atencion medica ocupacional")
@@ -228,13 +233,13 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 			// Number badge
 			pdf.SetFillColor(59, 130, 246)
 			pdf.Circle(25, pdf.GetY()+8, 5, "F")
-			pdf.SetFont("Arial", "B", 9)
+			pdf.SetFont("DejaVu", "B", 9)
 			pdf.SetTextColor(255, 255, 255)
 			pdf.SetXY(22, pdf.GetY()+6)
 			pdf.Cell(6, 0, fmt.Sprintf("%d", i+1))
 
 			// Text
-			pdf.SetFont("Arial", "", 9)
+			pdf.SetFont("DejaVu", "", 9)
 			pdf.SetTextColor(51, 65, 85)
 			pdf.SetXY(35, pdf.GetY()+4)
 			pdf.MultiCell(155, 5, rec, "", "L", false)
@@ -251,12 +256,12 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 		pdf.SetFillColor(220, 252, 231)
 		pdf.RoundedRect(15, pdf.GetY(), 180, 30, 4, "1234", "F")
 
-		pdf.SetFont("Arial", "B", 11)
+		pdf.SetFont("DejaVu", "B", 11)
 		pdf.SetTextColor(21, 128, 61)
 		pdf.SetXY(22, pdf.GetY()+8)
 		pdf.Cell(0, 0, "Resultado Favorable")
 
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("DejaVu", "", 10)
 		pdf.SetXY(22, pdf.GetY()+10)
 		riskLabel := formatRiskLevel(riskLevel)
 		pdf.MultiCell(165, 5, fmt.Sprintf("El empleado presenta un nivel de riesgo %s. No se requieren acciones correctivas inmediatas.", riskLabel), "", "L", false)
@@ -295,7 +300,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 
 			// Category header
 			pdf.SetFillColor(241, 245, 249)
-			pdf.SetFont("Arial", "B", 10)
+			pdf.SetFont("DejaVu", "B", 10)
 			pdf.SetTextColor(30, 41, 59)
 			pdf.SetX(15)
 			pdf.CellFormat(180, 8, categoryName, "", 1, "L", true, 0, "")
@@ -303,7 +308,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 
 			// Questions table header
 			pdf.SetFillColor(248, 250, 252)
-			pdf.SetFont("Arial", "B", 8)
+			pdf.SetFont("DejaVu", "B", 8)
 			pdf.SetTextColor(71, 85, 105)
 			pdf.SetX(15)
 			pdf.CellFormat(10, 7, "#", "", 0, "C", true, 0, "")
@@ -313,21 +318,21 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 			pdf.CellFormat(15, 7, "Max", "", 1, "C", true, 0, "")
 
 			// Questions rows
-			pdf.SetFont("Arial", "", 8)
+			pdf.SetFont("DejaVu", "", 8)
 			fill := false
 			for _, q := range questions {
 				if pdf.GetY() > 265 {
 					pdf.AddPage()
 					// Redraw category header
 					pdf.SetFillColor(241, 245, 249)
-					pdf.SetFont("Arial", "B", 10)
+					pdf.SetFont("DejaVu", "B", 10)
 					pdf.SetTextColor(30, 41, 59)
 					pdf.SetX(15)
 					pdf.CellFormat(180, 8, categoryName+" (continuacion)", "", 1, "L", true, 0, "")
 					pdf.Ln(2)
 					// Redraw table header
 					pdf.SetFillColor(248, 250, 252)
-					pdf.SetFont("Arial", "B", 8)
+					pdf.SetFont("DejaVu", "B", 8)
 					pdf.SetTextColor(71, 85, 105)
 					pdf.SetX(15)
 					pdf.CellFormat(10, 7, "#", "", 0, "C", true, 0, "")
@@ -335,7 +340,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 					pdf.CellFormat(20, 7, "Resp.", "", 0, "C", true, 0, "")
 					pdf.CellFormat(20, 7, "Punt.", "", 0, "C", true, 0, "")
 					pdf.CellFormat(15, 7, "Max", "", 1, "C", true, 0, "")
-					pdf.SetFont("Arial", "", 8)
+					pdf.SetFont("DejaVu", "", 8)
 					fill = false
 				}
 
@@ -391,7 +396,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.SetFillColor(241, 245, 249)
 	pdf.RoundedRect(15, pdf.GetY(), 180, 25, 3, "1234", "F")
 
-	pdf.SetFont("Arial", "I", 8)
+	pdf.SetFont("DejaVu", "I", 8)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.SetXY(22, pdf.GetY()+6)
 	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)
@@ -406,13 +411,13 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 
 // drawModernSection draws a section header with improved spacing
 func drawModernSection(pdf *gofpdf.Fpdf, title, subtitle string) {
-	pdf.SetFont("Arial", "B", 14)
+	pdf.SetFont("DejaVu", "B", 14)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.SetX(15)
 	pdf.Cell(0, 8, title)
 	pdf.Ln(10) // Increased from 6 to 10 for more space between title and subtitle
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.SetX(15)
 	pdf.Cell(0, 5, subtitle)
@@ -430,7 +435,7 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 
 	// Header
 	pdf.SetFillColor(241, 245, 249)
-	pdf.SetFont("Arial", "B", 9)
+	pdf.SetFont("DejaVu", "B", 9)
 	pdf.SetTextColor(71, 85, 105)
 
 	pdf.SetX(15)
@@ -439,7 +444,7 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 	pdf.CellFormat(45, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
 
 	// Rows
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("DejaVu", "", 9)
 	fill := false
 
 	for _, k := range keys {
@@ -447,13 +452,13 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 			pdf.AddPage()
 			// Redraw header
 			pdf.SetFillColor(241, 245, 249)
-			pdf.SetFont("Arial", "B", 9)
+			pdf.SetFont("DejaVu", "B", 9)
 			pdf.SetTextColor(71, 85, 105)
 			pdf.SetX(15)
 			pdf.CellFormat(95, 10, "Elemento", "", 0, "L", true, 0, "")
 			pdf.CellFormat(40, 10, "Puntuacion", "", 0, "C", true, 0, "")
 			pdf.CellFormat(45, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
-			pdf.SetFont("Arial", "", 9)
+			pdf.SetFont("DejaVu", "", 9)
 			fill = false
 		}
 
@@ -573,13 +578,18 @@ func getRiskBarColor(level string) (r, g, b int) {
 // GenerateGeneralReportPDF creates a professional PDF report for company-wide assessment statistics
 func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReportDTO) ([]byte, error) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	// Load UTF-8 fonts for proper Spanish character support
+	pdf.AddUTF8Font("DejaVu", "", "fonts/DejaVuSans.ttf")
+	pdf.AddUTF8Font("DejaVu", "B", "fonts/DejaVuSans-Bold.ttf")
+
 	pdf.SetAutoPageBreak(true, 20.0)
 	pdf.AddPage()
 
 	// Professional footer with consistent format
 	pdf.SetFooterFunc(func() {
 		pdf.SetY(-12)
-		pdf.SetFont("Arial", "", 8)
+		pdf.SetFont("DejaVu", "", 8)
 		pdf.SetTextColor(128, 128, 128)
 		footerText := fmt.Sprintf("Entorno35 | Reporte General NOM-035 | %s | Pagina %d", time.Now().Format("02/01/2006"), pdf.PageNo())
 		pdf.CellFormat(0, 10, footerText, "", 0, "C", false, 0, "")
@@ -596,11 +606,11 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 	// Header text
 	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("Arial", "B", 18)
+	pdf.SetFont("DejaVu", "B", 18)
 	pdf.SetXY(15, 10)
 	pdf.Cell(0, 0, "Reporte General de Cumplimiento")
 
-	pdf.SetFont("Arial", "", 11)
+	pdf.SetFont("DejaVu", "", 11)
 	pdf.SetXY(15, 20)
 	periodText := "Todos los Periodos"
 	if report.Period != nil {
@@ -615,14 +625,14 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	badgeWidth := 42.0
 	badgeHeight := 8.0
 	pdf.RoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, "1234", "F")
-	pdf.SetFont("Arial", "B", 8)
+	pdf.SetFont("DejaVu", "B", 8)
 	pdf.SetTextColor(255, 255, 255)
 	// Use CellFormat with badgeHeight to properly center text vertically
 	pdf.SetXY(badgeX, badgeY)
 	pdf.CellFormat(badgeWidth, badgeHeight, "CONFIDENCIAL", "", 0, "CM", false, 0, "")
 
 	// Date
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("DejaVu", "", 9)
 	pdf.SetXY(155, 22)
 	pdf.Cell(0, 0, time.Now().Format("02 de Enero, 2006"))
 
@@ -634,12 +644,12 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.RoundedRect(15, pdf.GetY(), 180, 32, 4, "1234", "F")
 
 	infoY := pdf.GetY() + 6
-	pdf.SetFont("Arial", "B", 12)
+	pdf.SetFont("DejaVu", "B", 12)
 	pdf.SetTextColor(30, 41, 59)
 	pdf.SetXY(22, infoY)
 	pdf.Cell(0, 0, report.CompanyName)
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(100, 116, 139)
 
 	// Row 1: Company ID
@@ -661,13 +671,13 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		pdf.AddPage()
 	}
 
-	pdf.SetFont("Arial", "B", 14)
+	pdf.SetFont("DejaVu", "B", 14)
 	pdf.SetTextColor(30, 41, 59)
 	pdf.SetX(15)
 	pdf.Cell(0, 8, "Resumen Ejecutivo")
 	pdf.Ln(10)
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
 	pdf.SetX(15)
 	summaryText := fmt.Sprintf("Este reporte presenta un analisis integral del cumplimiento de la NOM-035-STPS-2018 para %s. "+
@@ -680,7 +690,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 	// ========== KEY METRICS ==========
 	// Blue subtitle (16pt)
-	pdf.SetFont("Arial", "B", 16)
+	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246) // Blue
 	pdf.SetX(15)
 	pdf.Cell(0, 8, "Metricas Clave")
@@ -722,14 +732,14 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	}
 
 	// Subtitle
-	pdf.SetFont("Arial", "B", 16)
+	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246) // Blue
 	pdf.SetX(15)
 	pdf.Cell(0, 8, "Distribucion de Riesgo")
 	pdf.Ln(10)
 
 	// Interpretive analysis paragraph
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
 	pdf.SetX(15)
 	analysisText := "La distribucion de riesgo muestra la cantidad de evaluaciones clasificadas en cada nivel segun los " +
@@ -764,7 +774,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 		// Professional table header with solid background
 		pdf.SetFillColor(249, 250, 251) // #F9FAFB - light gray background
-		pdf.SetFont("Arial", "B", 9)
+		pdf.SetFont("DejaVu", "B", 9)
 		pdf.SetTextColor(30, 41, 59) // Dark text for contrast
 		headerHeight := 12.0
 		pdf.SetX(15)
@@ -790,7 +800,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 			rowHeight := barHeight
 
 			// Label - left-aligned
-			pdf.SetFont("Arial", "", 10)
+			pdf.SetFont("DejaVu", "", 10)
 			pdf.SetTextColor(30, 41, 59)
 			pdf.SetX(15)
 			pdf.CellFormat(labelWidth, rowHeight, formatRiskLevel(level), "LR", 0, "L", false, 0, "")
@@ -809,7 +819,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 			}
 
 			// Count - right-aligned for numbers
-			pdf.SetFont("Arial", "B", 11)
+			pdf.SetFont("DejaVu", "B", 11)
 			pdf.SetTextColor(30, 41, 59)
 			countX := barStartX + barMaxWidth + spacing
 			countY := rowY + (barHeight-4)/2 - 2
@@ -817,7 +827,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 			pdf.CellFormat(countWidth, 0, fmt.Sprintf("%d", count), "", 0, "R", false, 0, "")
 
 			// Percentage - right-aligned for numbers
-			pdf.SetFont("Arial", "", 10)
+			pdf.SetFont("DejaVu", "", 10)
 			pdf.SetTextColor(100, 116, 139)
 			percentX := countX + countWidth + spacing
 			pdf.SetXY(percentX, countY)
@@ -835,7 +845,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		if totalCount > 0 {
 			pdf.Ln(2)
 			pdf.SetFillColor(249, 250, 251) // Light gray background
-			pdf.SetFont("Arial", "B", 11)
+			pdf.SetFont("DejaVu", "B", 11)
 			pdf.SetTextColor(30, 41, 59)
 			pdf.SetX(15)
 			pdf.CellFormat(labelWidth, 12, "Total", "1", 0, "L", true, 0, "")
@@ -844,7 +854,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 			pdf.CellFormat(percentWidth, 12, "100.0%", "1", 1, "R", true, 0, "")                    // Right-aligned
 		}
 	} else {
-		pdf.SetFont("Arial", "I", 10)
+		pdf.SetFont("DejaVu", "I", 10)
 		pdf.SetTextColor(148, 163, 184)
 		pdf.SetX(15)
 		pdf.Cell(0, 10, "No hay datos de distribucion de riesgo disponibles")
@@ -859,14 +869,14 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 		pdf.Ln(8)
 		// Subtitle
-		pdf.SetFont("Arial", "B", 16)
+		pdf.SetFont("DejaVu", "B", 16)
 		pdf.SetTextColor(59, 130, 246) // Blue
 		pdf.SetX(15)
 		pdf.Cell(0, 8, "Mapa de Calor por Departamento")
 		pdf.Ln(10)
 
 		// Interpretive analysis paragraph
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("DejaVu", "", 10)
 		pdf.SetTextColor(71, 85, 105)
 		pdf.SetX(15)
 		heatmapAnalysis := "El mapa de calor por departamento permite identificar areas organizacionales con mayor concentracion " +
@@ -892,7 +902,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 		// Professional table header with light blue background
 		pdf.SetFillColor(230, 240, 255) // Light blue background
-		pdf.SetFont("Arial", "B", 9)
+		pdf.SetFont("DejaVu", "B", 9)
 		pdf.SetTextColor(30, 41, 59) // Dark text for contrast
 		headerHeight := 12.0
 		pdf.SetX(15)
@@ -904,7 +914,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		pdf.CellFormat(25, headerHeight, "Muy Alto", "1", 1, "R", true, 0, "")
 
 		// Rows
-		pdf.SetFont("Arial", "", 9)
+		pdf.SetFont("DejaVu", "", 9)
 		fill := false
 		riskLevels := []string{"nulo", "bajo", "medio", "alto", "muy_alto"}
 
@@ -913,7 +923,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 				pdf.AddPage()
 				// Redraw header with light blue background
 				pdf.SetFillColor(230, 240, 255) // Light blue background
-				pdf.SetFont("Arial", "B", 9)
+				pdf.SetFont("DejaVu", "B", 9)
 				pdf.SetTextColor(30, 41, 59)
 				pdf.SetX(15)
 				pdf.CellFormat(55, headerHeight, "Departamento", "1", 0, "L", true, 0, "")
@@ -922,7 +932,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 				pdf.CellFormat(25, headerHeight, "Medio", "1", 0, "R", true, 0, "")
 				pdf.CellFormat(25, headerHeight, "Alto", "1", 0, "R", true, 0, "")
 				pdf.CellFormat(25, headerHeight, "Muy Alto", "1", 1, "R", true, 0, "")
-				pdf.SetFont("Arial", "", 9)
+				pdf.SetFont("DejaVu", "", 9)
 				fill = false
 			}
 
@@ -942,7 +952,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 			// Department name - left-aligned
 			pdf.SetTextColor(30, 41, 59)
-			pdf.SetFont("Arial", "", 9)
+			pdf.SetFont("DejaVu", "", 9)
 			pdf.SetX(15)
 			pdf.CellFormat(55, rowHeight, deptName, "LR", 0, "L", fill, 0, "")
 
@@ -1016,17 +1026,17 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	if hasDemo {
 		pdf.AddPage()
 		// Subtitle
-		pdf.SetFont("Arial", "B", 16)
+		pdf.SetFont("DejaVu", "B", 16)
 		pdf.SetTextColor(59, 130, 246) // Blue
 		pdf.SetX(15)
 		pdf.Cell(0, 8, "Analisis Demografico")
 		pdf.Ln(10)
 
 		// Interpretive analysis paragraph
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("DejaVu", "", 10)
 		pdf.SetTextColor(71, 85, 105)
 		pdf.SetX(15)
-		demoAnalysis := "El analisis demografico proporciona insights sobre la composicion de la fuerza laboral, " +
+		demoAnalysis := "El analisis demografico proporciona estadisticas sobre la composicion de la fuerza laboral, " +
 			"permitiendo identificar patrones y desarrollar estrategias personalizadas de prevencion de riesgos psicosociales."
 		pdf.MultiCell(180, 5, demoAnalysis, "", "L", false)
 		pdf.Ln(6)
@@ -1064,7 +1074,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 	// ========== PAGE 4: RECOMMENDATIONS AND ACTION PLAN ==========
 	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
+	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246) // Blue
 	pdf.SetX(15)
 	pdf.Cell(0, 8, "Recomendaciones y Plan de Accion")
@@ -1082,7 +1092,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		"Establecer indicadores de desempeno (KPIs) para medir el impacto de las acciones preventivas en la reduccion de riesgos",
 	}
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
 	for i, item := range actionItems {
 		if pdf.GetY() > 250 {
@@ -1101,13 +1111,13 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	}
 
 	pdf.Ln(8)
-	pdf.SetFont("Arial", "B", 16)
+	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246)
 	pdf.SetX(15)
 	pdf.Cell(0, 8, "Declaracion de Politica de Prevencion de Riesgos Psicosociales")
 	pdf.Ln(10)
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
 	pdf.SetX(15)
 	// NOM-035 specific commitments
@@ -1125,14 +1135,14 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	// Write policy text
 	pdf.MultiCell(180, 5, policyText, "", "L", false)
 
-	// Add hyperlink to NOM-035 reference
-	nom035URL := "http://dof.gob.mx/normasOficiales/7544/stps2/stps2.htm"
+	// Add hyperlink to NOM-035 reference - use MultiCell to wrap long URL
+	nom035URL := "https://www.gob.mx/stps/articulos/norma-oficial-mexicana-nom-035-stps-2018-factores-de-riesgo-psicosocial-en-el-trabajo-identificacion-analisis-y-prevencion"
 	pdf.SetTextColor(59, 130, 246) // Blue color for link
-	pdf.SetFont("Arial", "U", 10)  // Underlined for link appearance
-	linkText := nom035URL
+	pdf.SetFont("DejaVu", "U", 10) // Underlined for link appearance
 	pdf.SetX(15)
-	pdf.Cell(0, 5, linkText)
-	pdf.SetFont("Arial", "", 10)  // Reset font
+	// Use MultiCell to wrap the URL within page width
+	pdf.MultiCell(180, 5, nom035URL, "", "L", false)
+	pdf.SetFont("DejaVu", "", 10) // Reset font
 	pdf.SetTextColor(71, 85, 105) // Reset text color
 
 	// ========== LONG-TERM TRACKING NOTES ==========
@@ -1141,13 +1151,13 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	}
 
 	pdf.Ln(10)
-	pdf.SetFont("Arial", "B", 16)
+	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246)
 	pdf.SetX(15)
 	pdf.Cell(0, 8, "Notas de Seguimiento a Largo Plazo")
 	pdf.Ln(10)
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
 	pdf.SetX(15)
 	// Calculate next biennial assessment date (2 years from current date)
@@ -1169,7 +1179,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	}
 
 	pdf.Ln(10)
-	pdf.SetFont("Arial", "B", 16)
+	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246)
 	pdf.SetX(15)
 	pdf.Cell(0, 8, "Consejos para el Compromiso de los Empleados")
@@ -1186,14 +1196,16 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		"Involucrar a los empleados en la toma de decisiones que les afectan directamente mediante comites representativos",
 	}
 
-	pdf.SetFont("Arial", "", 10)
+	pdf.SetFont("DejaVu", "", 10)
 	pdf.SetTextColor(71, 85, 105)
 	for _, tip := range engagementTips {
 		if pdf.GetY() > 250 {
 			pdf.AddPage()
 		}
-		pdf.SetX(20)
-		pdf.Cell(5, 6, "•")
+		// Draw a small filled circle as bullet point to avoid encoding issues
+		bulletY := pdf.GetY() + 3
+		pdf.SetFillColor(71, 85, 105)
+		pdf.Circle(20, bulletY, 1, "F")
 		pdf.SetX(25)
 		pdf.MultiCell(165, 5, tip, "", "L", false)
 		pdf.Ln(2)
@@ -1208,12 +1220,12 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.SetFillColor(230, 240, 255) // Light blue background
 	pdf.RoundedRect(15, pdf.GetY(), 180, 30, 4, "1234", "F")
 
-	pdf.SetFont("Arial", "B", 11)
+	pdf.SetFont("DejaVu", "B", 11)
 	pdf.SetTextColor(30, 41, 59)
 	pdf.SetXY(22, pdf.GetY()+6)
 	pdf.Cell(0, 0, "Nota de Confidencialidad")
 
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("DejaVu", "", 9)
 	pdf.SetTextColor(71, 85, 105)
 	pdf.SetXY(22, pdf.GetY()+8)
 	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. "+
@@ -1228,7 +1240,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.SetFillColor(241, 245, 249)
 	pdf.RoundedRect(15, pdf.GetY(), 180, 25, 3, "1234", "F")
 
-	pdf.SetFont("Arial", "I", 8)
+	pdf.SetFont("DejaVu", "I", 8)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.SetXY(22, pdf.GetY()+6)
 	pdf.MultiCell(165, 4, "Este documento contiene informacion confidencial protegida por la Ley Federal de Proteccion de Datos Personales. Su distribucion no autorizada esta prohibida. Generado automaticamente por la plataforma Entorno35 conforme a la NOM-035-STPS-2018.", "", "L", false)
@@ -1246,13 +1258,13 @@ func drawMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, t
 	pdf.SetFillColor(bgR, bgG, bgB)
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
-	pdf.SetFont("Arial", "B", 22)
+	pdf.SetFont("DejaVu", "B", 22)
 	pdf.SetTextColor(textR, textG, textB)
 	valueWidth := pdf.GetStringWidth(value)
 	pdf.SetXY(x+(w-valueWidth)/2, y+10)
 	pdf.Cell(0, 0, value)
 
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("DejaVu", "", 9)
 	pdf.SetTextColor(71, 85, 105)
 	labelWidth := pdf.GetStringWidth(label)
 	pdf.SetXY(x+(w-labelWidth)/2, y+h-10)
@@ -1265,14 +1277,14 @@ func drawEnhancedMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label s
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
 	// Large bold number (32pt)
-	pdf.SetFont("Arial", "B", 32)
+	pdf.SetFont("DejaVu", "B", 32)
 	pdf.SetTextColor(textR, textG, textB)
 	valueWidth := pdf.GetStringWidth(value)
 	pdf.SetXY(x+(w-valueWidth)/2, y+18)
 	pdf.Cell(0, 0, value)
 
 	// Subtitle (12pt)
-	pdf.SetFont("Arial", "", 12)
+	pdf.SetFont("DejaVu", "", 12)
 	pdf.SetTextColor(71, 85, 105)
 	labelWidth := pdf.GetStringWidth(label)
 	pdf.SetXY(x+(w-labelWidth)/2, y+h-12)
@@ -1289,12 +1301,12 @@ func drawDemoSummaryInline(pdf *gofpdf.Fpdf, title string, data []domain.Demogra
 		pdf.AddPage()
 	}
 
-	pdf.SetFont("Arial", "B", 9)
+	pdf.SetFont("DejaVu", "B", 9)
 	pdf.SetTextColor(71, 85, 105)
 	pdf.SetX(15)
 	pdf.Cell(50, 6, title)
 
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("DejaVu", "", 9)
 	pdf.SetTextColor(30, 41, 59)
 
 	items := make([]string, 0)
@@ -1320,7 +1332,7 @@ func drawDemoPieChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data [
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
 	// Title
-	pdf.SetFont("Arial", "B", 9)
+	pdf.SetFont("DejaVu", "B", 9)
 	pdf.SetTextColor(30, 41, 59)
 	pdf.SetXY(x+4, y+4)
 	pdf.Cell(w-8, 5, title)
@@ -1392,7 +1404,7 @@ func drawDemoPieChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data [
 		pdf.Rect(itemX, itemY, 6, 6, "F")
 
 		// Label
-		pdf.SetFont("Arial", "", 7)
+		pdf.SetFont("DejaVu", "", 7)
 		pdf.SetTextColor(71, 85, 105)
 		pdf.SetXY(itemX+8, itemY)
 
@@ -1418,7 +1430,7 @@ func drawDemoHorizontalBar(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, d
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
 	// Title
-	pdf.SetFont("Arial", "B", 10)
+	pdf.SetFont("DejaVu", "B", 10)
 	pdf.SetTextColor(30, 41, 59)
 	pdf.SetXY(x+4, y+4)
 	pdf.Cell(w-8, 5, title)
@@ -1457,7 +1469,7 @@ func drawDemoHorizontalBar(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, d
 	pdf.RoundedRect(barX, barY, barWidth, barHeight, 3, "1234", "F")
 
 	// White text label inside bar
-	pdf.SetFont("Arial", "B", 9)
+	pdf.SetFont("DejaVu", "B", 9)
 	pdf.SetTextColor(255, 255, 255)
 	labelText := fmt.Sprintf("%s: 100%%", maxCategory)
 	labelWidth := pdf.GetStringWidth(labelText)
