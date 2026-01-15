@@ -240,7 +240,7 @@ export function EnhancedDemographicChart({
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }} />
           <Legend
             verticalAlign="bottom"
             height={60}

@@ -271,11 +271,16 @@ export function DemographicRiskChart({
               tick={{ fontSize: 10 }}
               interval={0}
             />
-            <YAxis 
+            <YAxis
               tick={{ fontSize: 11 }}
               width={50}
             />
-            <Tooltip content={<RiskTooltip />} />
+            <Tooltip
+              content={<RiskTooltip />}
+              cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
+              formatter={(value: any, name?: string) => [value, name ? RISK_LABELS[name as keyof typeof RISK_LABELS] || name : '']}
+              labelFormatter={(label) => `Categoría: ${label}`}
+            />
             {riskLevels.map((level) => (
               <Bar
                 key={level}
