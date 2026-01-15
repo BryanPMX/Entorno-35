@@ -1340,7 +1340,80 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		}
 	}
 
-	// ========== PAGE 5: RECOMMENDATIONS AND ACTION PLAN ==========
+	// ========== DEMOGRAPHIC RISK ANALYSIS ==========
+	hasRiskData := len(report.AgeRiskDistribution) > 0 ||
+		len(report.ShiftRiskDistribution) > 0 ||
+		len(report.ExperienceRiskDistribution) > 0 ||
+		len(report.MaritalStatusRiskDistribution) > 0
+
+	if hasRiskData {
+		pdf.AddPage()
+
+		// Subtitle
+		pdf.SetFont("DejaVu", "B", 16)
+		pdf.SetTextColor(59, 130, 246) // Blue
+		pdf.SetX(15)
+		pdf.Cell(0, 8, "Analisis de Riesgo Demografico")
+		pdf.Ln(10)
+
+		// Interpretive analysis paragraph
+		pdf.SetFont("DejaVu", "", 10)
+		pdf.SetTextColor(71, 85, 105)
+		pdf.SetX(15)
+		riskAnalysisText := "El analisis de riesgo demografico proporciona una vista detallada de como se distribuyen los niveles de riesgo psicosocial " +
+			"entre diferentes caracteristicas demograficas del personal. Esta informacion permite identificar patrones especificos y " +
+			"desarrollar estrategias de prevencion mas efectivas y dirigidas a grupos particulares."
+		pdf.MultiCell(180, 5, riskAnalysisText, "", "L", false)
+		pdf.Ln(6)
+
+		// Bar chart dimensions - larger for better readability
+		barChartWidth := 175.0
+		barChartHeight := 120.0
+		barChartSpacing := 25.0
+
+		// Page 5a: Age and Shift Risk Distributions
+		startY := pdf.GetY()
+
+		if len(report.AgeRiskDistribution) > 0 {
+			drawDemographicRiskBarChart(pdf, 15, startY, barChartWidth, barChartHeight, "Riesgo por Rango de Edad", report.AgeRiskDistribution)
+		}
+
+		if len(report.ShiftRiskDistribution) > 0 {
+			secondChartY := startY + barChartHeight + barChartSpacing
+			if secondChartY+barChartHeight > 250 { // Check if it fits on current page
+				pdf.AddPage()
+				secondChartY = pdf.GetY()
+			}
+			drawDemographicRiskBarChart(pdf, 15, secondChartY, barChartWidth, barChartHeight, "Riesgo por Tipo de Turno", report.ShiftRiskDistribution)
+		}
+
+		// Page 5b: Experience and Marital Status Risk Distributions
+		pdf.AddPage()
+
+		// Subtitle for second page
+		pdf.SetFont("DejaVu", "B", 16)
+		pdf.SetTextColor(59, 130, 246) // Blue
+		pdf.SetX(15)
+		pdf.Cell(0, 8, "Analisis de Riesgo Demografico (continuacion)")
+		pdf.Ln(12)
+
+		startY = pdf.GetY()
+
+		if len(report.ExperienceRiskDistribution) > 0 {
+			drawDemographicRiskBarChart(pdf, 15, startY, barChartWidth, barChartHeight, "Riesgo por Experiencia Laboral", report.ExperienceRiskDistribution)
+		}
+
+		if len(report.MaritalStatusRiskDistribution) > 0 {
+			secondChartY := startY + barChartHeight + barChartSpacing
+			if secondChartY+barChartHeight > 250 { // Check if it fits on current page
+				pdf.AddPage()
+				secondChartY = pdf.GetY()
+			}
+			drawDemographicRiskBarChart(pdf, 15, secondChartY, barChartWidth, barChartHeight, "Riesgo por Estado Civil", report.MaritalStatusRiskDistribution)
+		}
+	}
+
+	// ========== PAGE 6: RECOMMENDATIONS AND ACTION PLAN ==========
 	pdf.AddPage()
 	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246) // Blue
@@ -2139,6 +2212,175 @@ func drawArcReverse(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float
 		endY := cy - radius*sinDeg(endAngle)
 		pdf.LineTo(endX, endY)
 	}
+}
+
+// drawDemographicRiskBarChart draws stacked bar charts for demographic risk analysis
+func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data []domain.DemographicRiskDistribution) {
+	if len(data) == 0 {
+		return
+	}
+
+	// Card background
+	pdf.SetFillColor(248, 250, 252)
+	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
+
+	// Title
+	pdf.SetFont("DejaVu", "B", 10)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.SetXY(x+4, y+4)
+	pdf.Cell(w-8, 5, title)
+
+	// Calculate total for each category and group by category
+	categoryTotals := make(map[string]int64)
+	categoryRisks := make(map[string]map[string]int64)
+
+	for _, item := range data {
+		category := translateCategory(item.Category)
+		riskLevel := string(item.RiskLevel)
+
+		if categoryTotals[category] == 0 {
+			categoryRisks[category] = make(map[string]int64)
+		}
+		categoryTotals[category] += item.Count
+		categoryRisks[category][riskLevel] = item.Count
+	}
+
+	// Get sorted categories
+	categories := make([]string, 0, len(categoryTotals))
+	for category := range categoryTotals {
+		categories = append(categories, category)
+	}
+	sort.Strings(categories)
+
+	// Chart dimensions
+	chartX := x + 4
+	chartY := y + 14
+	chartWidth := w - 8
+	chartHeight := h - 50 // Leave space for legend
+
+	// Calculate bar dimensions
+	numCategories := len(categories)
+	if numCategories == 0 {
+		return
+	}
+
+	barWidth := chartWidth / float64(numCategories)
+	if barWidth > 25 {
+		barWidth = 25 // Max bar width
+	}
+	barSpacing := (chartWidth - float64(numCategories)*barWidth) / float64(numCategories+1)
+
+	// Risk level colors (matching the dashboard)
+	riskColors := map[string]struct{ r, g, b int }{
+		"nulo":     {r: 34, g: 197, b: 94},   // Green
+		"bajo":     {r: 132, g: 204, b: 22},  // Light green
+		"medio":    {r: 245, g: 158, b: 11},  // Yellow
+		"alto":     {r: 249, g: 115, b: 22},  // Orange
+		"muy_alto": {r: 239, g: 68, b: 68},   // Red
+	}
+
+	riskOrder := []string{"nulo", "bajo", "medio", "alto", "muy_alto"}
+
+	// Draw bars for each category
+	for i, category := range categories {
+		categoryX := chartX + barSpacing + float64(i)*(barWidth+barSpacing)
+		currentY := chartY + chartHeight // Start from bottom
+
+		total := categoryTotals[category]
+		if total == 0 {
+			continue
+		}
+
+		// Draw stacked bars
+		for _, riskLevel := range riskOrder {
+			count := categoryRisks[category][riskLevel]
+			if count == 0 {
+				continue
+			}
+
+			// Calculate bar height proportional to count
+			barHeight := (float64(count) / float64(total)) * (chartHeight - 10) // Leave space for category labels
+
+			// Draw the bar segment
+			if color, exists := riskColors[riskLevel]; exists {
+				pdf.SetFillColor(color.r, color.g, color.b)
+				pdf.Rect(categoryX, currentY-barHeight, barWidth, barHeight, "F")
+			}
+
+			currentY -= barHeight
+		}
+
+		// Draw category label
+		pdf.SetFont("DejaVu", "", 7)
+		pdf.SetTextColor(71, 85, 105)
+		labelWidth := pdf.GetStringWidth(category)
+		if labelWidth > barWidth {
+			category = category[:int(float64(len(category))*barWidth/labelWidth)-2] + ".."
+		}
+		pdf.SetXY(categoryX+(barWidth-labelWidth)/2, chartY+chartHeight+2)
+		pdf.Cell(labelWidth, 4, category)
+	}
+
+	// Draw legend
+	legendY := chartY + chartHeight + 12
+	legendX := x + 4
+	itemsPerRow := 3
+	legendItemWidth := (w - 8) / float64(itemsPerRow)
+
+	pdf.SetFont("DejaVu", "", 7)
+	for i, riskLevel := range riskOrder {
+		if i >= 5 { // Only show first 5 risk levels
+			break
+		}
+
+		row := i / itemsPerRow
+		col := i % itemsPerRow
+		itemX := legendX + float64(col)*legendItemWidth
+		itemY := legendY + float64(row)*8
+
+		// Color box
+		if color, exists := riskColors[riskLevel]; exists {
+			pdf.SetFillColor(color.r, color.g, color.b)
+			pdf.Rect(itemX, itemY, 4, 4, "F")
+		}
+
+		// Label
+		pdf.SetTextColor(71, 85, 105)
+		pdf.SetXY(itemX+6, itemY-1)
+
+		riskLabel := formatRiskLevel(riskLevel)
+		pdf.Cell(legendItemWidth-8, 6, riskLabel)
+	}
+}
+
+// translateCategory translates demographic category values to readable Spanish labels
+func translateCategory(category string) string {
+	translations := map[string]string{
+		"18-25": "18-25 años",
+		"26-35": "26-35 años",
+		"36-45": "36-45 años",
+		"46-55": "46-55 años",
+		"56+":   "56+ años",
+		"diurno": "Diurno",
+		"nocturno": "Nocturno",
+		"mixto":   "Mixto",
+		"0-2":     "0-2 años",
+		"3-5":     "3-5 años",
+		"6-10":    "6-10 años",
+		"11-15":   "11-15 años",
+		"16-20":   "16-20 años",
+		"21+":     "21+ años",
+		"soltero":       "Soltero/a",
+		"casado":        "Casado/a",
+		"divorciado":    "Divorciado/a",
+		"viudo":         "Viudo/a",
+		"union_libre":   "Unión Libre",
+		"separado":      "Separado/a",
+	}
+	if translation, exists := translations[category]; exists {
+		return translation
+	}
+	return category
 }
 
 // drawDemoHorizontalBar draws a horizontal bar chart with blue bars (#007BFF) and white text labels inside
