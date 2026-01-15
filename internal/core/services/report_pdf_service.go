@@ -1651,7 +1651,7 @@ func drawMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, t
 	pdf.Cell(0, 0, label)
 }
 
-// drawEnhancedMetricCard draws an enhanced metric card with shadows and large numbers (36pt)
+// drawEnhancedMetricCard draws an enhanced metric card with proportional numbers and better centering
 func drawEnhancedMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label string, textR, textG, textB, bgR, bgG, bgB int, icon string) {
 	// Draw shadow (2px elevation - offset by 2mm)
 	shadowOffset := 2.0
@@ -1664,25 +1664,23 @@ func drawEnhancedMetricCard(pdf *gofpdf.Fpdf, x, y, w, h float64, value, label s
 	pdf.SetFillColor(bgR, bgG, bgB)
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
-	// Large bold number (36pt) - Dark blue #1A1F36 (26, 31, 54)
-	pdf.SetFont("DejaVu", "B", 36)
+	// Proportional bold number (28pt) - better proportioned and centered
+	pdf.SetFont("DejaVu", "B", 28)
 	pdf.SetTextColor(26, 31, 54) // #1A1F36
 	valueWidth := pdf.GetStringWidth(value)
-	pdf.SetXY(x+(w-valueWidth)/2, y+12)
+	// Center both horizontally and vertically - position number in upper 2/3 of card
+	numberY := y + (h * 0.35) // Position number at 35% from top for better balance
+	pdf.SetXY(x+(w-valueWidth)/2, numberY)
 	pdf.Cell(0, 0, value)
 
-	// Subtitle (10pt) - smaller font and allow wrapping for longer labels
-	pdf.SetFont("DejaVu", "", 10)
+	// Subtitle (9pt) - slightly smaller for better proportion
+	pdf.SetFont("DejaVu", "", 9)
 	pdf.SetTextColor(71, 85, 105)
 	labelWidth := pdf.GetStringWidth(label)
-	// If label is too long, use MultiCell to wrap it
-	if labelWidth > w-8 {
-		pdf.SetXY(x+4, y+h-12)
-		pdf.MultiCell(w-8, 4, label, "", "C", false)
-	} else {
-		pdf.SetXY(x+(w-labelWidth)/2, y+h-10)
-		pdf.Cell(0, 0, label)
-	}
+	// Position label in lower 1/3 of card with better spacing
+	labelY := y + (h * 0.75) // Position label at 75% from top
+	pdf.SetXY(x+(w-labelWidth)/2, labelY)
+	pdf.Cell(0, 0, label)
 }
 
 // drawDemoSummaryInline draws a demographic summary inline
