@@ -2128,7 +2128,7 @@ func drawDemoDonutChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data
 		numLegendItems = 6 // Limit to 6 items
 	}
 	numRows := (numLegendItems + itemsPerRow - 1) / itemsPerRow // Ceiling division
-	legendHeight := float64(numRows) * 5 // 5 units per row
+	legendHeight := float64(numRows) * 5                        // 5 units per row
 
 	// Position legend uniformly below chart - all percentage labels are at same distance
 	// Chart center at 42% height, radius 20% height, labels at +8 units = ~54.5 units from top
@@ -2214,21 +2214,68 @@ func drawArcReverse(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float
 	}
 }
 
+// ChartLayout defines the layout structure for bar charts
+type ChartLayout struct {
+	CardX, CardY, CardW, CardH     float64 // Card boundaries
+	TitleH                         float64 // Title height
+	ChartX, ChartY, ChartW, ChartH float64 // Chart area
+	LegendY, LegendH               float64 // Legend area
+}
+
+// createChartLayout creates a structured layout for the chart
+func createChartLayout(x, y, w, h float64, hasAxisLines bool) ChartLayout {
+	layout := ChartLayout{
+		CardX: x, CardY: y, CardW: w, CardH: h,
+		TitleH: 12, // Title height with more space
+	}
+
+	if hasAxisLines {
+		// Adjust for axis lines and tick labels
+		layout.ChartX = x + 25 // Space for Y-axis line and labels
+		layout.ChartW = w - 35 // Reduced width for Y-axis space
+		layout.ChartH = h - 45 // Reduced space since category labels moved to X-axis
+	} else {
+		layout.ChartX = x + 4
+		layout.ChartW = w - 8
+		layout.ChartH = h - 50
+	}
+
+	layout.ChartY = y + layout.TitleH + 6               // Space below title
+	layout.LegendY = layout.ChartY + layout.ChartH + 25 // Space for X-axis labels and ticks
+	layout.LegendH = 15
+
+	return layout
+}
+
 // drawDemographicRiskBarChart draws stacked bar charts for demographic risk analysis
 func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data []domain.DemographicRiskDistribution) {
 	if len(data) == 0 {
 		return
 	}
 
-	// Card background
+	// Determine if this chart needs axis lines (all demographic risk charts)
+	hasAxisLines := strings.Contains(title, "Riesgo por")
+
+	// Create structured layout
+	layout := createChartLayout(x, y, w, h, hasAxisLines)
+
+	// Card background - extend to cover legend area
 	pdf.SetFillColor(248, 250, 252)
-	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
+	if hasAxisLines {
+		// For charts with axis lines, extend background to include legend
+		legendBottom := layout.LegendY + layout.LegendH + 5 // Extra padding
+		totalHeight := legendBottom - layout.CardY
+		pdf.RoundedRect(layout.CardX, layout.CardY, layout.CardW, totalHeight, 4, "1234", "F")
+	} else {
+		// Standard background for other charts
+		pdf.RoundedRect(layout.CardX, layout.CardY, layout.CardW, layout.CardH, 4, "1234", "F")
+	}
 
 	// Title
 	pdf.SetFont("DejaVu", "B", 10)
 	pdf.SetTextColor(30, 41, 59)
-	pdf.SetXY(x+4, y+4)
-	pdf.Cell(w-8, 5, title)
+	pdf.SetXY(layout.CardX+4, layout.CardY+4)
+	pdf.Cell(layout.CardW-8, 5, title)
 
 	// Calculate total for each category and group by category
 	categoryTotals := make(map[string]int64)
@@ -2252,11 +2299,7 @@ func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title str
 	}
 	sort.Strings(categories)
 
-	// Chart dimensions
-	chartX := x + 4
-	chartY := y + 14
-	chartWidth := w - 8
-	chartHeight := h - 50 // Leave space for legend
+	// Use structured layout
 
 	// Calculate bar dimensions
 	numCategories := len(categories)
@@ -2264,42 +2307,99 @@ func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title str
 		return
 	}
 
-	barWidth := chartWidth / float64(numCategories)
+	barWidth := layout.ChartW / float64(numCategories)
 	if barWidth > 25 {
 		barWidth = 25 // Max bar width
 	}
-	barSpacing := (chartWidth - float64(numCategories)*barWidth) / float64(numCategories+1)
+	barSpacing := (layout.ChartW - float64(numCategories)*barWidth) / float64(numCategories+1)
 
 	// Risk level colors (matching the dashboard)
 	riskColors := map[string]struct{ r, g, b int }{
-		"nulo":     {r: 34, g: 197, b: 94},   // Green
-		"bajo":     {r: 132, g: 204, b: 22},  // Light green
-		"medio":    {r: 245, g: 158, b: 11},  // Yellow
-		"alto":     {r: 249, g: 115, b: 22},  // Orange
-		"muy_alto": {r: 239, g: 68, b: 68},   // Red
+		"nulo":     {r: 34, g: 197, b: 94},  // Green
+		"bajo":     {r: 132, g: 204, b: 22}, // Light green
+		"medio":    {r: 245, g: 158, b: 11}, // Yellow
+		"alto":     {r: 249, g: 115, b: 22}, // Orange
+		"muy_alto": {r: 239, g: 68, b: 68},  // Red
 	}
 
 	riskOrder := []string{"nulo", "bajo", "medio", "alto", "muy_alto"}
 
+	// Draw professional axis lines for age chart
+	if hasAxisLines {
+		pdf.SetDrawColor(71, 85, 105) // Axis line color
+		pdf.SetLineWidth(0.5)
+
+		// Y-axis line (vertical)
+		yAxisX := layout.ChartX - 5
+		pdf.Line(yAxisX, layout.ChartY, yAxisX, layout.ChartY+layout.ChartH)
+
+		// X-axis line (horizontal)
+		xAxisY := layout.ChartY + layout.ChartH + 5
+		pdf.Line(layout.ChartX, xAxisY, layout.ChartX+layout.ChartW, xAxisY)
+
+		// Y-axis tick marks and labels
+		pdf.SetFont("DejaVu", "", 6)
+		pdf.SetTextColor(71, 85, 105)
+		maxEmployees := int64(0)
+		for _, category := range categories {
+			if total := categoryTotals[category]; total > maxEmployees {
+				maxEmployees = total
+			}
+		}
+
+		// Draw 5 tick marks on Y-axis
+		for i := 0; i <= 5; i++ {
+			yValue := maxEmployees * int64(i) / 5
+			yPos := layout.ChartY + layout.ChartH - (float64(yValue)/float64(maxEmployees))*layout.ChartH
+
+			// Tick mark
+			pdf.Line(yAxisX-2, yPos, yAxisX, yPos)
+
+			// Label
+			label := fmt.Sprintf("%d", yValue)
+			labelWidth := pdf.GetStringWidth(label)
+			pdf.SetXY(yAxisX-labelWidth-3, yPos-2)
+			pdf.Cell(0, 0, label)
+		}
+
+		// X-axis category labels (age ranges)
+		pdf.SetFont("DejaVu", "", 6)
+		for i, category := range categories {
+			categoryX := layout.ChartX + barSpacing + float64(i)*(barWidth+barSpacing) + barWidth/2
+
+			// Tick mark
+			pdf.Line(categoryX, xAxisY, categoryX, xAxisY+2)
+
+			// Label below tick
+			labelWidth := pdf.GetStringWidth(category)
+			pdf.SetXY(categoryX-labelWidth/2, xAxisY+4)
+			pdf.Cell(0, 0, category)
+		}
+	}
+
+	// Calculate X-axis position for bars to touch the axis line
+	xAxisY := layout.ChartY + layout.ChartH + 5 // X-axis line position
+
 	// Draw bars for each category
 	for i, category := range categories {
-		categoryX := chartX + barSpacing + float64(i)*(barWidth+barSpacing)
-		currentY := chartY + chartHeight // Start from bottom
+		categoryX := layout.ChartX + barSpacing + float64(i)*(barWidth+barSpacing)
+		currentY := xAxisY // Start from X-axis line
 
 		total := categoryTotals[category]
 		if total == 0 {
 			continue
 		}
 
-		// Draw stacked bars
-		for _, riskLevel := range riskOrder {
+		// Draw stacked bars from bottom up (touching X-axis)
+		for j := len(riskOrder) - 1; j >= 0; j-- {
+			riskLevel := riskOrder[j]
 			count := categoryRisks[category][riskLevel]
 			if count == 0 {
 				continue
 			}
 
 			// Calculate bar height proportional to count
-			barHeight := (float64(count) / float64(total)) * (chartHeight - 10) // Leave space for category labels
+			barHeight := (float64(count) / float64(total)) * layout.ChartH // Full chart height available
 
 			// Draw the bar segment
 			if color, exists := riskColors[riskLevel]; exists {
@@ -2310,22 +2410,28 @@ func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title str
 			currentY -= barHeight
 		}
 
-		// Draw category label
-		pdf.SetFont("DejaVu", "", 7)
-		pdf.SetTextColor(71, 85, 105)
-		labelWidth := pdf.GetStringWidth(category)
-		if labelWidth > barWidth {
-			category = category[:int(float64(len(category))*barWidth/labelWidth)-2] + ".."
-		}
-		pdf.SetXY(categoryX+(barWidth-labelWidth)/2, chartY+chartHeight+2)
-		pdf.Cell(labelWidth, 4, category)
+		// Category labels now handled by X-axis tick marks (removed duplicate labels)
 	}
 
-	// Draw legend
-	legendY := chartY + chartHeight + 12
-	legendX := x + 4
+	// Draw legend using structured layout
+	legendY := layout.LegendY
+	legendX := layout.CardX + 4
+
+	// Legend title
+	pdf.SetFont("DejaVu", "B", 8)
+	pdf.SetTextColor(30, 41, 59) // Dark color for title
+	pdf.SetXY(legendX, legendY-8)
+	pdf.Cell(0, 0, "Niveles de Riesgo")
+
+	// Separation line
+	pdf.SetDrawColor(226, 232, 240) // Light gray line
+	pdf.SetLineWidth(0.3)
+	lineY := legendY - 4
+	pdf.Line(legendX, lineY, legendX+layout.CardW-8, lineY)
+
+	// Legend items
 	itemsPerRow := 3
-	legendItemWidth := (w - 8) / float64(itemsPerRow)
+	legendItemWidth := (layout.CardW - 8) / float64(itemsPerRow)
 
 	pdf.SetFont("DejaVu", "", 7)
 	for i, riskLevel := range riskOrder {
@@ -2356,26 +2462,26 @@ func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title str
 // translateCategory translates demographic category values to readable Spanish labels
 func translateCategory(category string) string {
 	translations := map[string]string{
-		"18-25": "18-25 años",
-		"26-35": "26-35 años",
-		"36-45": "36-45 años",
-		"46-55": "46-55 años",
-		"56+":   "56+ años",
-		"diurno": "Diurno",
-		"nocturno": "Nocturno",
-		"mixto":   "Mixto",
-		"0-2":     "0-2 años",
-		"3-5":     "3-5 años",
-		"6-10":    "6-10 años",
-		"11-15":   "11-15 años",
-		"16-20":   "16-20 años",
-		"21+":     "21+ años",
-		"soltero":       "Soltero/a",
-		"casado":        "Casado/a",
-		"divorciado":    "Divorciado/a",
-		"viudo":         "Viudo/a",
-		"union_libre":   "Unión Libre",
-		"separado":      "Separado/a",
+		"18-25":       "18-25 años",
+		"26-35":       "26-35 años",
+		"36-45":       "36-45 años",
+		"46-55":       "46-55 años",
+		"56+":         "56+ años",
+		"diurno":      "Diurno",
+		"nocturno":    "Nocturno",
+		"mixto":       "Mixto",
+		"0-2":         "0-2 años",
+		"3-5":         "3-5 años",
+		"6-10":        "6-10 años",
+		"11-15":       "11-15 años",
+		"16-20":       "16-20 años",
+		"21+":         "21+ años",
+		"soltero":     "Soltero/a",
+		"casado":      "Casado/a",
+		"divorciado":  "Divorciado/a",
+		"viudo":       "Viudo/a",
+		"union_libre": "Unión Libre",
+		"separado":    "Separado/a",
 	}
 	if translation, exists := translations[category]; exists {
 		return translation
