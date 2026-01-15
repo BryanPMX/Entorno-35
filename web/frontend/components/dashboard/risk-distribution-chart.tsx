@@ -100,7 +100,7 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
       </CardHeader>
       <CardContent className="pb-4">
         <ResponsiveContainer width="100%" height={280}>
-          <PieChart margin={{ top: 30, right: 20, bottom: 60, left: 20 }}>
+          <PieChart margin={{ top: 30, right: 20, bottom: 20, left: 20 }}>
             <Pie
               data={chartData}
               cx="50%"
@@ -123,17 +123,31 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              verticalAlign="bottom"
-              height={50}
-              iconType="circle"
-              wrapperStyle={{ paddingTop: "10px" }}
-              formatter={(value, entry) => (
-                <span style={{ color: entry.color, fontSize: "11px" }}>{value}</span>
-              )}
-            />
           </PieChart>
         </ResponsiveContainer>
+
+        {/* Risk Level Legend */}
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="text-sm font-medium text-muted-foreground">Niveles de Riesgo</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {chartData.map((entry, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <div
+                  className="w-4 h-4 rounded-full flex-shrink-0 border border-border/50"
+                  style={{ backgroundColor: entry.fill }}
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">{entry.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {entry.value}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
