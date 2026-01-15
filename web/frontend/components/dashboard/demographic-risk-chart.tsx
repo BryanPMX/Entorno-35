@@ -274,10 +274,10 @@ export function DemographicRiskChart({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="pb-4">
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={500}>
           <BarChart
             data={categoryTotals}
-            margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
           >
             <XAxis
               dataKey="category"
@@ -302,40 +302,26 @@ export function DemographicRiskChart({
                 stackId="a"
                 fill={RISK_COLORS[level]}
                 name={RISK_LABELS[level]}
+                maxBarSize={45}
               />
             ))}
           </BarChart>
         </ResponsiveContainer>
-        {/* Risk Level Color Glossary */}
+        {/* Risk Level Legend with Totals */}
         <div className="mt-3 pt-3 border-t border-border">
           <div className="mb-2">
-            <p className="text-xs font-medium text-muted-foreground mb-2">Niveles de Riesgo:</p>
+            <p className="text-xs font-medium text-muted-foreground mb-3">Niveles de Riesgo:</p>
           </div>
-          <div className="flex flex-wrap gap-4 text-xs mb-3">
-            {riskLevels.map((level) => (
-              <div key={level} className="flex items-center space-x-2">
-                <div
-                  className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
-                  style={{ backgroundColor: RISK_COLORS[level] }}
-                />
-                <span className="text-foreground font-medium">{RISK_LABELS[level]}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Summary */}
-        <div className="pt-3 border-t border-border">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
             {riskLevels.map((level) => {
               const total = categoryTotals.reduce((sum, item) => sum + item[level], 0);
               return (
                 <div key={level} className="flex items-center space-x-2">
                   <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
                     style={{ backgroundColor: RISK_COLORS[level] }}
                   />
-                  <span className="text-muted-foreground">{RISK_LABELS[level]}:</span>
+                  <span className="text-foreground font-medium">{RISK_LABELS[level]}:</span>
                   <span className="font-semibold">{total.toLocaleString()}</span>
                 </div>
               );
