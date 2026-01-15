@@ -61,22 +61,38 @@ interface RiskTooltipProps {
 const RiskTooltip: React.FC<RiskTooltipProps> = ({ active, payload }) => {
   if (!active || !payload || payload.length === 0) return null;
 
-  const data = payload[0].payload;
-  const riskLabel = RISK_LABELS[data.risk_level as keyof typeof RISK_LABELS] || data.risk_level;
-  const riskColor = RISK_COLORS[data.risk_level as keyof typeof RISK_COLORS] || "#6b7280";
+  // Get category from the first payload (should be the same for all)
+  const category = payload[0].payload.category;
+
+  // Filter out entries with zero values and sort by risk level
+  const validEntries = payload
+    .filter(entry => entry.value > 0)
+    .sort((a, b) => {
+      const riskOrder = ['nulo', 'bajo', 'medio', 'alto', 'muy_alto'];
+      return riskOrder.indexOf(a.dataKey) - riskOrder.indexOf(b.dataKey);
+    });
 
   return (
     <div className="bg-popover p-3 rounded-md shadow-lg border border-border">
-      <p className="font-semibold text-sm mb-2">{data.category}</p>
-      <div className="flex items-center space-x-2">
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: riskColor }}
-        />
-        <p className="text-xs">
-          <span className="font-medium">{riskLabel}:</span>{" "}
-          <span className="text-muted-foreground">{data.count} personas</span>
-        </p>
+      <p className="font-semibold text-sm mb-3">{category}</p>
+      <div className="space-y-2">
+        {validEntries.map((entry, index) => {
+          const riskLabel = RISK_LABELS[entry.dataKey as keyof typeof RISK_LABELS] || entry.dataKey;
+          const riskColor = RISK_COLORS[entry.dataKey as keyof typeof RISK_COLORS] || "#6b7280";
+
+          return (
+            <div key={index} className="flex items-center space-x-2">
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: riskColor }}
+              />
+              <p className="text-xs">
+                <span className="font-medium">{riskLabel}:</span>{" "}
+                <span className="text-muted-foreground">{entry.value} personas</span>
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
