@@ -125,8 +125,8 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
         <CardDescription>{translations.charts.departmentHeatmapDesc}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData} margin={{ left: 80, bottom: 60, right: 20, top: 30 }}>
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={chartData} margin={{ left: 80, bottom: 20, right: 20, top: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="department"
@@ -136,7 +136,14 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
               fontSize={12}
             />
             <YAxis
-              label={{ value: translations.charts.riskScore, angle: -90, position: 'left', offset: 0 }}
+              label={{
+                value: translations.charts.riskScore,
+                angle: -90,
+                position: 'left',
+                offset: 0,
+                style: { textAnchor: 'middle' },
+                dy: '50%'
+              }}
               domain={[0, 100]}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -150,6 +157,65 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+
+        {/* Risk Level Legend */}
+        <div className="mt-2 pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="text-sm font-medium text-muted-foreground">Escala de Riesgo</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                style={{ backgroundColor: RISK_COLORS.nulo }}
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">Nulo</span>
+                <span className="text-xs text-muted-foreground">0-49</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                style={{ backgroundColor: RISK_COLORS.bajo }}
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">Bajo</span>
+                <span className="text-xs text-muted-foreground">50-74</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                style={{ backgroundColor: RISK_COLORS.medio }}
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">Medio</span>
+                <span className="text-xs text-muted-foreground">75-98</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                style={{ backgroundColor: RISK_COLORS.alto }}
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">Alto</span>
+                <span className="text-xs text-muted-foreground">99-139</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                style={{ backgroundColor: RISK_COLORS.muy_alto }}
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">Muy Alto</span>
+                <span className="text-xs text-muted-foreground">140+</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
