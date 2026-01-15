@@ -278,7 +278,12 @@ export function DemographicRiskChart({
             <Tooltip
               content={<RiskTooltip />}
               cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
-              formatter={(value: any, name?: string) => [value, name ? RISK_LABELS[name as keyof typeof RISK_LABELS] || name : '']}
+              formatter={(value: any, name?: string) => {
+                // Translate risk level keys to Spanish labels
+                const riskLevel = name as keyof typeof RISK_LABELS;
+                const label = RISK_LABELS[riskLevel] || name || '';
+                return [`${value} personas`, label];
+              }}
               labelFormatter={(label) => `Categoría: ${label}`}
             />
             {riskLevels.map((level) => (
