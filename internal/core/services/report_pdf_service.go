@@ -1336,11 +1336,12 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		pdf.MultiCell(180, 5, demoAnalysis, "", "L", false)
 		pdf.Ln(6)
 
+		// Larger charts - 2 per page for better readability
 		chartWidth := 85.0
-		chartHeight := 40.0
-		chartSpacing := 10.0
+		chartHeight := 75.0  // Increased height for better proportions and spacing
+		chartSpacing := 20.0 // More spacing between charts
 
-		// Row 1: Age Distribution and Shift Type - Donut charts
+		// Page 4a: Age and Shift Distributions
 		startY := pdf.GetY()
 
 		if len(report.AgeDistribution) > 0 {
@@ -1348,12 +1349,21 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		}
 
 		if len(report.ShiftTypeDistribution) > 0 {
-			drawDemoDonutChart(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution)
+			// Position second chart below the first
+			secondChartY := startY + chartHeight + chartSpacing
+			drawDemoDonutChart(pdf, 15, secondChartY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution)
 		}
 
-		pdf.SetY(startY + chartHeight + 12)
+		// Page 4b: Experience and Marital Status Distributions
+		pdf.AddPage()
 
-		// Row 2: Experience and Marital Status - Donut charts
+		// Subtitle for second page
+		pdf.SetFont("DejaVu", "B", 16)
+		pdf.SetTextColor(59, 130, 246) // Blue
+		pdf.SetX(15)
+		pdf.Cell(0, 8, "Analisis Demografico (continuacion)")
+		pdf.Ln(12)
+
 		startY = pdf.GetY()
 
 		if len(report.ExperienceDistribution) > 0 {
@@ -1361,13 +1371,13 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		}
 
 		if len(report.MaritalStatusDistribution) > 0 {
-			drawDemoDonutChart(pdf, 15+chartWidth+chartSpacing, startY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution)
+			// Position second chart below the first
+			secondChartY := startY + chartHeight + chartSpacing
+			drawDemoDonutChart(pdf, 15, secondChartY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution)
 		}
-
-		pdf.SetY(startY + chartHeight + 12)
 	}
 
-	// ========== PAGE 4: RECOMMENDATIONS AND ACTION PLAN ==========
+	// ========== PAGE 5: RECOMMENDATIONS AND ACTION PLAN ==========
 	pdf.AddPage()
 	pdf.SetFont("DejaVu", "B", 16)
 	pdf.SetTextColor(59, 130, 246) // Blue
@@ -1852,19 +1862,30 @@ func drawRiskPieChart(pdf *gofpdf.Fpdf, centerX, centerY, radius float64, riskMa
 		endAngle := startAngle + angle
 		drawPieSlice(pdf, centerX, centerY, radius, startAngle, endAngle)
 
-		// Draw label on slice if percentage > 5%
+		// Draw label outside slice if percentage > 5%
 		if percentage > 0.05 {
 			labelAngle := startAngle + angle/2
-			labelRadius := radius * 0.7
+			// Position labels outside the pie slice with extra space for bottom labels
+			baseOffset := 10.0
+			// Add extra space for bottom labels to avoid legend overlap
+			normalizedAngle := math.Mod(labelAngle, 360)
+			if normalizedAngle > 225 && normalizedAngle < 315 {
+				baseOffset = 15.0 // Extra space for bottom labels
+			}
+			labelRadius := radius + baseOffset
 			labelX := centerX + labelRadius*cosDeg(labelAngle)
 			labelY := centerY - labelRadius*sinDeg(labelAngle) // Negative because Y increases downward
 
-			pdf.SetFont("DejaVu", "B", 9)
-			pdf.SetTextColor(255, 255, 255)
-			labelText := fmt.Sprintf("%.1f%%", percentage*100)
-			labelWidth := pdf.GetStringWidth(labelText)
-			pdf.SetXY(labelX-labelWidth/2, labelY-3)
-			pdf.Cell(0, 0, labelText)
+			pdf.SetFont("DejaVu", "B", 8)
+			pdf.SetTextColor(30, 41, 59) // Dark text for contrast on light background
+			percentText := fmt.Sprintf("%.1f%%", percentage*100)
+
+			// Get text width for centering
+			textWidth := pdf.GetStringWidth(percentText)
+
+			// Center the text on the label position
+			pdf.SetXY(labelX-textWidth/2, labelY-2)
+			pdf.Cell(0, 0, percentText)
 		}
 
 		startAngle = endAngle
@@ -1889,20 +1910,27 @@ func drawPieSlice(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float64
 
 // drawArc draws an arc segment
 func drawArc(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float64) {
+	// Move to starting point first
+	startX := cx + radius*cosDeg(startAngle)
+	startY := cy - radius*sinDeg(startAngle)
+	pdf.MoveTo(startX, startY)
+
 	// Approximate arc with small line segments
 	angleStep := 2.0 // degrees per segment
-	currentAngle := startAngle
+	currentAngle := startAngle + angleStep
 	for currentAngle < endAngle {
-		nextAngle := currentAngle + angleStep
-		if nextAngle > endAngle {
-			nextAngle = endAngle
-		}
-
-		x2 := cx + radius*cosDeg(nextAngle)
-		y2 := cy - radius*sinDeg(nextAngle)
+		x2 := cx + radius*cosDeg(currentAngle)
+		y2 := cy - radius*sinDeg(currentAngle)
 
 		pdf.LineTo(x2, y2)
-		currentAngle = nextAngle
+		currentAngle += angleStep
+	}
+
+	// Ensure we reach the exact end point
+	if currentAngle != endAngle {
+		endX := cx + radius*cosDeg(endAngle)
+		endY := cy - radius*sinDeg(endAngle)
+		pdf.LineTo(endX, endY)
 	}
 }
 
@@ -1915,7 +1943,7 @@ func sinDeg(angle float64) float64 {
 	return math.Sin(angle * math.Pi / 180.0)
 }
 
-// drawRiskLegend draws a legend with NOM-035 thresholds
+// drawRiskLegend draws a legend with NOM-035 thresholds (percentages shown on chart)
 func drawRiskLegend(pdf *gofpdf.Fpdf, x, y float64, riskMap map[string]int64, totalCount int64, riskOrder []string) {
 	riskColors := map[string]struct{ r, g, b int }{
 		"nulo":     {r: 220, g: 252, b: 231},
@@ -1943,11 +1971,6 @@ func drawRiskLegend(pdf *gofpdf.Fpdf, x, y float64, riskMap map[string]int64, to
 			continue
 		}
 
-		percentage := float64(0)
-		if totalCount > 0 {
-			percentage = (float64(count) / float64(totalCount)) * 100
-		}
-
 		color := riskColors[level]
 		threshold := thresholds[level]
 
@@ -1955,18 +1978,18 @@ func drawRiskLegend(pdf *gofpdf.Fpdf, x, y float64, riskMap map[string]int64, to
 		pdf.SetFillColor(color.r, color.g, color.b)
 		pdf.Rect(x, currentY, boxSize, boxSize, "F")
 
-		// Label with threshold
+		// Label with threshold (no percentages since they're on the chart)
 		pdf.SetFont("DejaVu", "B", 9)
 		pdf.SetTextColor(30, 41, 59)
 		pdf.SetXY(x+boxSize+4, currentY)
-		labelText := fmt.Sprintf("%s (%s): %d (%.1f%%)", formatRiskLevel(level), threshold, count, percentage)
+		labelText := fmt.Sprintf("%s (%s): %d", formatRiskLevel(level), threshold, count)
 		pdf.Cell(0, boxSize, labelText)
 
 		currentY += itemHeight + 2
 	}
 }
 
-// drawDemoDonutChart draws a donut chart with blue color (#007BFF) and center label
+// drawDemoDonutChart draws a segmented donut chart with proper proportions and legend
 func drawDemoDonutChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data []domain.DemographicDistribution) {
 	if len(data) == 0 {
 		return
@@ -1991,48 +2014,112 @@ func drawDemoDonutChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data
 		return
 	}
 
-	// Find max category for center label (100%)
-	maxCount := int64(0)
-	maxCategory := ""
-	for _, d := range data {
-		if d.Count > maxCount {
-			maxCount = d.Count
-			maxCategory = d.Category
-		}
-	}
-
-	// Donut chart dimensions
+	// Pie chart dimensions - scale based on card height with better spacing
 	centerX := x + w/2
-	centerY := y + h/2 + 5
-	outerRadius := 18.0
-	innerRadius := 10.0
+	centerY := y + h*0.42 // Position center for optimal spacing
+	radius := h * 0.20    // Smaller radius to prevent overlap with legend
 
-	// Draw donut chart - blue (#007BFF = 0, 123, 255) for all segments
-	pdf.SetFillColor(0, 123, 255)
-	pdf.SetDrawColor(255, 255, 255)
-	pdf.SetLineWidth(1.0)
-
-	// Draw full circle (100% for max category)
-	drawDonutSlice(pdf, centerX, centerY, outerRadius, innerRadius, 0, 360)
-
-	// Center label showing 100% for max category
-	pdf.SetFont("DejaVu", "B", 12)
-	pdf.SetTextColor(0, 123, 255)
-	centerLabel := "100%"
-	labelWidth := pdf.GetStringWidth(centerLabel)
-	pdf.SetXY(centerX-labelWidth/2, centerY-4)
-	pdf.Cell(0, 0, centerLabel)
-
-	// Category name below percentage
-	pdf.SetFont("DejaVu", "", 8)
-	pdf.SetTextColor(71, 85, 105)
-	categoryName := maxCategory
-	if len(categoryName) > 15 {
-		categoryName = categoryName[:12] + "..."
+	// Color palette for demographic segments
+	colors := []struct{ r, g, b int }{
+		{59, 130, 246}, // Blue
+		{16, 185, 129}, // Emerald
+		{245, 158, 11}, // Amber
+		{239, 68, 68},  // Red
+		{139, 92, 246}, // Violet
+		{236, 72, 153}, // Pink
+		{75, 85, 99},   // Gray
+		{6, 182, 212},  // Cyan
 	}
-	catWidth := pdf.GetStringWidth(categoryName)
-	pdf.SetXY(centerX-catWidth/2, centerY+6)
-	pdf.Cell(0, 0, categoryName)
+
+	// Draw segmented pie chart
+	startAngle := 90.0 // Start at top (12 o'clock)
+	for i, d := range data {
+		if d.Count == 0 {
+			continue
+		}
+
+		// Calculate angle for this segment
+		percentage := float64(d.Count) / float64(total)
+		angle := percentage * 360.0
+
+		// Get color for this segment
+		colorIndex := i % len(colors)
+		color := colors[colorIndex]
+
+		// Draw pie segment
+		pdf.SetFillColor(color.r, color.g, color.b)
+		pdf.SetDrawColor(255, 255, 255)
+		pdf.SetLineWidth(0.5)
+
+		endAngle := startAngle + angle
+		drawPieSlice(pdf, centerX, centerY, radius, startAngle, endAngle)
+
+		// Add percentage label outside the pie slice (only for segments > 3%)
+		if percentage > 0.03 {
+			labelAngle := startAngle + angle/2
+			// Position labels outside the pie slice with extra space for bottom labels
+			baseOffset := 8.0
+			// Add extra space for bottom labels to avoid legend overlap
+			normalizedAngle := math.Mod(labelAngle, 360)
+			if normalizedAngle > 225 && normalizedAngle < 315 {
+				baseOffset = 12.0 // Extra space for bottom labels
+			}
+			labelRadius := radius + baseOffset
+			labelX := centerX + labelRadius*cosDeg(labelAngle)
+			labelY := centerY - labelRadius*sinDeg(labelAngle) // Negative because Y increases downward
+
+			// Set font for percentage labels - outside positioning
+			pdf.SetFont("DejaVu", "B", 8)
+			pdf.SetTextColor(30, 41, 59) // Dark text for contrast on light background
+
+			// Format percentage text
+			percentText := fmt.Sprintf("%.1f%%", percentage*100)
+
+			// Get text width for centering
+			textWidth := pdf.GetStringWidth(percentText)
+
+			// Center the text on the label position
+			pdf.SetXY(labelX-textWidth/2, labelY-2)
+			pdf.Cell(0, 0, percentText)
+		}
+
+		startAngle = endAngle
+	}
+
+	// Draw legend below the chart
+	legendY := y + h*0.72 // Position legend even lower to avoid chart overlap
+	legendX := x + 4
+	itemsPerRow := 2
+	legendItemWidth := (w - 8) / float64(itemsPerRow)
+
+	pdf.SetFont("DejaVu", "", 7)
+	for i, d := range data {
+		if i >= 8 { // Allow up to 8 items
+			break
+		}
+
+		row := i / itemsPerRow
+		col := i % itemsPerRow
+		itemX := legendX + float64(col)*legendItemWidth
+		itemY := legendY + float64(row)*7
+
+		// Color box
+		colorIndex := i % len(colors)
+		color := colors[colorIndex]
+		pdf.SetFillColor(color.r, color.g, color.b)
+		pdf.Rect(itemX, itemY, 4, 4, "F")
+
+		// Label with category name only (percentages now on chart)
+		pdf.SetTextColor(71, 85, 105)
+		pdf.SetXY(itemX+6, itemY-1)
+
+		categoryName := d.Category
+		if len(categoryName) > 16 {
+			categoryName = categoryName[:13] + "..."
+		}
+
+		pdf.Cell(legendItemWidth-8, 6, categoryName)
+	}
 }
 
 // drawDonutSlice draws a donut slice (ring segment)
@@ -2056,17 +2143,26 @@ func drawDonutSlice(pdf *gofpdf.Fpdf, cx, cy, outerRadius, innerRadius, startAng
 
 // drawArcReverse draws an arc in reverse direction
 func drawArcReverse(pdf *gofpdf.Fpdf, cx, cy, radius, startAngle, endAngle float64) {
+	// Move to starting point first
+	startX := cx + radius*cosDeg(startAngle)
+	startY := cy - radius*sinDeg(startAngle)
+	pdf.MoveTo(startX, startY)
+
+	// Approximate arc with small line segments in reverse
 	angleStep := 2.0
-	currentAngle := startAngle
+	currentAngle := startAngle - angleStep
 	for currentAngle > endAngle {
-		nextAngle := currentAngle - angleStep
-		if nextAngle < endAngle {
-			nextAngle = endAngle
-		}
-		x2 := cx + radius*cosDeg(nextAngle)
-		y2 := cy - radius*sinDeg(nextAngle)
+		x2 := cx + radius*cosDeg(currentAngle)
+		y2 := cy - radius*sinDeg(currentAngle)
 		pdf.LineTo(x2, y2)
-		currentAngle = nextAngle
+		currentAngle -= angleStep
+	}
+
+	// Ensure we reach the exact end point
+	if currentAngle != endAngle {
+		endX := cx + radius*cosDeg(endAngle)
+		endY := cy - radius*sinDeg(endAngle)
+		pdf.LineTo(endX, endY)
 	}
 }
 
