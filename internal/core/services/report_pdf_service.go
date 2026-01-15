@@ -709,9 +709,8 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 
 	pdf.SetX(15)
 	pdf.CellFormat(70, 10, "Elemento", "", 0, "L", true, 0, "")
-	pdf.CellFormat(32, 10, "Puntuacion", "", 0, "C", true, 0, "")
-	pdf.CellFormat(20, 10, "Progreso", "", 0, "C", true, 0, "")
-	pdf.CellFormat(25, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
+	pdf.CellFormat(52, 10, "Puntuacion", "", 0, "C", true, 0, "")
+	pdf.CellFormat(45, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
 
 	// Rows
 	pdf.SetFont("DejaVu", "", 9)
@@ -726,9 +725,8 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 			pdf.SetTextColor(71, 85, 105)
 			pdf.SetX(15)
 			pdf.CellFormat(70, 10, "Elemento", "", 0, "L", true, 0, "")
-			pdf.CellFormat(32, 10, "Puntuacion", "", 0, "C", true, 0, "")
-			pdf.CellFormat(20, 10, "Progreso", "", 0, "C", true, 0, "")
-			pdf.CellFormat(25, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
+			pdf.CellFormat(52, 10, "Puntuacion", "", 0, "C", true, 0, "")
+			pdf.CellFormat(45, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
 			pdf.SetFont("DejaVu", "", 9)
 			fill = false
 		}
@@ -762,57 +760,22 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 		pdf.SetTextColor(71, 85, 105)
 		scoreText := fmt.Sprintf("%.1f / %.0f", score, maxScore)
 		// Truncate score text if too long
-		if pdf.GetStringWidth(scoreText) > 30 {
+		if pdf.GetStringWidth(scoreText) > 50 {
 			scoreText = fmt.Sprintf("%.0f/%.0f", score, maxScore)
 		}
-		pdf.CellFormat(32, 9, scoreText, "", 0, "C", fill, 0, "")
-
-		// Color-coded progress bar
-		progressBarX := pdf.GetX()
-		progressBarY := pdf.GetY()
-		progressBarWidth := 18.0
-		progressBarHeight := 6.0
-
-		// Calculate percentage
-		percentage := float64(0)
-		if maxScore > 0 {
-			percentage = (score / maxScore) * 100
-			if percentage > 100 {
-				percentage = 100
-			}
-		}
-
-		// Background bar
-		pdf.SetFillColor(241, 245, 249)
-		pdf.RoundedRect(progressBarX, progressBarY+1.5, progressBarWidth, progressBarHeight, 2, "1234", "F")
-
-		// Colored fill based on risk level
-		fillWidth := (percentage / 100.0) * progressBarWidth
-		if fillWidth > 0 {
-			// Color based on risk level: green for Nulo/Bajo, yellow for Medio, orange for Alto
-			if riskLevel == "nulo" || riskLevel == "bajo" {
-				pdf.SetFillColor(40, 167, 69) // Green #28A745
-			} else if riskLevel == "medio" {
-				pdf.SetFillColor(255, 193, 7) // Yellow #FFC107
-			} else {
-				pdf.SetFillColor(255, 152, 0) // Orange
-			}
-			pdf.RoundedRect(progressBarX, progressBarY+1.5, fillWidth, progressBarHeight, 2, "1234", "F")
-		}
-
-		pdf.CellFormat(20, 9, "", "", 0, "C", fill, 0, "")
+		pdf.CellFormat(52, 9, scoreText, "", 0, "C", fill, 0, "")
 
 		// Risk level badge
 		riskLabel := formatRiskLevel(riskLevel)
 		// Truncate risk label if too long to prevent cutoff
-		maxRiskLabelWidth := 23.0
+		maxRiskLabelWidth := 43.0
 		if pdf.GetStringWidth(riskLabel) > maxRiskLabelWidth {
 			for len(riskLabel) > 0 && pdf.GetStringWidth(riskLabel) > maxRiskLabelWidth {
 				riskLabel = riskLabel[:len(riskLabel)-1]
 			}
 		}
 		pdf.SetTextColor(config.textR, config.textG, config.textB)
-		pdf.CellFormat(25, 9, riskLabel, "", 1, "C", fill, 0, "")
+		pdf.CellFormat(45, 9, riskLabel, "", 1, "C", fill, 0, "")
 
 		fill = !fill
 	}

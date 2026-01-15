@@ -244,36 +244,64 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Risk Correlation Charts */}
-        {((reportData?.age_risk_distribution?.length ?? 0) > 0 || (reportData?.shift_risk_distribution?.length ?? 0) > 0) && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-2">{translations.dashboard.riskByDemographics}</h3>
-            <div className="grid gap-2 md:grid-cols-2">
-              {reportData?.age_risk_distribution && reportData.age_risk_distribution.length > 0 && (
-                <DemographicRiskChart
-                  title={translations.dashboard.riskByAge}
-                  description={translations.dashboard.riskByAgeDesc}
-                  icon={Calendar}
-                  data={reportData.age_risk_distribution}
-                  isLoading={reportLoading}
-                />
-              )}
-              {reportData?.shift_risk_distribution && reportData.shift_risk_distribution.length > 0 && (
-                <DemographicRiskChart
-                  title={translations.dashboard.riskByShift}
-                  description={translations.dashboard.riskByShiftDesc}
-                  icon={Clock}
-                  data={reportData.shift_risk_distribution}
-                  isLoading={reportLoading}
-                />
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
+      {/* Demographic Risk Analysis */}
+      {((reportData?.age_risk_distribution?.length ?? 0) > 0 ||
+        (reportData?.shift_risk_distribution?.length ?? 0) > 0 ||
+        (reportData?.experience_risk_distribution?.length ?? 0) > 0 ||
+        (reportData?.marital_status_risk_distribution?.length ?? 0) > 0) && (
+        <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '400ms' }}>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">{translations.dashboard.demographicRiskAnalysis}</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {translations.dashboard.demographicRiskDesc}
+            </p>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2">
+            {reportData?.age_risk_distribution && reportData.age_risk_distribution.length > 0 && (
+              <DemographicRiskChart
+                title={translations.dashboard.riskByAge}
+                description={translations.dashboard.riskByAgeDesc}
+                icon={Calendar}
+                data={reportData.age_risk_distribution}
+                isLoading={reportLoading}
+              />
+            )}
+            {reportData?.shift_risk_distribution && reportData.shift_risk_distribution.length > 0 && (
+              <DemographicRiskChart
+                title={translations.dashboard.riskByShift}
+                description={translations.dashboard.riskByShiftDesc}
+                icon={Clock}
+                data={reportData.shift_risk_distribution}
+                isLoading={reportLoading}
+              />
+            )}
+            {reportData?.experience_risk_distribution && reportData.experience_risk_distribution.length > 0 && (
+              <DemographicRiskChart
+                title={translations.dashboard.riskByExperience}
+                description={translations.dashboard.riskByExperienceDesc}
+                icon={Briefcase}
+                data={reportData.experience_risk_distribution}
+                isLoading={reportLoading}
+              />
+            )}
+            {reportData?.marital_status_risk_distribution && reportData.marital_status_risk_distribution.length > 0 && (
+              <DemographicRiskChart
+                title={translations.dashboard.riskByMaritalStatus}
+                description={translations.dashboard.riskByMaritalStatusDesc}
+                icon={Heart}
+                data={reportData.marital_status_risk_distribution}
+                isLoading={reportLoading}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
-      <Card className="animate-in fade-in slide-in-from-bottom-4 shadow-sm hover:shadow-md transition-all" style={{ animationDelay: '400ms' }}>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 shadow-sm hover:shadow-md transition-all" style={{ animationDelay: '500ms' }}>
         <CardHeader>
           <CardTitle>{translations.dashboard.quickActions}</CardTitle>
           <CardDescription>

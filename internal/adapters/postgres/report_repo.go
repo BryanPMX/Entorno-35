@@ -308,6 +308,12 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 	// Aggregation 10: Shift risk distribution (cross-analysis)
 	shiftRiskDistribution := r.getDemographicRiskDistribution(companyID, "shift_type", period)
 
+	// Aggregation 11: Experience risk distribution (cross-analysis)
+	experienceRiskDistribution := r.getDemographicRiskDistribution(companyID, "total_work_experience", period)
+
+	// Aggregation 12: Marital status risk distribution (cross-analysis)
+	maritalStatusRiskDistribution := r.getDemographicRiskDistribution(companyID, "marital_status", period)
+
 	// Build DTO
 	dto := &domain.GeneralReportDTO{
 		CompanyID:                  company.ID,
@@ -324,6 +330,8 @@ func (r *reportRepository) GetGeneralReport(companyID uuid.UUID, period *int) (*
 		ExperienceDistribution:     experienceDistribution,
 		AgeRiskDistribution:        ageRiskDistribution,
 		ShiftRiskDistribution:      shiftRiskDistribution,
+		ExperienceRiskDistribution: experienceRiskDistribution,
+		MaritalStatusRiskDistribution: maritalStatusRiskDistribution,
 	}
 
 	return dto, nil

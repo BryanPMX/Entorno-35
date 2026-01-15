@@ -111,6 +111,18 @@ function translateCategory(category: string): string {
     diurno: "Diurno",
     nocturno: "Nocturno",
     mixto: "Mixto",
+    "0-2": "0-2 años",
+    "3-5": "3-5 años",
+    "6-10": "6-10 años",
+    "11-15": "11-15 años",
+    "16-20": "16-20 años",
+    "21+": "21+ años",
+    soltero: "Soltero/a",
+    casado: "Casado/a",
+    divorciado: "Divorciado/a",
+    viudo: "Viudo/a",
+    union_libre: "Unión Libre",
+    separado: "Separado/a",
   };
   return translations[category] || category;
 }

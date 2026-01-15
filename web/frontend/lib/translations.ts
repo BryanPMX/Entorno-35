@@ -75,6 +75,8 @@ export const translations = {
     newAssessmentCycle: "Nuevo Ciclo de Evaluacion",
     demographicAnalysis: "Analisis Demografico",
     demographicDesc: "Distribucion del personal por caracteristicas demograficas",
+    demographicRiskAnalysis: "Riesgo Demografico",
+    demographicRiskDesc: "Analisis de riesgo psicosocial por caracteristicas demograficas",
     age: "Edad",
     ageDesc: "Distribucion por rango de edad",
     maritalStatus: "Estado Civil",
@@ -89,6 +91,10 @@ export const translations = {
     riskByAgeDesc: "Distribucion de niveles de riesgo segun la edad del personal",
     riskByShift: "Riesgo por Tipo de Turno",
     riskByShiftDesc: "Distribucion de niveles de riesgo segun el turno laboral",
+    riskByExperience: "Riesgo por Experiencia",
+    riskByExperienceDesc: "Distribucion de niveles de riesgo segun los años de experiencia laboral",
+    riskByMaritalStatus: "Riesgo por Estado Civil",
+    riskByMaritalStatusDesc: "Distribucion de niveles de riesgo segun el estado civil del personal",
   },
 
   // Staff Management

@@ -40,6 +40,8 @@ export interface GeneralReportDTO {
   // Demographic risk distributions (for cross-analysis)
   age_risk_distribution: DemographicRiskDistribution[];
   shift_risk_distribution: DemographicRiskDistribution[];
+  experience_risk_distribution: DemographicRiskDistribution[];
+  marital_status_risk_distribution: DemographicRiskDistribution[];
 }
 
 export interface IndividualReportDTO {

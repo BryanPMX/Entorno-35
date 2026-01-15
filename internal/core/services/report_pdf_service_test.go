@@ -117,12 +117,12 @@ func TestReportPDFService_GetRiskColor(t *testing.T) {
 		g     int
 		b     int
 	}{
-		{"nulo", "nulo", 34, 197, 94},
-		{"bajo", "bajo", 132, 204, 22},
-		{"medio", "medio", 234, 179, 8},
-		{"alto", "alto", 249, 115, 22},
-		{"muy_alto", "muy_alto", 239, 68, 68},
-		{"default", "unknown", 0, 0, 0},
+		{"nulo", "nulo", 21, 128, 61},
+		{"bajo", "bajo", 77, 124, 15},
+		{"medio", "medio", 161, 98, 7},
+		{"alto", "alto", 194, 65, 12},
+		{"muy_alto", "muy_alto", 185, 28, 28},
+		{"default", "unknown", 21, 128, 61}, // defaults to nulo
 	}
 
 	for _, tt := range tests {
