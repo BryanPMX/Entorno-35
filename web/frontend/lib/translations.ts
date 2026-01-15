@@ -50,6 +50,7 @@ export const translations = {
     settings: "Configuracion",
     logout: "Cerrar Sesion",
     login: "Iniciar Sesion",
+    logoutSuccess: "Sesion cerrada exitosamente",
   },
 
   // Dashboard
@@ -82,6 +83,12 @@ export const translations = {
     shiftTypeDesc: "Distribucion por tipo de turno",
     experience: "Experiencia",
     experienceDesc: "Distribucion por experiencia laboral",
+    demographicDistribution: "Distribucion Demografica",
+    riskByDemographics: "Riesgo Demografico",
+    riskByAge: "Riesgo por Rango de Edad",
+    riskByAgeDesc: "Distribucion de niveles de riesgo segun la edad del personal",
+    riskByShift: "Riesgo por Tipo de Turno",
+    riskByShiftDesc: "Distribucion de niveles de riesgo segun el turno laboral",
   },
 
   // Staff Management
@@ -187,7 +194,7 @@ export const translations = {
   charts: {
     riskDistribution: "Distribucion de Riesgo",
     riskDistributionDesc: "Distribucion de evaluaciones por nivel de riesgo",
-    departmentHeatmap: "Mapa de Calor por Departamento",
+    departmentHeatmap: "Riesgo Por Departamento",
     departmentHeatmapDesc: "Riesgo promedio por departamento",
     noDataAvailable: "No hay datos disponibles",
     riskScore: "Puntuacion de Riesgo",

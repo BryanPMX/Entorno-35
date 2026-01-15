@@ -6,7 +6,8 @@ import { Users, FileText, TrendingUp, Plus, Calendar, Heart, Clock, Briefcase } 
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { RiskDistributionChart } from "@/components/dashboard/risk-distribution-chart";
 import { DepartmentHeatmap } from "@/components/dashboard/department-heatmap";
-import { DemographicChart } from "@/components/dashboard/demographic-chart";
+import { EnhancedDemographicChart } from "@/components/dashboard/enhanced-demographic-chart";
+import { DemographicRiskChart } from "@/components/dashboard/demographic-risk-chart";
 import { AssessmentWizard } from "@/components/assessments/assessment-wizard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -197,45 +198,78 @@ export default function DashboardPage() {
       </div>
 
       {/* Demographic Analysis */}
-      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
-        <h2 className="text-xl font-semibold text-gray-900">{translations.dashboard.demographicAnalysis}</h2>
-        <p className="text-sm text-muted-foreground">
-          {translations.dashboard.demographicDesc}
-        </p>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <DemographicChart
-            title={translations.dashboard.age}
-            description={translations.dashboard.ageDesc}
-            icon={Calendar}
-            data={reportData?.age_distribution || []}
-            isLoading={reportLoading}
-            colorScheme="blue"
-          />
-          <DemographicChart
-            title={translations.dashboard.maritalStatus}
-            description={translations.dashboard.maritalStatusDesc}
-            icon={Heart}
-            data={reportData?.marital_status_distribution || []}
-            isLoading={reportLoading}
-            colorScheme="purple"
-          />
-          <DemographicChart
-            title={translations.dashboard.shiftType}
-            description={translations.dashboard.shiftTypeDesc}
-            icon={Clock}
-            data={reportData?.shift_type_distribution || []}
-            isLoading={reportLoading}
-            colorScheme="green"
-          />
-          <DemographicChart
-            title={translations.dashboard.experience}
-            description={translations.dashboard.experienceDesc}
-            icon={Briefcase}
-            data={reportData?.experience_distribution || []}
-            isLoading={reportLoading}
-            colorScheme="orange"
-          />
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">{translations.dashboard.demographicAnalysis}</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {translations.dashboard.demographicDesc}
+          </p>
         </div>
+        
+        {/* Distribution Charts */}
+        <div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <EnhancedDemographicChart
+              title={translations.dashboard.age}
+              description={translations.dashboard.ageDesc}
+              icon={Calendar}
+              data={reportData?.age_distribution || []}
+              isLoading={reportLoading}
+              chartType="donut"
+            />
+            <EnhancedDemographicChart
+              title={translations.dashboard.maritalStatus}
+              description={translations.dashboard.maritalStatusDesc}
+              icon={Heart}
+              data={reportData?.marital_status_distribution || []}
+              isLoading={reportLoading}
+              chartType="donut"
+            />
+            <EnhancedDemographicChart
+              title={translations.dashboard.shiftType}
+              description={translations.dashboard.shiftTypeDesc}
+              icon={Clock}
+              data={reportData?.shift_type_distribution || []}
+              isLoading={reportLoading}
+              chartType="donut"
+            />
+            <EnhancedDemographicChart
+              title={translations.dashboard.experience}
+              description={translations.dashboard.experienceDesc}
+              icon={Briefcase}
+              data={reportData?.experience_distribution || []}
+              isLoading={reportLoading}
+              chartType="donut"
+            />
+          </div>
+        </div>
+
+        {/* Risk Correlation Charts */}
+        {((reportData?.age_risk_distribution?.length ?? 0) > 0 || (reportData?.shift_risk_distribution?.length ?? 0) > 0) && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-800 mb-4">{translations.dashboard.riskByDemographics}</h3>
+            <div className="grid gap-6 md:grid-cols-2">
+              {reportData?.age_risk_distribution && reportData.age_risk_distribution.length > 0 && (
+                <DemographicRiskChart
+                  title={translations.dashboard.riskByAge}
+                  description={translations.dashboard.riskByAgeDesc}
+                  icon={Calendar}
+                  data={reportData.age_risk_distribution}
+                  isLoading={reportLoading}
+                />
+              )}
+              {reportData?.shift_risk_distribution && reportData.shift_risk_distribution.length > 0 && (
+                <DemographicRiskChart
+                  title={translations.dashboard.riskByShift}
+                  description={translations.dashboard.riskByShiftDesc}
+                  icon={Clock}
+                  data={reportData.shift_risk_distribution}
+                  isLoading={reportLoading}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}

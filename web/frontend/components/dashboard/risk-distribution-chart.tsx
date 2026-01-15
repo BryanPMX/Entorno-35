@@ -32,9 +32,18 @@ const RISK_LABELS = {
 };
 
 export function RiskDistributionChart({ data, isLoading = false }: RiskDistributionChartProps) {
-  const chartData = data.map((item) => ({
+  // Validate and filter data
+  const validData = (data || []).filter(item => 
+    item && 
+    item.risk_level && 
+    item.count !== undefined && 
+    item.count !== null &&
+    item.count >= 0
+  );
+  
+  const chartData = validData.map((item) => ({
     name: RISK_LABELS[item.risk_level as keyof typeof RISK_LABELS] || item.risk_level,
-    value: item.count,
+    value: item.count || 0,
     fill: RISK_COLORS[item.risk_level as keyof typeof RISK_COLORS] || "#6b7280",
   }));
 
@@ -89,17 +98,25 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
         <CardTitle>{translations.charts.riskDistribution}</CardTitle>
         <CardDescription>{translations.charts.riskDistributionDesc}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={240}>
-          <PieChart margin={{ bottom: 15 }}>
+      <CardContent className="pb-4">
+        <ResponsiveContainer width="100%" height={280}>
+          <PieChart margin={{ top: 30, right: 20, bottom: 60, left: 20 }}>
             <Pie
               data={chartData}
               cx="50%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={95}
+              cy="45%"
+              innerRadius={50}
+              outerRadius={75}
               paddingAngle={2}
               dataKey="value"
+              label={(entry: any) => {
+                const total = chartData.reduce((sum, item) => sum + item.value, 0);
+                const percentage = total > 0 ? Math.round((entry.value / total) * 100) : 0;
+                // Only show label if percentage is significant (> 5%)
+                if (percentage < 5) return "";
+                return `${percentage}%`;
+              }}
+              labelLine={false}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -108,9 +125,11 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
             <Tooltip content={<CustomTooltip />} />
             <Legend
               verticalAlign="bottom"
-              height={36}
+              height={50}
+              iconType="circle"
+              wrapperStyle={{ paddingTop: "10px" }}
               formatter={(value, entry) => (
-                <span style={{ color: entry.color }}>{value}</span>
+                <span style={{ color: entry.color, fontSize: "11px" }}>{value}</span>
               )}
             />
           </PieChart>

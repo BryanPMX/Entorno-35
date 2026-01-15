@@ -280,17 +280,19 @@ export default function AssessmentReportPage() {
                   return (
                     <div key={category} className="space-y-3">
                       {/* Header with category name and risk badge */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-sm font-medium text-gray-600 w-6">{index + 1}.</span>
-                          <span className="font-semibold text-gray-900">{category}</span>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <span className="text-sm font-medium text-gray-600 w-6 flex-shrink-0">{index + 1}.</span>
+                          <span className="font-semibold text-gray-900 truncate">{category}</span>
                         </div>
-                        {getRiskBadge(riskLevel)}
+                        <div className="flex-shrink-0">
+                          {getRiskBadge(riskLevel)}
+                        </div>
                       </div>
 
                       {/* Progress bar and score */}
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-1">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
                           <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                             <div
                               className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
@@ -298,14 +300,14 @@ export default function AssessmentReportPage() {
                             ></div>
                           </div>
                         </div>
-                        <div className="flex items-baseline space-x-1 min-w-0">
-                          <span className="text-lg font-bold text-gray-900 tabular-nums">
+                        <div className="flex items-baseline space-x-1 flex-shrink-0">
+                          <span className="text-lg font-bold text-gray-900 tabular-nums whitespace-nowrap">
                             {score.toFixed(1)}
                           </span>
-                          <span className="text-sm font-medium text-gray-500">
+                          <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
                             /{maxScore}
                           </span>
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-xs text-gray-400 whitespace-nowrap">
                             ({percentage.toFixed(0)}%)
                           </span>
                         </div>
@@ -335,17 +337,19 @@ export default function AssessmentReportPage() {
                   return (
                     <div key={domain} className="space-y-3">
                       {/* Header with domain name and risk badge */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-sm font-medium text-gray-600 w-6">{index + 1}.</span>
-                          <span className="font-semibold text-gray-900">{domain}</span>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <span className="text-sm font-medium text-gray-600 w-6 flex-shrink-0">{index + 1}.</span>
+                          <span className="font-semibold text-gray-900 truncate">{domain}</span>
                         </div>
-                        {getRiskBadge(riskLevel)}
+                        <div className="flex-shrink-0">
+                          {getRiskBadge(riskLevel)}
+                        </div>
                       </div>
 
                       {/* Progress bar and score */}
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-1">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
                           <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                             <div
                               className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
@@ -353,14 +357,14 @@ export default function AssessmentReportPage() {
                             ></div>
                           </div>
                         </div>
-                        <div className="flex items-baseline space-x-1 min-w-0">
-                          <span className="text-lg font-bold text-gray-900 tabular-nums">
+                        <div className="flex items-baseline space-x-1 flex-shrink-0">
+                          <span className="text-lg font-bold text-gray-900 tabular-nums whitespace-nowrap">
                             {score.toFixed(1)}
                           </span>
-                          <span className="text-sm font-medium text-gray-500">
+                          <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
                             /{maxScore}
                           </span>
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-xs text-gray-400 whitespace-nowrap">
                             ({percentage.toFixed(0)}%)
                           </span>
                         </div>

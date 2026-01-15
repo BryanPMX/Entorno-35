@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { translations } from "@/lib/translations";
 
@@ -9,6 +9,7 @@ interface DepartmentData {
   department: string;
   risk_level: string;
   count: number;
+  avg_score?: number;
 }
 
 interface DepartmentHeatmapProps {
@@ -141,11 +142,10 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
             <Tooltip content={<CustomTooltip />} />
             <Bar
               dataKey="averageRisk"
-              fill="#8884d8"
               radius={[4, 4, 0, 0]}
             >
               {chartData.map((entry, index) => (
-                <Bar key={`cell-${index}`} fill={entry.color} />
+                <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Bar>
           </BarChart>

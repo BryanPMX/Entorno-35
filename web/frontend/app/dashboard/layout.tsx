@@ -7,6 +7,7 @@ import { AuthGuard } from "@/components/layout/auth-guard";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Users, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { translations } from "@/lib/translations";
 
 /**
  * Dashboard Layout
@@ -26,7 +27,7 @@ export default function DashboardLayout({
 
   const handleLogout = () => {
     logout();
-    toast.success("Logged out successfully");
+    toast.success(translations.nav.logoutSuccess);
     router.push("/login");
   };
 
@@ -46,7 +47,7 @@ export default function DashboardLayout({
               className="gap-2"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              {translations.nav.logout}
             </Button>
           </div>
         </header>
@@ -60,21 +61,21 @@ export default function DashboardLayout({
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <LayoutDashboard className="h-5 w-5" />
-                Dashboard
+                {translations.nav.dashboard}
               </Link>
               <Link
                 href="/dashboard/staff"
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <Users className="h-5 w-5" />
-                Staff
+                {translations.nav.staff}
               </Link>
               <Link
                 href="/dashboard/assessments"
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <FileText className="h-5 w-5" />
-                Assessments
+                {translations.nav.assessments}
               </Link>
             </nav>
           </aside>

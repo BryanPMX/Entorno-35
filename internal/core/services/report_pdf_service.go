@@ -708,10 +708,10 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 	pdf.SetTextColor(71, 85, 105)
 
 	pdf.SetX(15)
-	pdf.CellFormat(85, 10, "Elemento", "", 0, "L", true, 0, "")
-	pdf.CellFormat(40, 10, "Puntuacion", "", 0, "C", true, 0, "")
-	pdf.CellFormat(25, 10, "Progreso", "", 0, "C", true, 0, "")
-	pdf.CellFormat(30, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
+	pdf.CellFormat(70, 10, "Elemento", "", 0, "L", true, 0, "")
+	pdf.CellFormat(32, 10, "Puntuacion", "", 0, "C", true, 0, "")
+	pdf.CellFormat(20, 10, "Progreso", "", 0, "C", true, 0, "")
+	pdf.CellFormat(25, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
 
 	// Rows
 	pdf.SetFont("DejaVu", "", 9)
@@ -725,10 +725,10 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 			pdf.SetFont("DejaVu", "B", 9)
 			pdf.SetTextColor(71, 85, 105)
 			pdf.SetX(15)
-			pdf.CellFormat(85, 10, "Elemento", "", 0, "L", true, 0, "")
-			pdf.CellFormat(40, 10, "Puntuacion", "", 0, "C", true, 0, "")
-			pdf.CellFormat(25, 10, "Progreso", "", 0, "C", true, 0, "")
-			pdf.CellFormat(30, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
+			pdf.CellFormat(70, 10, "Elemento", "", 0, "L", true, 0, "")
+			pdf.CellFormat(32, 10, "Puntuacion", "", 0, "C", true, 0, "")
+			pdf.CellFormat(20, 10, "Progreso", "", 0, "C", true, 0, "")
+			pdf.CellFormat(25, 10, "Nivel de Riesgo", "", 1, "C", true, 0, "")
 			pdf.SetFont("DejaVu", "", 9)
 			fill = false
 		}
@@ -746,8 +746,9 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 
 		// Item name (truncate if needed)
 		itemText := k
-		if pdf.GetStringWidth(itemText) > 80 {
-			for len(itemText) > 0 && pdf.GetStringWidth(itemText+"...") > 80 {
+		maxItemWidth := 65.0
+		if pdf.GetStringWidth(itemText) > maxItemWidth {
+			for len(itemText) > 0 && pdf.GetStringWidth(itemText+"...") > maxItemWidth {
 				itemText = itemText[:len(itemText)-1]
 			}
 			itemText += "..."
@@ -755,16 +756,21 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 
 		pdf.SetTextColor(30, 41, 59)
 		pdf.SetX(15)
-		pdf.CellFormat(85, 9, itemText, "", 0, "L", fill, 0, "")
+		pdf.CellFormat(70, 9, itemText, "", 0, "L", fill, 0, "")
 
 		// Score
 		pdf.SetTextColor(71, 85, 105)
-		pdf.CellFormat(40, 9, fmt.Sprintf("%.1f / %.0f", score, maxScore), "", 0, "C", fill, 0, "")
+		scoreText := fmt.Sprintf("%.1f / %.0f", score, maxScore)
+		// Truncate score text if too long
+		if pdf.GetStringWidth(scoreText) > 30 {
+			scoreText = fmt.Sprintf("%.0f/%.0f", score, maxScore)
+		}
+		pdf.CellFormat(32, 9, scoreText, "", 0, "C", fill, 0, "")
 
 		// Color-coded progress bar
 		progressBarX := pdf.GetX()
 		progressBarY := pdf.GetY()
-		progressBarWidth := 23.0
+		progressBarWidth := 18.0
 		progressBarHeight := 6.0
 
 		// Calculate percentage
@@ -794,12 +800,19 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 			pdf.RoundedRect(progressBarX, progressBarY+1.5, fillWidth, progressBarHeight, 2, "1234", "F")
 		}
 
-		pdf.CellFormat(25, 9, "", "", 0, "C", fill, 0, "")
+		pdf.CellFormat(20, 9, "", "", 0, "C", fill, 0, "")
 
 		// Risk level badge
 		riskLabel := formatRiskLevel(riskLevel)
+		// Truncate risk label if too long to prevent cutoff
+		maxRiskLabelWidth := 23.0
+		if pdf.GetStringWidth(riskLabel) > maxRiskLabelWidth {
+			for len(riskLabel) > 0 && pdf.GetStringWidth(riskLabel) > maxRiskLabelWidth {
+				riskLabel = riskLabel[:len(riskLabel)-1]
+			}
+		}
 		pdf.SetTextColor(config.textR, config.textG, config.textB)
-		pdf.CellFormat(30, 9, riskLabel, "", 1, "C", fill, 0, "")
+		pdf.CellFormat(25, 9, riskLabel, "", 1, "C", fill, 0, "")
 
 		fill = !fill
 	}
