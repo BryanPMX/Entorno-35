@@ -2020,13 +2020,8 @@ func drawDemoDonutChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data
 		// Add percentage label outside the pie slice (only for segments > 3%)
 		if percentage > 0.03 {
 			labelAngle := startAngle + angle/2
-			// Position labels outside the pie slice with extra space for bottom labels
+			// Position all labels at consistent distance from chart
 			baseOffset := 8.0
-			// Add extra space for bottom labels to avoid legend overlap
-			normalizedAngle := math.Mod(labelAngle, 360)
-			if normalizedAngle > 225 && normalizedAngle < 315 {
-				baseOffset = 12.0 // Extra space for bottom labels
-			}
 			labelRadius := radius + baseOffset
 			labelX := centerX + labelRadius*cosDeg(labelAngle)
 			labelY := centerY - labelRadius*sinDeg(labelAngle) // Negative because Y increases downward
@@ -2049,22 +2044,39 @@ func drawDemoDonutChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data
 		startAngle = endAngle
 	}
 
-	// Draw legend below the chart
-	legendY := y + h*0.72 // Position legend even lower to avoid chart overlap
+	// Draw legend below the chart - position uniformly below all percentage labels
 	legendX := x + 4
 	itemsPerRow := 2
 	legendItemWidth := (w - 8) / float64(itemsPerRow)
 
+	// Calculate legend height
+	numLegendItems := len(data)
+	if numLegendItems > 6 {
+		numLegendItems = 6 // Limit to 6 items
+	}
+	numRows := (numLegendItems + itemsPerRow - 1) / itemsPerRow // Ceiling division
+	legendHeight := float64(numRows) * 5 // 5 units per row
+
+	// Position legend uniformly below chart - all percentage labels are at same distance
+	// Chart center at 42% height, radius 20% height, labels at +8 units = ~54.5 units from top
+	// Add 15 units clearance for legend
+	legendY := y + h*0.42 + h*0.20 + 8.0 + 15.0 // Chart bottom + label offset + clearance
+
+	// Ensure legend fits within card
+	if legendY+legendHeight > y+h {
+		legendY = y + h - legendHeight - 2 // Leave 2 units margin at bottom
+	}
+
 	pdf.SetFont("DejaVu", "", 7)
 	for i, d := range data {
-		if i >= 8 { // Allow up to 8 items
+		if i >= 6 { // Limit to 6 items to fit within card space
 			break
 		}
 
 		row := i / itemsPerRow
 		col := i % itemsPerRow
 		itemX := legendX + float64(col)*legendItemWidth
-		itemY := legendY + float64(row)*7
+		itemY := legendY + float64(row)*5 // Reduced spacing between legend rows
 
 		// Color box
 		colorIndex := i % len(colors)
