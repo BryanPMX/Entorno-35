@@ -186,29 +186,29 @@ export default function DashboardPage() {
       </div>
 
       {/* Risk Charts */}
-      <div className="grid gap-8 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '200ms' }}>
-        <RiskDistributionChart
-          data={reportData?.risk_distribution || []}
-          isLoading={reportLoading}
-        />
+      <div className="grid gap-8 md:grid-cols-2 items-start animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '200ms' }}>
         <DepartmentHeatmap
           data={reportData?.department_heatmap || []}
+          isLoading={reportLoading}
+        />
+        <RiskDistributionChart
+          data={reportData?.risk_distribution || []}
           isLoading={reportLoading}
         />
       </div>
 
       {/* Demographic Analysis */}
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
+      <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
         <div>
           <h2 className="text-xl font-semibold text-gray-900">{translations.dashboard.demographicAnalysis}</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {translations.dashboard.demographicDesc}
           </p>
         </div>
-        
+
         {/* Distribution Charts */}
         <div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-2 md:grid-cols-2">
             <EnhancedDemographicChart
               title={translations.dashboard.age}
               description={translations.dashboard.ageDesc}
@@ -247,8 +247,8 @@ export default function DashboardPage() {
         {/* Risk Correlation Charts */}
         {((reportData?.age_risk_distribution?.length ?? 0) > 0 || (reportData?.shift_risk_distribution?.length ?? 0) > 0) && (
           <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-4">{translations.dashboard.riskByDemographics}</h3>
-            <div className="grid gap-6 md:grid-cols-2">
+            <h3 className="text-lg font-medium text-gray-800 mb-2">{translations.dashboard.riskByDemographics}</h3>
+            <div className="grid gap-2 md:grid-cols-2">
               {reportData?.age_risk_distribution && reportData.age_risk_distribution.length > 0 && (
                 <DemographicRiskChart
                   title={translations.dashboard.riskByAge}

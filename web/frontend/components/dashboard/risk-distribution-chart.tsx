@@ -98,7 +98,7 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
         <CardTitle>{translations.charts.riskDistribution}</CardTitle>
         <CardDescription>{translations.charts.riskDistributionDesc}</CardDescription>
       </CardHeader>
-      <CardContent className="pb-4">
+      <CardContent>
         <ResponsiveContainer width="100%" height={280}>
           <PieChart margin={{ top: 30, right: 20, bottom: 20, left: 20 }}>
             <Pie
@@ -127,11 +127,11 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
         </ResponsiveContainer>
 
         {/* Risk Level Legend */}
-        <div className="mt-4 pt-4 border-t border-border">
-          <div className="mb-3">
+        <div className="pt-2 border-t border-border">
+          <div className="mb-1">
             <p className="text-sm font-medium text-muted-foreground">Niveles de Riesgo</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {chartData.map((entry, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <div

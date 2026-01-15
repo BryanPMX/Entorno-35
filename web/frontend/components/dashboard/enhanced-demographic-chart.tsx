@@ -218,8 +218,8 @@ export function EnhancedDemographicChart({
   // Render donut chart (only supported chart type)
   const renderChart = () => {
     return (
-      <ResponsiveContainer width="100%" height={400}>
-        <PieChart margin={{ top: 40, right: 30, bottom: 80, left: 30 }}>
+      <ResponsiveContainer width="100%" height={320}>
+        <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
           <Pie
             data={chartData}
             cx="50%"
@@ -239,23 +239,8 @@ export function EnhancedDemographicChart({
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
             ))}
-          </Pie>
+            </Pie>
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }} />
-          <Legend
-            verticalAlign="bottom"
-            height={60}
-            iconType="circle"
-            wrapperStyle={{ paddingTop: "15px" }}
-            formatter={(value, entry: any) => {
-              const entryIndex = chartData.findIndex(item => item.displayName === value);
-              const color = colors[entryIndex % colors.length] || "#6b7280";
-              return (
-                <span style={{ color, fontSize: "12px" }}>
-                  {value}
-                </span>
-              );
-            }}
-          />
         </PieChart>
       </ResponsiveContainer>
     );
@@ -270,15 +255,56 @@ export function EnhancedDemographicChart({
         </CardTitle>
         <CardDescription className="text-xs">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col pb-4 pt-0">
+      <CardContent className="flex-1 flex flex-col pb-0 pt-0">
         <div className="flex-1 min-h-0">
           {renderChart()}
         </div>
-        {/* Summary statistics */}
-        <div className="mt-2 pt-2 border-t border-border">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Total:</span>
-            <span className="font-semibold">{total.toLocaleString()}</span>
+        {/* Category Legend & Analysis */}
+        <div className="mt-1 pt-1 border-t border-border space-y-3">
+          {/* Category Legend */}
+          <div className="min-h-[60px]">
+            <div className="text-xs text-muted-foreground mb-2 font-medium">Categorías</div>
+            <div className="grid grid-cols-2 gap-2">
+              {chartData.slice(0, 6).map((entry, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0 border border-border/50"
+                    style={{ backgroundColor: colors[index % colors.length] }}
+                  />
+                  <span className="text-xs text-foreground truncate">{entry.displayName}</span>
+                </div>
+              ))}
+              {chartData.length > 6 && (
+                <div className="col-span-2 text-xs text-muted-foreground text-center">
+                  +{chartData.length - 6} más
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Analysis Insights */}
+          <div className="min-h-[50px]">
+            <div className="text-xs text-muted-foreground mb-2 font-medium">Análisis</div>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-muted-foreground">Más frecuente:</span>
+                <div className="font-semibold text-foreground">
+                  {chartData.sort((a, b) => b.percentage - a.percentage)[0]?.displayName || 'N/A'}
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Uniformidad:</span>
+                <div className="font-semibold text-foreground">
+                  {(() => {
+                    const avg = total / chartData.length;
+                    const variance = chartData.reduce((sum, d) => sum + Math.pow(d.value - avg, 2), 0) / chartData.length;
+                    const stdDev = Math.sqrt(variance);
+                    const uniformity = Math.max(0, 100 - (stdDev / avg) * 100);
+                    return Math.round(uniformity) + '%';
+                  })()}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
