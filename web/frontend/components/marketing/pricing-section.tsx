@@ -12,59 +12,47 @@ import Link from "next/link";
 export function PricingSection() {
   const plans = [
     {
-      name: "Básico",
-      price: "$299",
+      name: "Mensual",
+      price: "$500",
       period: "mes",
-      description: "Perfecto para pequeñas empresas",
-      employees: "Hasta 50 empleados",
+      description: "Pago mensual flexible",
+      employees: "Sin límite de empleados",
       features: [
         "Evaluaciones NOM-035 completas",
         "Reportes PDF profesionales",
-        "Dashboard básico",
-        "Soporte por email",
-        "Importación CSV de empleados",
-        "Enlaces seguros para evaluaciones"
+        "Dashboard completo con analytics",
+        "Soporte prioritario por email",
+        "Importación masiva de empleados",
+        "Enlaces seguros para evaluaciones",
+        "Análisis avanzado de riesgos",
+        "Mapas de calor por departamento",
+        "API para integraciones",
+        "Encriptación de datos",
+        "Cumplimiento NOM-035 garantizado"
       ],
       popular: false,
-      cta: "Comenzar Prueba Gratuita"
+      cta: "Suscribirse Mensual"
     },
     {
-      name: "Profesional",
-      price: "$599",
-      period: "mes",
-      description: "Para organizaciones en crecimiento",
-      employees: "Hasta 200 empleados",
-      features: [
-        "Todo lo del plan Básico",
-        "Análisis avanzado de riesgos",
-        "Gráficos y reportes detallados",
-        "Mapas de calor por departamento",
-        "Evaluaciones de seguimiento",
-        "Soporte prioritario",
-        "API para integraciones",
-        "Reportes personalizados"
-      ],
-      popular: true,
-      cta: "Comenzar Prueba Gratuita"
-    },
-    {
-      name: "Empresarial",
-      price: "Personalizado",
-      period: "",
-      description: "Para grandes organizaciones",
+      name: "Anual",
+      price: "$5,000",
+      period: "año",
+      description: "Ahorra 17% vs mensual",
       employees: "Sin límite de empleados",
       features: [
-        "Todo lo del plan Profesional",
-        "Implementación dedicada",
-        "Soporte 24/7 telefónico",
-        "Integración con sistemas HR",
+        "Todo lo del plan Mensual",
+        "Descuento del 17% anual",
+        "Implementación prioritaria",
+        "Soporte telefónico incluido",
         "Reportes ejecutivos avanzados",
-        "Capacitación del equipo",
+        "Capacitación del equipo incluida",
         "SLA garantizado",
-        "Cuenta dedicada"
+        "Actualizaciones prioritarias",
+        "Backup y recuperación de datos",
+        "Integración con sistemas HR"
       ],
-      popular: false,
-      cta: "Contactar Ventas"
+      popular: true,
+      cta: "Suscribirse Anual"
     }
   ];
 
@@ -77,11 +65,11 @@ export function PricingSection() {
             Planes y Precios
           </Badge>
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Elige el Plan Perfecto para tu Organización
+            Planes Transparentes para tu Empresa
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Precios transparentes sin costos ocultos. Todos los planes incluyen
-            30 días de prueba gratuita.
+            Precios simples y transparentes en pesos mexicanos. Sin costos ocultos,
+            sin contratos forzosos.
           </p>
         </div>
 
@@ -159,20 +147,20 @@ export function PricingSection() {
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">
-                ¿Qué incluye la prueba gratuita?
+                ¿Puedo cambiar entre planes mensual y anual?
               </h4>
               <p className="text-gray-600 text-sm">
-                Acceso completo a todas las funcionalidades por 30 días.
-                Sin límite de evaluaciones durante el período de prueba.
+                Sí, puedes cambiar entre planes en cualquier momento desde tu
+                dashboard. Los cambios se prorratean automáticamente.
               </p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">
-                ¿Puedo cambiar de plan en cualquier momento?
+                ¿Qué métodos de pago aceptan?
               </h4>
               <p className="text-gray-600 text-sm">
-                Sí, puedes actualizar o cambiar tu plan en cualquier momento.
-                Los cambios se reflejan inmediatamente en tu próxima factura.
+                Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express)
+                y transferencias bancarias. Procesamos pagos de forma segura con Stripe.
               </p>
             </div>
             <div>
@@ -180,8 +168,8 @@ export function PricingSection() {
                 ¿Los datos están seguros?
               </h4>
               <p className="text-gray-600 text-sm">
-                Sí, utilizamos encriptación SSL de nivel bancario y cumplimiento
-                con NOM-035 en materia de confidencialidad de datos personales.
+                Sí, utilizamos encriptación SSL de nivel bancario, cumplimiento PCI DSS,
+                y protección de datos conforme a NOM-035 y leyes mexicanas de privacidad.
               </p>
             </div>
             <div>
@@ -189,8 +177,8 @@ export function PricingSection() {
                 ¿Ofrecen soporte técnico?
               </h4>
               <p className="text-gray-600 text-sm">
-                Sí, todos los planes incluyen soporte técnico. El plan Empresarial
-                incluye soporte telefónico 24/7 con SLA garantizado.
+                Sí, todos los planes incluyen soporte técnico por email.
+                El plan Anual incluye soporte telefónico prioritario.
               </p>
             </div>
           </div>
