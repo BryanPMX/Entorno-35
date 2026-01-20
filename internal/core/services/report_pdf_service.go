@@ -1299,44 +1299,35 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		pdf.MultiCell(180, 5, demoAnalysis, "", "L", false)
 		pdf.Ln(6)
 
-		// Larger charts - 2 per page for better readability
-		chartWidth := 85.0
-		chartHeight := 75.0  // Increased height for better proportions and spacing
-		chartSpacing := 20.0 // More spacing between charts
+		// 2x2 grid layout - all 4 charts on one page
+		chartWidth := 80.0   // Slightly smaller for 2-column layout
+		chartHeight := 65.0  // Adjusted height to fit 2 rows comfortably
+		chartSpacingX := 15.0 // Horizontal spacing between columns
+		chartSpacingY := 15.0 // Vertical spacing between rows
 
-		// Page 4a: Age and Shift Distributions
+		// Calculate positions for 2x2 grid
+		leftX := 15.0
+		rightX := leftX + chartWidth + chartSpacingX
 		startY := pdf.GetY()
 
+		// Top row: Age and Experience distributions
 		if len(report.AgeDistribution) > 0 {
-			drawDemoDonutChart(pdf, 15, startY, chartWidth, chartHeight, "Distribucion por Edad", report.AgeDistribution)
+			drawDemoDonutChart(pdf, leftX, startY, chartWidth, chartHeight, "Distribucion por Edad", report.AgeDistribution)
 		}
-
-		if len(report.ShiftTypeDistribution) > 0 {
-			// Position second chart below the first
-			secondChartY := startY + chartHeight + chartSpacing
-			drawDemoDonutChart(pdf, 15, secondChartY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution)
-		}
-
-		// Page 4b: Experience and Marital Status Distributions
-		pdf.AddPage()
-
-		// Subtitle for second page
-		pdf.SetFont("DejaVu", "B", 16)
-		pdf.SetTextColor(59, 130, 246) // Blue
-		pdf.SetX(15)
-		pdf.Cell(0, 8, "Analisis Demografico (continuacion)")
-		pdf.Ln(12)
-
-		startY = pdf.GetY()
 
 		if len(report.ExperienceDistribution) > 0 {
-			drawDemoDonutChart(pdf, 15, startY, chartWidth, chartHeight, "Experiencia Laboral", report.ExperienceDistribution)
+			drawDemoDonutChart(pdf, rightX, startY, chartWidth, chartHeight, "Experiencia Laboral", report.ExperienceDistribution)
+		}
+
+		// Bottom row: Shift and Marital Status distributions
+		bottomRowY := startY + chartHeight + chartSpacingY
+
+		if len(report.ShiftTypeDistribution) > 0 {
+			drawDemoDonutChart(pdf, leftX, bottomRowY, chartWidth, chartHeight, "Distribucion por Turno", report.ShiftTypeDistribution)
 		}
 
 		if len(report.MaritalStatusDistribution) > 0 {
-			// Position second chart below the first
-			secondChartY := startY + chartHeight + chartSpacing
-			drawDemoDonutChart(pdf, 15, secondChartY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution)
+			drawDemoDonutChart(pdf, rightX, bottomRowY, chartWidth, chartHeight, "Estado Civil", report.MaritalStatusDistribution)
 		}
 	}
 
@@ -1390,12 +1381,6 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		// Page 5b: Experience and Marital Status Risk Distributions
 		pdf.AddPage()
 
-		// Subtitle for second page
-		pdf.SetFont("DejaVu", "B", 16)
-		pdf.SetTextColor(59, 130, 246) // Blue
-		pdf.SetX(15)
-		pdf.Cell(0, 8, "Analisis de Riesgo Demografico (continuacion)")
-		pdf.Ln(12)
 
 		startY = pdf.GetY()
 
