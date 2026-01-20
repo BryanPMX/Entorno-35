@@ -39,6 +39,56 @@ func (s *SubscriptionStatus) Scan(value interface{}) error {
 	return nil
 }
 
+// PaymentStatus represents the status of a payment
+type PaymentStatus string
+
+const (
+	PaymentStatusPending   PaymentStatus = "pending"
+	PaymentStatusSucceeded PaymentStatus = "succeeded"
+	PaymentStatusFailed    PaymentStatus = "failed"
+	PaymentStatusCanceled  PaymentStatus = "canceled"
+)
+
+func (p PaymentStatus) Value() (driver.Value, error) {
+	return string(p), nil
+}
+
+func (p *PaymentStatus) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	str, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("failed to scan PaymentStatus")
+	}
+	*p = PaymentStatus(str)
+	return nil
+}
+
+// SubscriptionInterval represents the billing interval
+type SubscriptionInterval string
+
+const (
+	SubscriptionIntervalMonth SubscriptionInterval = "month"
+	SubscriptionIntervalYear  SubscriptionInterval = "year"
+)
+
+func (s SubscriptionInterval) Value() (driver.Value, error) {
+	return string(s), nil
+}
+
+func (s *SubscriptionInterval) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	str, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("failed to scan SubscriptionInterval")
+	}
+	*s = SubscriptionInterval(str)
+	return nil
+}
+
 // QuestionType represents the type of question (Binary or Likert)
 type QuestionType string
 
@@ -185,6 +235,42 @@ type Company struct {
 	// Relationships
 	Staff       []Staff      `gorm:"foreignKey:CompanyID;constraint:OnDelete:CASCADE" json:"staff,omitempty"`
 	Assessments []Assessment `gorm:"foreignKey:CompanyID;constraint:OnDelete:CASCADE" json:"assessments,omitempty"`
+}
+
+// Payment represents a payment transaction
+type Payment struct {
+	ID            uuid.UUID          `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	CompanyID     uuid.UUID          `gorm:"type:uuid;not null;index" json:"company_id"`
+	StripePaymentID string           `gorm:"type:varchar(255);uniqueIndex;not null" json:"stripe_payment_id"`
+	Amount        int                `gorm:"not null" json:"amount"` // Amount in cents
+	Currency      string             `gorm:"type:varchar(3);not null;default:'mxn'" json:"currency"`
+	Status        PaymentStatus      `gorm:"type:varchar(20);not null;default:'pending'" json:"status"`
+	Description   string             `gorm:"type:text" json:"description"`
+	Metadata      string             `gorm:"type:jsonb" json:"metadata"` // JSON metadata from Stripe
+	CreatedAt     time.Time          `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt     time.Time          `gorm:"autoUpdateTime" json:"updated_at"`
+
+	// Relationships
+	Company Company `gorm:"foreignKey:CompanyID;constraint:OnDelete:CASCADE" json:"company,omitempty"`
+}
+
+// Subscription represents a company subscription
+type Subscription struct {
+	ID                   uuid.UUID             `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	CompanyID            uuid.UUID             `gorm:"type:uuid;not null;uniqueIndex" json:"company_id"`
+	StripeSubscriptionID string               `gorm:"type:varchar(255);uniqueIndex;not null" json:"stripe_subscription_id"`
+	StripePriceID        string               `gorm:"type:varchar(255);not null" json:"stripe_price_id"`
+	Status               SubscriptionStatus    `gorm:"type:varchar(20);not null;default:'inactive'" json:"status"`
+	Interval             SubscriptionInterval  `gorm:"type:varchar(10);not null" json:"interval"`
+	CurrentPeriodStart   time.Time             `gorm:"not null" json:"current_period_start"`
+	CurrentPeriodEnd     time.Time             `gorm:"not null" json:"current_period_end"`
+	CancelAtPeriodEnd    bool                  `gorm:"not null;default:false" json:"cancel_at_period_end"`
+	CanceledAt           *time.Time            `gorm:"type:timestamp" json:"canceled_at,omitempty"`
+	CreatedAt            time.Time             `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt            time.Time             `gorm:"autoUpdateTime" json:"updated_at"`
+
+	// Relationships
+	Company Company `gorm:"foreignKey:CompanyID;constraint:OnDelete:CASCADE" json:"company,omitempty"`
 }
 
 // TableName specifies the table name for Company
