@@ -1357,10 +1357,10 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		pdf.MultiCell(180, 5, riskAnalysisText, "", "L", false)
 		pdf.Ln(6)
 
-		// Bar chart dimensions - larger for better readability
+		// Bar chart dimensions - optimized for 2 charts per page while preserving detail
 		barChartWidth := 175.0
-		barChartHeight := 120.0
-		barChartSpacing := 25.0
+		barChartHeight := 85.0
+		barChartSpacing := 35.0
 
 		// Page 5a: Age and Shift Risk Distributions
 		startY := pdf.GetY()
@@ -1371,10 +1371,6 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 		if len(report.ShiftRiskDistribution) > 0 {
 			secondChartY := startY + barChartHeight + barChartSpacing
-			if secondChartY+barChartHeight > 250 { // Check if it fits on current page
-				pdf.AddPage()
-				secondChartY = pdf.GetY()
-			}
 			drawDemographicRiskBarChart(pdf, 15, secondChartY, barChartWidth, barChartHeight, "Riesgo por Tipo de Turno", report.ShiftRiskDistribution)
 		}
 
@@ -1390,10 +1386,6 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 		if len(report.MaritalStatusRiskDistribution) > 0 {
 			secondChartY := startY + barChartHeight + barChartSpacing
-			if secondChartY+barChartHeight > 250 { // Check if it fits on current page
-				pdf.AddPage()
-				secondChartY = pdf.GetY()
-			}
 			drawDemographicRiskBarChart(pdf, 15, secondChartY, barChartWidth, barChartHeight, "Riesgo por Estado Civil", report.MaritalStatusRiskDistribution)
 		}
 	}

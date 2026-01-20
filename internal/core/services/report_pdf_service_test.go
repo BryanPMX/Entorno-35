@@ -173,3 +173,74 @@ func TestReportPDFService_GenerateWithEmptyRecommendations(t *testing.T) {
 	require.NotNil(t, pdfData)
 	assert.Greater(t, len(pdfData), 500, "PDF should still contain data")
 }
+
+func TestReportPDFService_GenerateGeneralReportPDF(t *testing.T) {
+	service := NewReportPDFService()
+
+	companyID := uuid.New()
+	report := &domain.GeneralReportDTO{
+		CompanyID:          companyID,
+		CompanyName:        "Test Company",
+		Period:             &[]int{2025}[0],
+		TotalStaff:         100,
+		CompletedAssessments: 85,
+		ParticipationRate:  85.0,
+		RiskDistribution: []domain.RiskDistribution{
+			{RiskLevel: domain.RiskLevelNulo, Count: 20},
+			{RiskLevel: domain.RiskLevelBajo, Count: 30},
+			{RiskLevel: domain.RiskLevelMedio, Count: 25},
+			{RiskLevel: domain.RiskLevelAlto, Count: 8},
+			{RiskLevel: domain.RiskLevelMuyAlto, Count: 2},
+		},
+		DepartmentHeatmap: []domain.DepartmentRiskHeatmap{
+			{Department: "Producción", RiskLevel: domain.RiskLevelBajo, Count: 15},
+			{Department: "Administración", RiskLevel: domain.RiskLevelNulo, Count: 10},
+		},
+		AgeRiskDistribution: []domain.DemographicRiskDistribution{
+			{Category: "18-25", RiskLevel: domain.RiskLevelBajo, Count: 10},
+			{Category: "26-35", RiskLevel: domain.RiskLevelMedio, Count: 15},
+		},
+		ShiftRiskDistribution: []domain.DemographicRiskDistribution{
+			{Category: "diurno", RiskLevel: domain.RiskLevelNulo, Count: 20},
+			{Category: "nocturno", RiskLevel: domain.RiskLevelBajo, Count: 12},
+		},
+		ExperienceRiskDistribution: []domain.DemographicRiskDistribution{
+			{Category: "0-2", RiskLevel: domain.RiskLevelNulo, Count: 8},
+			{Category: "3-5", RiskLevel: domain.RiskLevelMedio, Count: 14},
+		},
+		MaritalStatusRiskDistribution: []domain.DemographicRiskDistribution{
+			{Category: "soltero", RiskLevel: domain.RiskLevelBajo, Count: 18},
+			{Category: "casado", RiskLevel: domain.RiskLevelNulo, Count: 22},
+		},
+		AgeDistribution: []domain.DemographicDistribution{
+			{Category: "18-25", Count: 25},
+			{Category: "26-35", Count: 35},
+		},
+		ShiftTypeDistribution: []domain.DemographicDistribution{
+			{Category: "diurno", Count: 60},
+			{Category: "nocturno", Count: 25},
+		},
+		ExperienceDistribution: []domain.DemographicDistribution{
+			{Category: "0-2", Count: 20},
+			{Category: "3-5", Count: 30},
+		},
+		MaritalStatusDistribution: []domain.DemographicDistribution{
+			{Category: "soltero", Count: 40},
+			{Category: "casado", Count: 45},
+		},
+	}
+
+	// Generate PDF
+	pdfData, err := service.GenerateGeneralReportPDF(report)
+	require.NoError(t, err, "PDF generation should not return error")
+	require.NotNil(t, pdfData, "PDF data should not be nil")
+
+	// Verify PDF data
+	assert.Greater(t, len(pdfData), 2000, "PDF should contain substantial data")
+
+	// Verify PDF header (first 4 bytes should be %PDF)
+	assert.Equal(t, byte('%'), pdfData[0], "PDF should start with %PDF header")
+	assert.Equal(t, byte('P'), pdfData[1])
+	assert.Equal(t, byte('D'), pdfData[2])
+	assert.Equal(t, byte('F'), pdfData[3])
+}
