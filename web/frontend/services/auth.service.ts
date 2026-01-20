@@ -11,9 +11,9 @@ import type { AuthResponse, LoginRequest } from "@/types/backend";
 class AuthService {
   /**
    * Login
-   * Authenticates a user (company or staff) and returns a JWT token
-   * 
-   * @param credentials - Login credentials (identifier, type, optional company_id)
+   * Authenticates a company administrator and returns a JWT token
+   *
+   * @param credentials - Login credentials (RFC and type)
    * @returns Promise resolving to AuthResponse with token
    * @throws AxiosError on authentication failure
    */
