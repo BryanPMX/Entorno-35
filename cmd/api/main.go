@@ -59,6 +59,8 @@ func main() {
 		&domain.Assessment{},
 		&domain.Response{},
 		&domain.AssessmentLink{},
+		&domain.Payment{},
+		&domain.Subscription{},
 	); err != nil {
 		log.Fatalf("Failed to run database migrations: %v", err)
 	}
