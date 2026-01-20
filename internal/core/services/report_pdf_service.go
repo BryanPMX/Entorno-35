@@ -390,25 +390,19 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 				pdf.AddPage()
 			}
 
-			// Recommendation card
-			pdf.SetFillColor(248, 250, 252)
-			pdf.RoundedRect(15, pdf.GetY(), 180, 16, 3, "1234", "F")
+			// Professional numbered list format
+			pdf.SetX(20)
+			pdf.SetFont("DejaVu", "B", 11)
+			pdf.SetTextColor(59, 130, 246) // Blue for numbers
+			pdf.Cell(8, 6, fmt.Sprintf("%d.", i+1))
 
-			// Number badge
-			pdf.SetFillColor(59, 130, 246)
-			pdf.Circle(25, pdf.GetY()+8, 5, "F")
-			pdf.SetFont("DejaVu", "B", 9)
-			pdf.SetTextColor(255, 255, 255)
-			pdf.SetXY(22, pdf.GetY()+6)
-			pdf.Cell(6, 0, fmt.Sprintf("%d", i+1))
-
-			// Text
-			pdf.SetFont("DejaVu", "", 9)
+			// Recommendation text with better spacing
+			pdf.SetFont("DejaVu", "", 10)
 			pdf.SetTextColor(51, 65, 85)
-			pdf.SetXY(35, pdf.GetY()+4)
-			pdf.MultiCell(155, 5, rec, "", "L", false)
+			pdf.SetX(32)
+			pdf.MultiCell(158, 5, rec, "", "L", false)
 
-			pdf.Ln(4)
+			pdf.Ln(6) // Extra spacing between recommendations
 		}
 	} else {
 		// Positive result for low risk
