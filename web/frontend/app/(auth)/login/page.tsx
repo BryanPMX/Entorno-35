@@ -8,7 +8,6 @@ import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -27,36 +26,17 @@ import {
 import { toast } from "sonner";
 
 // Login form schema - matches backend API requirements
-const loginSchema = z
-  .object({
-    identifier: z.string().min(1, "Identifier is required"),
-    type: z.enum(["COMPANY", "STAFF"]),
-    company_id: z.string().optional(),
-    password: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      // company_id and password are required when type is STAFF
-      if (data.type === "STAFF") {
-        return data.company_id && data.company_id.trim().length > 0 &&
-               data.password && data.password.trim().length > 0;
-      }
-      return true;
-    },
-    {
-      message: "Company ID and password are required for staff login",
-      path: ["company_id"],
-    }
-  );
+const loginSchema = z.object({
+  identifier: z.string().min(1, "RFC is required"),
+});
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 /**
  * Login Page
- * 
- * Authenticates users (Company or Staff) and redirects to dashboard on success.
+ *
+ * Authenticates company administrators and redirects to dashboard on success.
  * - Company login: Requires RFC identifier
- * - Staff login: Requires CURP identifier + company_id
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -66,26 +46,15 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       identifier: "",
-      type: "COMPANY",
-      company_id: "",
-      password: "",
     },
   });
-
-  const loginType = form.watch("type");
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
       // Prepare login request (match backend API)
       const loginRequest = {
         identifier: values.identifier.trim(),
-        type: values.type,
-        ...(values.type === "STAFF" && values.company_id && values.password
-          ? {
-              company_id: values.company_id.trim(),
-              password: values.password.trim(),
-            }
-          : {}),
+        type: "COMPANY" as const,
       };
 
       // Call auth service
@@ -111,64 +80,22 @@ export default function LoginPage() {
             Entorno 35
           </CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account
+            Sign in with your company RFC
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Login Type Selection */}
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Login Type</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-4">
-                        <Button
-                          type="button"
-                          variant={field.value === "COMPANY" ? "default" : "outline"}
-                          onClick={() => {
-                            field.onChange("COMPANY");
-                            form.setValue("company_id", "");
-                            form.setValue("password", "");
-                          }}
-                          className="flex-1"
-                        >
-                          Company
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={field.value === "STAFF" ? "default" : "outline"}
-                          onClick={() => field.onChange("STAFF")}
-                          className="flex-1"
-                        >
-                          Staff
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Identifier Field (RFC for COMPANY, CURP for STAFF) */}
+              {/* RFC Field */}
               <FormField
                 control={form.control}
                 name="identifier"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {loginType === "COMPANY" ? "RFC" : "CURP"}
-                    </FormLabel>
+                    <FormLabel>RFC</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={
-                          loginType === "COMPANY"
-                            ? "ABC123456789"
-                            : "CURP12345678901234"
-                        }
+                        placeholder="ABC123456789"
                         {...field}
                       />
                     </FormControl>
@@ -176,53 +103,6 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-
-              {/* Company ID Field (only for STAFF) */}
-              {loginType === "STAFF" && (
-                <FormField
-                  control={form.control}
-                  name="company_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company ID (UUID)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="550e8400-e29b-41d4-a716-446655440000"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      <p className="text-sm text-gray-500">
-                        Required for staff login
-                      </p>
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* Password Field (only for STAFF) */}
-              {loginType === "STAFF" && (
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter your password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      <p className="text-sm text-gray-500">
-                        Required for staff login
-                      </p>
-                    </FormItem>
-                  )}
-                />
-              )}
 
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? "Signing in..." : "Sign In"}

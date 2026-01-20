@@ -130,10 +130,8 @@ export interface Assessment {
  * Login Request
  */
 export interface LoginRequest {
-  identifier: string; // RFC for COMPANY, CURP for STAFF
-  type: "COMPANY" | "STAFF";
-  company_id?: string; // Required for STAFF type (UUID)
-  password?: string; // Required for STAFF type
+  identifier: string; // RFC for COMPANY
+  type: "COMPANY";
 }
 
 /**
