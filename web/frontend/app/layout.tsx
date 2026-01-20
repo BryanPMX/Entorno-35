@@ -15,8 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Entorno 35 - NOM-035 Assessment Platform",
-  description: "NOM-035 STPS 2018 Psychosocial Risk Assessment Platform",
+  title: "Entorno 35 - NOM-035 Compliance Platform",
+  description: "Professional psychosocial risk assessment platform compliant with NOM-035 STPS 2018. Streamline your organization's mental health compliance with automated assessments and comprehensive reporting.",
+  keywords: ["NOM-035", "psychosocial risk", "workplace assessment", "compliance", "mental health", "Mexico", "STPS"],
+  openGraph: {
+    title: "Entorno 35 - NOM-035 Compliance Platform",
+    description: "Professional psychosocial risk assessment platform for Mexican organizations",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
