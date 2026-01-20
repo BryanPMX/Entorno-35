@@ -86,12 +86,14 @@ func main() {
 	staffRepo := postgres.NewStaffRepository(db)
 	responseRepo := postgres.NewResponseRepository(db)
 	reportRepo := postgres.NewReportRepository(db)
+	paymentRepo := postgres.NewPaymentRepository(db)
 
 	// Initialize services
 	scoringService := services.NewScoringService(assessmentRepo)
 	assessmentService := services.NewAssessmentService(assessmentRepo, companyRepo, staffRepo, responseRepo, scoringService)
 	staffService := services.NewStaffService(staffRepo)
 	reportService := services.NewReportService(reportRepo)
+	paymentService := services.NewPaymentService(paymentRepo, cfg.Stripe)
 
 	// Initialize handlers
 	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
@@ -99,6 +101,7 @@ func main() {
 	assessmentHandler := http.NewAssessmentHandler(assessmentService)
 	staffHandler := http.NewStaffHandler(staffService)
 	reportHandler := http.NewReportHandler(reportService)
+	paymentHandler := http.NewPaymentHandler(paymentService)
 
 	// Initialize router with custom middleware (avoid double CORS)
 	router := gin.New()
@@ -131,10 +134,17 @@ func main() {
 	}
 
 	// Public API endpoints (no authentication required)
-	public := router.Group("/api/v1/assessments/public")
+	public := router.Group("/api/v1")
 	{
-		public.GET("/:token", assessmentHandler.GetPublicAssessment)
-		public.POST("/:token/submit", assessmentHandler.SubmitAssessment)
+		// Assessment endpoints
+		publicAssessments := public.Group("/assessments/public")
+		{
+			publicAssessments.GET("/:token", assessmentHandler.GetPublicAssessment)
+			publicAssessments.POST("/:token/submit", assessmentHandler.SubmitAssessment)
+		}
+
+		// Payment webhook endpoint
+		public.POST("/payments/webhook", paymentHandler.HandleWebhook)
 	}
 
 	// Protected API endpoints (require authentication)
@@ -174,6 +184,14 @@ func main() {
 			reports.GET("/individual/:assessment_id/pdf", reportHandler.GetIndividualReportPDF)
 			reports.GET("/general", reportHandler.GetGeneralReport)
 			reports.GET("/general/pdf", reportHandler.GetGeneralReportPDF)
+		}
+
+		// Payment endpoints
+		payments := api.Group("/payments")
+		{
+			payments.POST("/subscription", paymentHandler.CreateSubscription)
+			payments.GET("/subscription", paymentHandler.GetSubscription)
+			payments.DELETE("/subscription", paymentHandler.CancelSubscription)
 		}
 	}
 
