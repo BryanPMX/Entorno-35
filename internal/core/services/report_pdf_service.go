@@ -1464,9 +1464,8 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.SetTextColor(71, 85, 105) // Reset text color
 
 	// ========== LONG-TERM TRACKING NOTES ==========
-	if pdf.GetY() > 230 {
-		pdf.AddPage()
-	}
+	// Force this section to start on a new page
+	pdf.AddPage()
 
 	pdf.Ln(10)
 	pdf.SetFont("DejaVu", "B", 16)
