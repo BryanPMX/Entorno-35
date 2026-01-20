@@ -19,6 +19,26 @@ export type AssessmentStatus = "pending" | "completed" | "cancelled";
 
 export type RiskLevel = "nulo" | "bajo" | "medio" | "alto" | "muy_alto";
 
+export type SubscriptionStatus = "active" | "inactive" | "canceled" | "past_due";
+
+export type SubscriptionInterval = "month" | "year";
+
+/**
+ * Subscription represents a company subscription
+ */
+export interface Subscription {
+  id: string; // UUID
+  company_id: string; // UUID
+  stripe_subscription_id: string;
+  stripe_price_id: string;
+  status: SubscriptionStatus;
+  interval: SubscriptionInterval;
+  current_period_start: string; // ISO timestamp
+  current_period_end: string; // ISO timestamp
+  cancel_at_period_end: boolean;
+  created_at: string; // ISO timestamp
+}
+
 /**
  * Question represents a NOM-035 assessment question
  */
