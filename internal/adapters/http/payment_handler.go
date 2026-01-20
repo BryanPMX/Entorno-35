@@ -7,7 +7,6 @@ import (
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/middleware"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // CreateSubscriptionRequest represents the request to create a subscription
