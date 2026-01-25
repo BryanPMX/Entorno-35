@@ -1,0 +1,140 @@
+name: Build and Deploy Backend
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'fonts/**'
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  DOCKER_IMAGE: entorno35-backend
+  DOCKER_TAG: latest
+
+jobs:
+  build-and-push:
+    name: Build Docker Image and Push to Docker Hub
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Update Portainer Stack via API
+        if: success()
+        run: |
+          if [ -n "${{ secrets.PORTAINER_URL }}" ] && [ -n "${{ secrets.PORTAINER_API_TOKEN }}" ] && [ -n "${{ secrets.PORTAINER_STACK_ID }}" ]; then
+            echo "Updating Portainer stack via API..."
+            
+            # Get Portainer endpoint ID (usually 1 for local endpoint)
+            ENDPOINT_ID="${PORTAINER_ENDPOINT_ID:-1}"
+            
+            # Portainer API endpoint to update stack
+            PORTAINER_API="${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID }}?endpointId=${ENDPOINT_ID}"
+            
+            # Check if docker-compose.yml exists (REQUIRED for Portainer CE API)
+            if [ ! -f "docker-compose.yml" ]; then
+              echo "⚠️ docker-compose.yml not found. Skipping Portainer update."
+              echo "Note: Portainer CE requires stackFileContent in the update request."
+              exit 0
+            fi
+            
+            # Read docker-compose.yml and escape it for JSON (REQUIRED by Portainer CE)
+            echo "Reading docker-compose.yml for stackFileContent..."
+            if command -v jq &> /dev/null; then
+              # jq -Rs reads the file as a raw string and escapes it for JSON
+              STACK_CONTENT=$(cat docker-compose.yml | jq -Rs .)
+            else
+              echo "⚠️ jq not available. Attempting basic JSON escaping..."
+              # Fallback: basic JSON escaping (less robust but works for simple cases)
+              STACK_CONTENT=$(cat docker-compose.yml | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | sed 's/^/"/' | sed 's/$/"/')
+            fi
+            
+            # Build the request payload with stackFileContent and pullImage flag
+            # Portainer CE REQUIRES stackFileContent in the PUT request
+            if command -v jq &> /dev/null; then
+              REQUEST_BODY=$(jq -n \
+                --argjson content "$(cat docker-compose.yml | jq -Rs .)" \
+                '{pullImage: true, stackFileContent: $content}')
+            else
+              # Fallback: manual JSON construction
+              REQUEST_BODY="{\"pullImage\": true, \"stackFileContent\": ${STACK_CONTENT}}"
+            fi
+            
+            # Update stack via PUT request
+            echo "Sending update request to Portainer..."
+            HTTP_STATUS=$(curl -s -w "%{http_code}" -o /tmp/portainer_response.json -X PUT "$PORTAINER_API" \
+              -H "X-API-Key: ${{ secrets.PORTAINER_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d "$REQUEST_BODY")
+            
+            if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "204" ]; then
+              echo "✅ Portainer stack updated successfully (HTTP $HTTP_STATUS)"
+              echo "Portainer will now pull the latest image and restart containers."
+            else
+              echo "⚠️ Portainer API returned status: $HTTP_STATUS"
+              echo "Response: $(cat /tmp/portainer_response.json 2>/dev/null || echo 'No response body')"
+              echo ""
+              echo "Troubleshooting tips:"
+              echo "1. Verify PORTAINER_STACK_ID matches your stack ID"
+              echo "2. Check that docker-compose.yml exists and is valid"
+              echo "3. Ensure API token has permissions to update stacks"
+              echo "4. Verify stackFileContent is properly formatted JSON string"
+              exit 1
+            fi
+          else
+            echo "Skipping Portainer update (PORTAINER_URL, PORTAINER_API_TOKEN, or PORTAINER_STACK_ID not set)"
+          fi
+        env:
+          PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Image**: \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tags**: \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Portainer Update**: $([ -n "${{ secrets.PORTAINER_URL }}" ] && [ -n "${{ secrets.PORTAINER_API_TOKEN }}" ] && echo '✅ Triggered' || echo '⚠️ Not configured')" >> $GITHUB_STEP_SUMMARY
