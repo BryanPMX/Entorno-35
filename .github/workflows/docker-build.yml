@@ -82,29 +82,29 @@ jobs:
           # Portainer API endpoint to update stack
           PORTAINER_API="${PORTAINER_URL}/api/stacks/${PORTAINER_STACK_ID}?endpointId=${ENDPOINT_ID}"
           
-          # Check if docker-compose.yml exists (REQUIRED for Portainer CE API)
-          if [ ! -f "docker-compose.yml" ]; then
-            echo "⚠️ docker-compose.yml not found. Skipping Portainer update."
+          # Check if docker-compose.prod.yml exists (REQUIRED for Portainer CE API)
+          if [ ! -f "docker-compose.prod.yml" ]; then
+            echo "⚠️ docker-compose.prod.yml not found. Skipping Portainer update."
             echo "Note: Portainer CE requires stackFileContent in the update request."
             exit 0
           fi
           
-          # Read docker-compose.yml and escape it for JSON (REQUIRED by Portainer CE)
-          echo "Reading docker-compose.yml for stackFileContent..."
+          # Read docker-compose.prod.yml and escape it for JSON (REQUIRED by Portainer CE)
+          echo "Reading docker-compose.prod.yml for stackFileContent..."
           if command -v jq &> /dev/null; then
             # jq -Rs reads the file as a raw string and escapes it for JSON
-            STACK_CONTENT=$(cat docker-compose.yml | jq -Rs .)
+            STACK_CONTENT=$(cat docker-compose.prod.yml | jq -Rs .)
           else
             echo "⚠️ jq not available. Attempting basic JSON escaping..."
             # Fallback: basic JSON escaping (less robust but works for simple cases)
-            STACK_CONTENT=$(cat docker-compose.yml | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | sed 's/^/"/' | sed 's/$/"/')
+            STACK_CONTENT=$(cat docker-compose.prod.yml | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | sed 's/^/"/' | sed 's/$/"/')
           fi
           
           # Build the request payload with stackFileContent and pullImage flag
           # Portainer CE REQUIRES stackFileContent in the PUT request
           if command -v jq &> /dev/null; then
             REQUEST_BODY=$(jq -n \
-              --argjson content "$(cat docker-compose.yml | jq -Rs .)" \
+              --argjson content "$(cat docker-compose.prod.yml | jq -Rs .)" \
               '{pullImage: true, stackFileContent: $content}')
           else
             # Fallback: manual JSON construction
