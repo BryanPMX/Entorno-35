@@ -76,15 +76,21 @@ Entorno35/
 ### Prerequisites
 
 - Go 1.24+
-- Node.js 18+
+- Node.js 18+ (for local frontend development)
 - Docker & Docker Compose
 - Git
+
+### Deployment Architecture
+
+- **Frontend**: Deployed on Vercel (production)
+- **Backend**: Self-hosted server (Docker/Portainer)
+- **Local Development**: Both frontend and backend can run locally
 
 ### Development Setup
 
 #### Quick Start (Recommended)
 
-Use the automated startup script for the easiest setup:
+Use the automated startup script for local development:
 
 ```bash
 # Clone and enter repository
@@ -95,17 +101,19 @@ cd Entorno-35
 make setup
 cd web/frontend && npm install && cd ../..
 
-# Start everything (one command)
+# Start everything locally (one command)
 ./start-dev.sh
 ```
 
 This will automatically:
 - Start PostgreSQL and Redis containers
 - Start backend API on http://localhost:8080
-- Start frontend on http://localhost:3000
+- Start frontend locally on http://localhost:3000 (for development)
 - Configure all environment variables
 
 Press `Ctrl+C` to stop all services.
+
+**Note**: For production, the frontend is deployed on Vercel and connects to your self-hosted backend API.
 
 #### Manual Setup (Advanced)
 

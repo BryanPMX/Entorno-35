@@ -12,6 +12,8 @@ The following security issues have been addressed:
 2. **internal/config/config.go**: Removed default password values
 3. **Makefile**: Migrations now require DB_URL environment variable
 4. **tests/integration/main_test.go**: Removed hardcoded password from default DB_URL fallback - DB_URL is now required
+5. **vercel.json CSP**: Removed 'unsafe-eval' from Content-Security-Policy (kept 'unsafe-inline' for Next.js compatibility)
+6. **.gitignore**: Added `.env.*` pattern to ensure all environment files (including `.env.stripe`) are properly ignored
 
 ### Required Environment Variables
 
