@@ -114,12 +114,15 @@ func main() {
 	corsConfig.AllowCredentials = true
 	router.Use(cors.New(corsConfig))
 
-	// Health check endpoint
+	// Health check endpoint (supports both GET and HEAD for Docker/Kubernetes health checks)
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
 			"service": "entorno35-api",
 		})
+	})
+	router.HEAD("/health", func(c *gin.Context) {
+		c.Status(200)
 	})
 
 	// Auth endpoints
