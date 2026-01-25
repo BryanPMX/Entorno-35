@@ -64,13 +64,13 @@ jobs:
         if: success()
         env:
           PORTAINER_URL: ${{ secrets.PORTAINER_URL || '' }}
-          PORTAINER_API_TOKEN: ${{ secrets.PORTAINER_API_TOKEN || '' }}
+          PORTAINER_API_TOKEN: ${{ secrets.PORTAINER_API_KEY || '' }}
           PORTAINER_STACK_ID: ${{ secrets.PORTAINER_STACK_ID || '' }}
           PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID || '' }}
         run: |
           # Check if required secrets are set
           if [ -z "${PORTAINER_URL}" ] || [ -z "${PORTAINER_API_TOKEN}" ] || [ -z "${PORTAINER_STACK_ID}" ]; then
-            echo "Skipping Portainer update (PORTAINER_URL, PORTAINER_API_TOKEN, or PORTAINER_STACK_ID not set)"
+            echo "Skipping Portainer update (PORTAINER_URL, PORTAINER_API_KEY, or PORTAINER_STACK_ID not set)"
             exit 0
           fi
           
@@ -142,4 +142,4 @@ jobs:
           echo "- **Tags**: \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Portainer Update**: $([ -n "${{ secrets.PORTAINER_URL }}" ] && [ -n "${{ secrets.PORTAINER_API_TOKEN }}" ] && echo '✅ Triggered' || echo '⚠️ Not configured')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Portainer Update**: $([ -n "${{ secrets.PORTAINER_URL }}" ] && [ -n "${{ secrets.PORTAINER_API_KEY }}" ] && echo '✅ Triggered' || echo '⚠️ Not configured')" >> $GITHUB_STEP_SUMMARY
