@@ -1,8 +1,52 @@
 # Security Notes
 
+This document describes credential management, pre-commit checks, required environment variables, and security practices for the Entorno35 platform. Production uses Portainer stack environment variables only; no env files are committed.
+
+## Table of contents
+
+1. [Pre-commit security check](#pre-commit-security-check)
+2. [Credentials management](#credentials-management)
+3. [Securing existing env files](#securing-existing-env-files)
+4. [Fixed security issues](#fixed-security-issues)
+5. [Required environment variables](#required-environment-variables)
+6. [Development setup](#development-setup)
+7. [Docker Compose](#docker-compose)
+8. [Running migrations](#running-migrations)
+
+---
+
+## Pre-commit security check
+
+Before every commit:
+
+1. **Env files**: Run `git status`. Ensure `.env`, `.env.stripe`, and any `.env.*` do **not** appear. If they are staged, run `git reset HEAD .env .env.stripe` and confirm they are in `.gitignore`.
+2. **Secrets in code**: No hardcoded passwords, API keys, or tokens in tracked files. `docker-compose.prod.yml` and `docker-compose.yml` use only `${VAR}` or `${VAR:-default}`; real values are set in Portainer or local env.
+3. **GitHub Actions**: Workflow uses `${{ secrets.* }}` only; no literal credentials in `.github/workflows/`.
+4. **Docs**: SECURITY.md, README, and CI_CD refer to placeholders (e.g. `your_password`, `change-this-in-production`), not real values.
+
+---
+
 ## Credentials Management
 
 **WARNING**: NEVER commit passwords, secrets, or API keys to the repository.
+
+### Securing existing env files
+
+No env files are committed. All env files must stay local and must never be committed:
+
+| File | Purpose | Committed? |
+|------|---------|------------|
+| `.env` | Local backend config (DB, JWT, CORS, etc.) | No (gitignored) |
+| `.env.stripe` | Local Stripe keys (test/live); used only if Stripe is wired in | No (gitignored) |
+| `web/frontend/.env.local` | Local frontend config (e.g. `NEXT_PUBLIC_API_URL`) | No (gitignored) |
+
+Required backend env vars are documented in `docker-compose.prod.yml` (variable names) and in the "Required Environment Variables" section below.
+
+**Production**: No `.env` or `.env.stripe` files on the server. All secrets (DB, JWT, CORS, Stripe, SMTP) are set in **Portainer stack environment variables** (or server env). The repo never contains real credentials.
+
+**Before every commit**:
+1. Run `git status` and ensure `.env`, `.env.stripe`, and any `.env.*` do not appear.
+2. If any of them are staged, run `git reset HEAD .env .env.stripe` (and the file name) then confirm they are listed in `.gitignore`.
 
 ### Fixed Security Issues
 
@@ -13,7 +57,7 @@ The following security issues have been addressed:
 3. **Makefile**: Migrations now require DB_URL environment variable
 4. **tests/integration/main_test.go**: Removed hardcoded password from default DB_URL fallback - DB_URL is now required
 5. **vercel.json CSP**: Removed 'unsafe-eval' from Content-Security-Policy (kept 'unsafe-inline' for Next.js compatibility)
-6. **.gitignore**: Added `.env.*` pattern to ensure all environment files (including `.env.stripe`) are properly ignored
+6. **.gitignore**: `.env`, `.env.*`, and `.env.stripe` are ignored. No env files are committed.
 
 ### Required Environment Variables
 
@@ -47,14 +91,9 @@ APP_BASE_URL=http://localhost:3000  # Base URL of your application
 
 ### Development Setup
 
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
+1. For local development only: create a `.env` file with the variables listed in "Required Environment Variables" below (or in `docker-compose.prod.yml`). Never commit `.env` (it is in `.gitignore`).
 
-2. Edit `.env` with your local credentials
-
-3. Ensure `.env` is in `.gitignore` (it is)
+2. For production: set all variables in Portainer stack environment variables; no `.env` file on the server.
 
 ### Docker Compose
 
@@ -76,6 +115,6 @@ make migrate-up
 
 ---
 
-**Last Updated**: 2026-01-09
-**Security Status**: All security issues resolved - No hardcoded secrets, proper environment variable usage, PDF generation with secure file handling
+**Last updated**: 2026-01-31  
+**Security status**: No hardcoded secrets; credentials via Portainer env vars; pre-commit checks documented; PDF generation with secure file handling.
 

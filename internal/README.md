@@ -1,6 +1,6 @@
 # Internal Package
 
-Private application code following Go best practices and Hexagonal Architecture.
+Private application code following Go best practices and Hexagonal Architecture. For API reference, scoring, and deployment documentation, see the root [docs/README.md](../../docs/README.md).
 
 ## Structure
 

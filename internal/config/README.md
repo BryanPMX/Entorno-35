@@ -27,13 +27,7 @@ Configuration is loaded from environment variables. Required variables:
 
 ## Environment Setup
 
-Copy `.env.example` to `.env` and set your configuration values:
-
-```bash
-cp .env.example .env
-```
-
-Never commit `.env` files to version control.
+Production uses Portainer stack environment variables; no `.env` file on the server. For local development, create a `.env` file with the variables listed above (or see `docker-compose.prod.yml`). Never commit `.env` files to version control.
 
 ## Design Principles
 

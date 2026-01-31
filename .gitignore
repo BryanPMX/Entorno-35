@@ -47,11 +47,11 @@ go.work
 ehthumbs.db
 Thumbs.db
 
-# Environment variables
+# Environment variables (never commit; production uses Portainer env vars)
 .env
 .env.*
-!.env.example
 .env.local
+.env.stripe
 .env.development.local
 .env.test.local
 .env.production.local
@@ -98,9 +98,6 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
-
-# Docker
-.dockerignore
 
 # Migrations (keep schema, ignore generated)
 # migrations/versions/*.pyc

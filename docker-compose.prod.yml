@@ -3,12 +3,12 @@ version: '3.8'
 services:
   # --- Your Go Backend ---
   api:
-    image: ${DOCKERHUB_USERNAME:-brpmx}/entorno35-backend:develop
+    image: ${DOCKERHUB_USERNAME:-brpmx}/entorno35-backend:${IMAGE_TAG:-develop}
     restart: always
     ports:
-      - "8080:8080" # Maps port 8080 inside to 8080 on the server
+      - "8080:8080"
     depends_on:
-      - db
+      - postgres
       - redis
     environment:
       # App Settings
@@ -16,8 +16,8 @@ services:
       - PORT=8080
       - API_VERSION=v1
       
-      # Database Config (Notice DB_HOST is "db", not localhost!)
-      - DB_HOST=db
+      # Database Config (DB_HOST = service name "postgres")
+      - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${DB_USER:-postgres}
       - DB_PASSWORD=${DB_PASSWORD}
@@ -31,8 +31,8 @@ services:
       # Security & CORS
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRY=24h
-      # Important: Use single origin (backend only supports one)
-      - CORS_ORIGIN=${CORS_ORIGIN:-https://entorno35.com}
+      # Must match the frontend origin (e.g. https://www.entorno35.com)
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://www.entorno35.com}
       
       # Email (Fill these in if you have them, otherwise leave as is)
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
@@ -47,7 +47,7 @@ services:
       retries: 3
 
   # --- PostgreSQL Database ---
-  db:
+  postgres:
     image: postgres:15-alpine
     restart: always
     environment:

@@ -1,6 +1,10 @@
-# SMTP Email Configuration Guide
+# SMTP Email Configuration
 
-This guide explains how to configure SMTP settings for sending assessment invitation emails in Entorno35.
+This guide explains how to configure SMTP settings for sending assessment invitation emails in Entorno35. It covers required environment variables, provider setup (Gmail, SendGrid, AWS SES, Mailgun), and troubleshooting.
+
+**Last updated**: 2026-01-31
+
+---
 
 ## Required Environment Variables
 
@@ -171,12 +175,7 @@ APP_BASE_URL=https://app.entorno35.com
 
 #### Option A: Using `.env` file (Recommended)
 
-1. Create a `.env` file in the project root (if it doesn't exist):
-
-```bash
-# Copy the example if available
-cp .env.example .env
-```
+1. Create a `.env` file in the project root (if it doesn't exist) and add your SMTP configuration. Required variable names are listed in `docker-compose.prod.yml` and SECURITY.md.
 
 2. Add your SMTP configuration to `.env`:
 

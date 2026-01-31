@@ -51,8 +51,8 @@ export function HeroSection() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button size="lg" className="px-8 py-4 text-lg" asChild>
-              <Link href="/login">
-                Comenzar Evaluación Gratuita
+              <Link href="#pricing">
+                Ver Planes y Precios
                 <span className="ml-2">→</span>
               </Link>
             </Button>
@@ -65,7 +65,7 @@ export function HeroSection() {
 
           {/* Trust Indicators */}
           <div className="text-sm text-gray-500">
-            <p>No se requiere tarjeta de crédito • Configuración en minutos • Soporte técnico incluido</p>
+            <p>Desde $1,000 MXN/mes • Configuración en minutos • Soporte técnico incluido</p>
           </div>
         </div>
       </div>

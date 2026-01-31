@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -140,17 +141,17 @@ export function FeaturesSection() {
           <Card className="max-w-md mx-auto border-blue-200 bg-blue-50">
             <CardContent className="p-6 text-center">
               <h3 className="font-semibold text-gray-900 mb-2">
-                Prueba Gratuita por 30 Días
+                Planes desde $1,000 MXN al mes
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Sin compromiso. Configura tu cuenta y comienza a evaluar.
+                Suscripción mensual o anual. Mismas funcionalidades en ambos planes.
               </p>
-              <a
-                href="/login"
+              <Link
+                href="#pricing"
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
-                Comenzar Ahora
-              </a>
+                Ver Precios
+              </Link>
             </CardContent>
           </Card>
         </div>

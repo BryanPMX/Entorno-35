@@ -65,7 +65,7 @@ Entorno35/
 │   ├── lib/              # Utilities and configurations
 │   ├── services/         # API service layer
 │   └── types/            # TypeScript type definitions
-├── docs/                 # API and technical documentation
+├── docs/                 # Technical and operational documentation (see docs/README.md)
 ├── nom035_questions.json # NOM-035 question catalog
 ├── risk_strategy.json    # Risk calculation configuration
 └── docker-compose.yml    # Development environment
@@ -82,9 +82,11 @@ Entorno35/
 
 ### Deployment Architecture
 
-- **Frontend**: Deployed on Vercel (production)
-- **Backend**: Self-hosted server (Docker/Portainer)
-- **Local Development**: Both frontend and backend can run locally
+- **Frontend**: Deployed on Vercel (production). Pushes to enabled branches trigger automatic deploys.
+- **Backend**: Self-hosted (Docker on Portainer). Pushes to `develop` or `main` that change backend code trigger a GitHub Actions build, Docker Hub push, and optional Portainer stack update.
+- **Local Development**: Both frontend and backend can run locally.
+
+For CI/CD setup (Vercel, Portainer, Cloudflare, required secrets), see [docs/CI_CD.md](docs/CI_CD.md).
 
 ### Development Setup
 
@@ -211,17 +213,7 @@ npm test            # Run test suite
 
 ### Environment Configuration
 
-Create a `.env` file based on `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Key configuration options:
-- `DB_URL`: PostgreSQL connection string
-- `JWT_SECRET`: JWT signing key
-- `CORS_ORIGIN`: Frontend URL for CORS
-- `REDIS_URL`: Redis connection string
+Production uses **Portainer stack environment variables** only; no `.env` files on the server. Required backend vars are listed in `docker-compose.prod.yml` (e.g. `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, `REDIS_HOST`, `SMTP_*`). Set them in Portainer when creating or editing the stack. Never commit `.env` or `.env.stripe` (they are in `.gitignore`).
 
 ### Testing
 
@@ -236,19 +228,23 @@ cd web/frontend && npm test
 go test ./tests/integration/...
 ```
 
-### API Documentation
+### Documentation
 
-Comprehensive API documentation available in `docs/`:
-- `COMPLETE_API_REFERENCE.md` - Complete API endpoint reference
-- `Scoring.md` - NOM-035 scoring algorithm and thresholds
-- `CSV_IMPORT_VALIDATION.md` - Staff CSV import specifications
-- `BUGFIXES_JAN2026.md` - Recent bug fixes and known issues
+All substantive documentation (API, deployment, scoring, CSV import, SMTP) lives in the **docs/** directory. The only non-README markdown at repo root is **SECURITY.md** (credentials and pre-commit check), kept at root for GitHub’s Security policy link.
+
+- **[docs/README.md](docs/README.md)** – Documentation index and list of essential docs.
+
+Key documents:
+
+- **API and integration**: [docs/API_REFERENCE.md](docs/API_REFERENCE.md) – REST endpoints, request/response formats, auth.
+- **Scoring**: [docs/SCORING.md](docs/SCORING.md) – NOM-035 polarity rules, risk thresholds, domain grouping.
+- **Deployment**: [docs/CI_CD.md](docs/CI_CD.md) – Vercel, Portainer, Cloudflare, required secrets.
+- **Email**: [docs/SMTP_CONFIGURATION.md](docs/SMTP_CONFIGURATION.md) – SMTP and provider setup.
 
 ## Data Files
 
-- **`nom035_questions.json`** - Complete NOM-035 question catalog (138 questions)
-- **`risk_strategy.json`** - Risk calculation configuration and thresholds
-- **`docs/Scoring.md`** - Scoring algorithm documentation
+- **`nom035_questions.json`** – NOM-035 question catalog (138 questions, Guide I/II/III).
+- **`risk_strategy.json`** – Risk calculation configuration and thresholds (used by scoring service).
 
 ## Project Status
 
@@ -262,8 +258,6 @@ This project implements a complete NOM-035 compliance solution with:
 - **Security**: JWT authentication with multi-tenant isolation
 
 All core features are implemented and tested. The platform features enterprise-grade UX with professional PDF reporting and is production-ready for NOM-035-STPS-2018 compliance automation.
-
-For detailed development progress and roadmap, see `PROJECT_STATUS.md`.
 
 ## Contributing
 

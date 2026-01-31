@@ -84,7 +84,7 @@ jobs:
           
           # Check if docker-compose.prod.yml exists (REQUIRED for Portainer CE API)
           if [ ! -f "docker-compose.prod.yml" ]; then
-            echo "⚠️ docker-compose.prod.yml not found. Skipping Portainer update."
+            echo "docker-compose.prod.yml not found. Skipping Portainer update."
             echo "Note: Portainer CE requires stackFileContent in the update request."
             exit 0
           fi
@@ -95,7 +95,7 @@ jobs:
             # jq -Rs reads the file as a raw string and escapes it for JSON
             STACK_CONTENT=$(cat docker-compose.prod.yml | jq -Rs .)
           else
-            echo "⚠️ jq not available. Attempting basic JSON escaping..."
+            echo "jq not available. Attempting basic JSON escaping..."
             # Fallback: basic JSON escaping (less robust but works for simple cases)
             STACK_CONTENT=$(cat docker-compose.prod.yml | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | sed 's/^/"/' | sed 's/$/"/')
           fi
@@ -119,10 +119,10 @@ jobs:
             -d "$REQUEST_BODY")
           
           if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "204" ]; then
-            echo "✅ Portainer stack updated successfully (HTTP $HTTP_STATUS)"
+            echo "Portainer stack updated successfully (HTTP $HTTP_STATUS)"
             echo "Portainer will now pull the latest image and restart containers."
           else
-            echo "⚠️ Portainer API returned status: $HTTP_STATUS"
+            echo "Portainer API returned status: $HTTP_STATUS"
             echo "Response: $(cat /tmp/portainer_response.json 2>/dev/null || echo 'No response body')"
             echo ""
             echo "Troubleshooting tips:"
@@ -136,10 +136,10 @@ jobs:
       - name: Deployment Summary
         if: always()
         run: |
-          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Docker Image**: \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Tags**: \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Portainer Update**: $([ -n "${{ secrets.PORTAINER_URL }}" ] && [ -n "${{ secrets.PORTAINER_API_KEY }}" ] && echo '✅ Triggered' || echo '⚠️ Not configured')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Portainer Update**: $([ -n "${{ secrets.PORTAINER_URL }}" ] && [ -n "${{ secrets.PORTAINER_API_KEY }}" ] && echo 'Triggered' || echo 'Not configured')" >> $GITHUB_STEP_SUMMARY

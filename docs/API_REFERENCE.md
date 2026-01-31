@@ -1,9 +1,11 @@
 # Complete API Reference
 
-**Version**: 1.0  
-**Last Updated**: January 12, 2026
+This document consolidates all REST API endpoints for the Entorno35 NOM-035 Compliance Platform: authentication, staff, assessments, scoring, and reports. Use it for integration, testing, or client implementation.
 
-This document consolidates all API endpoints for the Entorno35 NOM-035 Compliance Platform.
+**Version**: 1.0  
+**Last updated**: 2026-01-31
+
+---
 
 ## Table of Contents
 

@@ -1,4 +1,10 @@
-# Scoring Implementation Guide - NOM-035 Risk Calculation
+# Scoring Implementation Guide – NOM-035 Risk Calculation
+
+This document describes the scoring implementation for NOM-035-STPS-2018 psychosocial risk assessments: polarity rules (Guide II and III), risk level thresholds, and domain grouping. It is the reference for developers working on the scoring service or report logic.
+
+**Last updated**: 2026-01-31
+
+---
 
 ## Verified Data Source
 This guide is based on rigorous verification against the official **NOM-035-STPS-2018** document (DOF - Diario Oficial de la Federación.pdf), specifically:

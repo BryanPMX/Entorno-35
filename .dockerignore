@@ -1,0 +1,100 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment files
+.env
+.env.*
+
+# Binary files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+/api
+/cmd/*/api
+/cmd/*/seeder
+*.test
+
+# Test files and coverage
+coverage/
+coverage.html
+coverage.txt
+*.out
+.nyc_output/
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+audit_*.log
+
+# Node modules (if any)
+node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker files
+docker-compose.yml
+Dockerfile*
+.dockerignore
+
+# Documentation (optional - remove if you want docs in image)
+# docs/
+
+# Local development
+local/
+.local/
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.crt
+
+# Generated files
+generated/
+*.generated.*
+
+# Next.js / Frontend build artifacts (if not needed)
+.next/
+out/
+build/
+.vercel
+
+# Vendor directory (if using vendoring)
+vendor/
+
+# Go workspace file
+go.work
