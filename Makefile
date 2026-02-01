@@ -28,13 +28,13 @@ clean: ## Clean build artifacts
 	@rm -rf bin/
 	@rm -rf coverage.out coverage.html
 
-docker-up: ## Start Docker containers
+docker-up: ## Start Docker containers (uses docker-compose.prod.yml; set DB_PASSWORD etc. for local)
 	@echo "Starting Docker containers..."
-	@docker-compose up -d
+	@docker-compose -f docker-compose.prod.yml up -d
 
 docker-down: ## Stop Docker containers
 	@echo "Stopping Docker containers..."
-	@docker-compose down
+	@docker-compose -f docker-compose.prod.yml down
 
 migrate-up: ## Run database migrations up (requires DB_URL env var)
 	@echo "Running migrations up..."

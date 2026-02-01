@@ -68,7 +68,7 @@ echo "Ports $BACKEND_PORT and $FRONTEND_PORT are now available."
 # Start infrastructure
 echo ""
 echo "Step 1: Starting PostgreSQL and Redis..."
-docker-compose -f "$PROJECT_ROOT/docker-compose.yml" up -d
+docker-compose -f "$PROJECT_ROOT/docker-compose.prod.yml" up -d
 
 # Wait for PostgreSQL to be ready
 echo ""
@@ -140,7 +140,7 @@ cleanup() {
     # Also kill any remaining processes on the ports
     kill_port $BACKEND_PORT
     kill_port $FRONTEND_PORT
-    docker-compose -f "$PROJECT_ROOT/docker-compose.yml" down
+    docker-compose -f "$PROJECT_ROOT/docker-compose.prod.yml" down
     echo "All services stopped."
     exit 0
 }

@@ -68,7 +68,7 @@ Entorno35/
 ├── docs/                 # Technical and operational documentation (see docs/README.md)
 ├── nom035_questions.json # NOM-035 question catalog
 ├── risk_strategy.json    # Risk calculation configuration
-└── docker-compose.yml    # Development environment
+└── docker-compose.prod.yml # Production stack (Portainer)
 ```
 
 ## Quick Start
@@ -92,7 +92,7 @@ For CI/CD setup (Vercel, Portainer, Cloudflare, required secrets), see [docs/CI_
 
 #### Quick Start (Recommended)
 
-Use the automated startup script for local development:
+For local development, start PostgreSQL and Redis (e.g. via Docker or an existing instance), then run the backend and frontend:
 
 ```bash
 # Clone and enter repository
@@ -103,19 +103,11 @@ cd Entorno-35
 make setup
 cd web/frontend && npm install && cd ../..
 
-# Start everything locally (one command)
+# Start backend (terminal 1) and frontend (terminal 2) - see Manual Setup below for env vars
 ./start-dev.sh
 ```
 
-This will automatically:
-- Start PostgreSQL and Redis containers
-- Start backend API on http://localhost:8080
-- Start frontend locally on http://localhost:3000 (for development)
-- Configure all environment variables
-
-Press `Ctrl+C` to stop all services.
-
-**Note**: For production, the frontend is deployed on Vercel and connects to your self-hosted backend API.
+**Note**: `start-dev.sh` expects PostgreSQL and Redis to be available (e.g. `make docker-up` if you use a local compose, or point env vars at an existing instance). For production, the frontend is deployed on Vercel and the backend uses `docker-compose.prod.yml` on Portainer.
 
 #### Manual Setup (Advanced)
 

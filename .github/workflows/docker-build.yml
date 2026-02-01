@@ -127,7 +127,7 @@ jobs:
             echo ""
             echo "Troubleshooting tips:"
             echo "1. Verify PORTAINER_STACK_ID matches your stack ID"
-            echo "2. Check that docker-compose.yml exists and is valid"
+            echo "2. Check that docker-compose.prod.yml exists and is valid"
             echo "3. Ensure API token has permissions to update stacks"
             echo "4. Verify stackFileContent is properly formatted JSON string"
             exit 1

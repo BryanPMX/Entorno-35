@@ -20,7 +20,7 @@ This document describes credential management, pre-commit checks, required envir
 Before every commit:
 
 1. **Env files**: Run `git status`. Ensure `.env`, `.env.stripe`, and any `.env.*` do **not** appear. If they are staged, run `git reset HEAD .env .env.stripe` and confirm they are in `.gitignore`.
-2. **Secrets in code**: No hardcoded passwords, API keys, or tokens in tracked files. `docker-compose.prod.yml` and `docker-compose.yml` use only `${VAR}` or `${VAR:-default}`; real values are set in Portainer or local env.
+2. **Secrets in code**: No hardcoded passwords, API keys, or tokens in tracked files. `docker-compose.prod.yml` uses only `${VAR}` or `${VAR:-default}`; real values are set in Portainer or local env.
 3. **GitHub Actions**: Workflow uses `${{ secrets.* }}` only; no literal credentials in `.github/workflows/`.
 4. **Docs**: SECURITY.md, README, and CI_CD refer to placeholders (e.g. `your_password`, `change-this-in-production`), not real values.
 
@@ -52,7 +52,7 @@ Required backend env vars are documented in `docker-compose.prod.yml` (variable 
 
 The following security issues have been addressed:
 
-1. **docker-compose.yml**: Removed hardcoded passwords, now uses environment variables
+1. **docker-compose.prod.yml**: Uses environment variables only (no hardcoded passwords)
 2. **internal/config/config.go**: Removed default password values
 3. **Makefile**: Migrations now require DB_URL environment variable
 4. **tests/integration/main_test.go**: Removed hardcoded password from default DB_URL fallback - DB_URL is now required
@@ -97,10 +97,7 @@ APP_BASE_URL=http://localhost:3000  # Base URL of your application
 
 ### Docker Compose
 
-For local development, docker-compose.yml uses environment variable fallbacks:
-```yaml
-POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-entorno35}
-```
+For local development, `docker-compose.prod.yml` uses environment variables (set DB_PASSWORD, JWT_SECRET, etc. in the shell or in Portainer). Example for local: `export DB_PASSWORD=...` then `make docker-up` or `./start-dev.sh`.
 
 **For production**: Always set explicit environment variables, never rely on defaults.
 
