@@ -123,22 +123,22 @@ export function FeaturesSection() {
         </div>
 
         {/* Feature clusters to avoid repetition */}
-        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 mb-10">
-          <Card className="glass-panel-strong shimmer-border">
-            <CardContent className="p-6 space-y-4">
+        <div className="grid gap-8 lg:grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] mb-10">
+          <Card className="glass-panel-strong shimmer-border h-full">
+            <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-200 bg-blue-100/70 dark:bg-blue-500/20 px-3 py-1 rounded-full">
                   Operación
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Flujos que reducen tiempo de despliegue</p>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {features.slice(0, 5).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
                     <div
                       key={feature.title}
-                      className="group rounded-xl border border-white/30 dark:border-white/10 bg-gradient-to-br from-white/80 to-white/50 dark:from-white/5 dark:to-white/0 p-4 hover:translate-y-[-3px] transition-all shadow-sm"
+                      className="group rounded-xl border border-white/30 dark:border-white/10 bg-gradient-to-br from-white/80 to-white/50 dark:from-white/5 dark:to-white/0 p-4 hover:translate-y-[-3px] transition-all shadow-sm h-full flex flex-col gap-2"
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>
@@ -154,7 +154,7 @@ export function FeaturesSection() {
                           {feature.badge}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{feature.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 flex-1">{feature.description}</p>
                     </div>
                   );
                 })}
@@ -162,21 +162,21 @@ export function FeaturesSection() {
             </CardContent>
           </Card>
 
-          <Card className="glass-panel shadow-xl">
-            <CardContent className="p-6 space-y-4">
+          <Card className="glass-panel shadow-xl h-full">
+            <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-200 bg-purple-100/70 dark:bg-purple-500/20 px-3 py-1 rounded-full">
                   Seguridad & Acceso
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Confianza en cada interacción</p>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {features.slice(5, 10).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
                     <div
                       key={feature.title}
-                      className="rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg transition-all"
+                      className="rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg transition-all h-full flex flex-col gap-2"
                     >
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>
@@ -206,9 +206,9 @@ export function FeaturesSection() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-16 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-stretch">
-          <Card className="glass-panel-strong shimmer-border">
-            <CardContent className="p-6 space-y-4">
+        <div className="mt-16 grid gap-6 lg:grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] items-stretch">
+          <Card className="glass-panel-strong shimmer-border h-full">
+            <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm uppercase tracking-wide text-gray-500 dark:text-gray-300 mb-1">
@@ -245,8 +245,8 @@ export function FeaturesSection() {
             </CardContent>
           </Card>
 
-          <Card className="glass-panel border-dashed border-2 border-white/40 dark:border-white/10">
-            <CardContent className="p-6 space-y-4 text-gray-700 dark:text-gray-200">
+          <Card className="glass-panel border-dashed border-2 border-white/40 dark:border-white/10 h-full">
+            <CardContent className="p-6 space-y-4 text-gray-700 dark:text-gray-200 h-full flex flex-col">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 opacity-90 shadow-inner" />
                 <div>
@@ -254,7 +254,7 @@ export function FeaturesSection() {
                   <p className="text-lg font-semibold">Respuesta promedio 2h</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm flex-1">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   Chat y email en horario laboral

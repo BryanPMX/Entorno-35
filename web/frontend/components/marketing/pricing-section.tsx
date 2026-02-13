@@ -110,15 +110,10 @@ export function PricingSection() {
                 <p className="text-gray-600 mt-2 text-sm">{plan.description}</p>
               </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col">
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start">
-                      <Check className="w-4 h-4 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                      <span className="text-gray-700 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+              <CardContent className="flex-1 flex flex-col space-y-6">
+                <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
+                  Incluye todas las capacidades NOM-035: evaluaciones completas, reportes PDF, dashboard, envíos automáticos y soporte.
+                </p>
 
                 <div className="mt-auto">
                   <Button
@@ -135,6 +130,25 @@ export function PricingSection() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Unified feature list (same for ambos planes) */}
+        <div className="mt-10">
+          <Card className="glass-panel border border-white/50 dark:border-white/10 shadow-md">
+            <CardContent className="p-6">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
+                Todo lo que incluyen ambos planes
+              </p>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {PLAN_FEATURES.map((feature) => (
+                  <div key={feature} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-200">
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Billing note - Stripe later */}

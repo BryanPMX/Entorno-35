@@ -117,31 +117,9 @@ export function ComplianceSection() {
           </div>
         </div>
 
-        {/* Statistics */}
-        <div className="relative overflow-hidden rounded-2xl p-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.25),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.2),transparent_30%)]" />
-          <div className="relative">
-            <h3 className="text-2xl font-bold mb-4">
-              Más de 500 organizaciones ya cumplen con NOM-035
-            </h3>
-            <p className="text-blue-100 mb-6 max-w-2xl">
-              Datos preparados para autoridad laboral, con auditoría de accesos y evidencia descargable.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl">
-              <div className="glass-panel rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold mb-1 text-gray-900">98%</div>
-                <div className="text-sm text-gray-700">Tasa de adopción</div>
-              </div>
-              <div className="glass-panel rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold mb-1 text-gray-900">15min</div>
-                <div className="text-sm text-gray-700">Tiempo por evaluación</div>
-              </div>
-              <div className="glass-panel rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold mb-1 text-gray-900">24/7</div>
-                <div className="text-sm text-gray-700">Soporte técnico</div>
-              </div>
-            </div>
-          </div>
+        {/* Soft transition to next sections */}
+        <div className="h-16 relative mt-8">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-gray-50 dark:via-white/5 dark:to-background blur-[2px]" />
         </div>
       </div>
     </section>
