@@ -42,8 +42,8 @@ export function PricingSection() {
       price: "$6,000",
       currency: "MXN",
       period: "año",
-      description: "Paga una vez al año y ahorra el equivalente a 2 meses.",
-      savings: "Ahorra $2,000 vs mensual",
+      description: "Paga una vez al año y ahorra el equivalente a 6 meses.",
+      savings: "Ahorra $6,000 vs mensual (50%)",
       features: PLAN_FEATURES,
       popular: true,
       cta: "Comenzar ahora",
@@ -84,7 +84,7 @@ export function PricingSection() {
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge className="badge-glow text-white px-4 py-1 shadow-md">
                     <Sparkles className="w-3 h-3 mr-1 inline" />
-                    Mejor valor
+                    50% OFF anual
                   </Badge>
                 </div>
               )}
@@ -153,10 +153,9 @@ export function PricingSection() {
                 ¿Qué diferencia hay entre Mensual y Anual?
               </h4>
               <p className="text-gray-600 text-sm">
-                Las funcionalidades son idénticas. El plan anual tiene un precio
-                equivalente a 10 meses (ahorras 2 meses). Si pagas mes a mes,
-                al cabo de un año pagarías $12,000 MXN; con el plan anual pagas
-                $6,000 MXN.
+                Las funcionalidades son idénticas. El plan anual cuesta $6,000 MXN (equivalente a 6 meses);
+                pagar mes a mes durante 12 meses costaría $12,000 MXN. Con el plan anual ahorras $6,000 MXN
+                y obtienes un 50% de descuento efectivo.
               </p>
             </div>
             <div>

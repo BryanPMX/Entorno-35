@@ -24,22 +24,6 @@ export function MarketingFooter() {
               Plataforma líder en evaluación de riesgos psicosociales conforme a NOM-035 STPS 2018.
               Ayudamos a organizaciones mexicanas a proteger la salud mental de sus colaboradores.
             </p>
-            <div className="flex space-x-4">
-              <a
-                href="https://linkedin.com/company/entorno35"
-                className="text-gray-400 hover:text-white transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                LinkedIn
-              </a>
-              <a
-                href="mailto:contacto@entorno35.com"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                Email
-              </a>
-            </div>
           </div>
 
           {/* Product Links */}
