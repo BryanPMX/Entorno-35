@@ -95,9 +95,6 @@ export function MarketingFooter() {
             <a href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
               Política de Privacidad
             </a>
-            <span className="text-gray-600 text-sm">
-              Certificado NOM-035 STPS 2018
-            </span>
           </div>
         </div>
       </div>
