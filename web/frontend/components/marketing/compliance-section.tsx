@@ -44,9 +44,11 @@ export function ComplianceSection() {
   ];
 
   return (
-    <section id="compliance" className="relative overflow-hidden py-20 lg:py-28 bg-white dark:bg-background">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-background dark:via-background dark:to-background" />
-      <div className="absolute inset-0 -z-10 soft-grid opacity-70" />
+    <section id="compliance" className="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-b from-white via-blue-50/60 to-white dark:from-background dark:via-background dark:to-background">
+      <div className="absolute inset-0 -z-10 bg-aurora opacity-70 dark:opacity-40" />
+      <div className="absolute inset-0 -z-10 soft-grid" />
+      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-gradient-to-br from-blue-300/50 to-purple-400/40 blur-3xl" />
+      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-gradient-to-tl from-purple-500/40 to-indigo-400/35 blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">

@@ -53,7 +53,7 @@ export function PricingSection() {
 
   return (
     <section id="pricing" className="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-background dark:via-background dark:to-background">
-      <div className="absolute inset-0 -z-10 bg-aurora opacity-70 dark:opacity-40" />
+      <div className="absolute inset-0 -z-10 soft-grid opacity-45" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
