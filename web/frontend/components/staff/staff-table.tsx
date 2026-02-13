@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, ReactNode } from "react";
 import { ChevronUp, ChevronDown, Upload, Users, Edit2, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StaffCreateDialog } from "./staff-create-dialog";
@@ -31,10 +31,12 @@ import {
 } from "@/components/ui/pagination";
 import type { PaginatedResponse, Staff } from "@/types/backend";
 
-// Helper function to extract string value from sql.NullString
-const getEmployeeIdValue = (employeeId: string | null | any): string | null => {
+// Helper function to extract string value from sql.NullString-like objects
+const getEmployeeIdValue = (
+  employeeId: string | null | { Valid: boolean; String: string } | undefined
+): string | null => {
   if (!employeeId) return null;
-  if (typeof employeeId === 'object' && employeeId !== null) {
+  if (typeof employeeId === "object") {
     return employeeId.Valid ? employeeId.String : null;
   }
   return employeeId;
@@ -54,6 +56,33 @@ interface StaffTableProps {
 type SortField = "full_name" | "email" | "created_at";
 type SortDirection = "asc" | "desc";
 
+interface SortButtonProps {
+  field: SortField;
+  children: ReactNode;
+  activeField: SortField;
+  direction: SortDirection;
+  onSort: (field: SortField) => void;
+}
+
+function SortButton({ field, children, activeField, direction, onSort }: SortButtonProps) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => onSort(field)}
+      className="h-auto p-0 font-medium hover:bg-transparent"
+    >
+      {children}
+      {activeField === field &&
+        (direction === "asc" ? (
+          <ChevronUp className="ml-1 h-4 w-4" />
+        ) : (
+          <ChevronDown className="ml-1 h-4 w-4" />
+        ))}
+    </Button>
+  );
+}
+
 export function StaffTable({
   staffData,
   isLoading,
@@ -70,31 +99,16 @@ export function StaffTable({
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [deletingStaff, setDeletingStaff] = useState<Staff | null>(null);
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
-  const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => handleSort(field)}
-      className="h-auto p-0 font-medium hover:bg-transparent"
-    >
-      {children}
-      {sortField === field && (
-        sortDirection === "asc" ? (
-          <ChevronUp className="ml-1 h-4 w-4" />
-        ) : (
-          <ChevronDown className="ml-1 h-4 w-4" />
-        )
-      )}
-    </Button>
+  const handleSort = useCallback(
+    (field: SortField) => {
+      if (sortField === field) {
+        setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        setSortField(field);
+        setSortDirection("asc");
+      }
+    },
+    [sortField]
   );
 
   const totalPages = staffData ? Math.ceil(staffData.total / limit) : 0;
@@ -144,16 +158,37 @@ export function StaffTable({
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <SortButton field="full_name">Nombre</SortButton>
+                    <SortButton
+                      field="full_name"
+                      activeField={sortField}
+                      direction={sortDirection}
+                      onSort={handleSort}
+                    >
+                      Nombre
+                    </SortButton>
                   </TableHead>
                   <TableHead>Identificador</TableHead>
                   <TableHead>
-                    <SortButton field="email">Correo Electronico</SortButton>
+                    <SortButton
+                      field="email"
+                      activeField={sortField}
+                      direction={sortDirection}
+                      onSort={handleSort}
+                    >
+                      Correo Electronico
+                    </SortButton>
                   </TableHead>
                   <TableHead>Departamento</TableHead>
                   <TableHead>Puesto</TableHead>
                   <TableHead>
-                    <SortButton field="created_at">Fecha de Registro</SortButton>
+                    <SortButton
+                      field="created_at"
+                      activeField={sortField}
+                      direction={sortDirection}
+                      onSort={handleSort}
+                    >
+                      Fecha de Registro
+                    </SortButton>
                   </TableHead>
                   <TableHead className="w-[70px]">Acciones</TableHead>
                 </TableRow>

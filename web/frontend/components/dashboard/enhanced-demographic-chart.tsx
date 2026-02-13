@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DemographicDistribution } from "@/services/report.service";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { LucideIcon } from "lucide-react";
 
 /**
@@ -217,6 +217,7 @@ export function EnhancedDemographicChart({
 
   // Render donut chart (only supported chart type)
   const renderChart = () => {
+    if (chartType !== "donut") return null;
     return (
       <ResponsiveContainer width="100%" height={320}>
         <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
@@ -228,7 +229,7 @@ export function EnhancedDemographicChart({
             outerRadius={110}
             paddingAngle={3}
             dataKey="value"
-            label={(entry: any) => {
+            label={(entry: { value: number }) => {
               const total = chartData.reduce((sum, item) => sum + item.value, 0);
               const percentage = total > 0 ? Math.round((entry.value / total) * 100) : 0;
               // Show all labels regardless of percentage

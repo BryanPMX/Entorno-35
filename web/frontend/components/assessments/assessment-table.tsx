@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, ReactNode } from "react";
 import { ChevronUp, ChevronDown, Eye, Link, Plus, FileText, AlertTriangle, CheckCircle, Clock, Mail, MoreHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +49,37 @@ interface AssessmentTableProps {
 
 type SortField = "created_at" | "staff_name" | "status" | "risk_level" | "period";
 type SortDirection = "asc" | "desc";
+
+interface SortableHeaderProps {
+  field: SortField;
+  children: ReactNode;
+  activeField: SortField;
+  direction: SortDirection;
+  onSort: (field: SortField) => void;
+}
+
+function SortableHeader({ field, children, activeField, direction, onSort }: SortableHeaderProps) {
+  return (
+    <TableHead>
+      <Button
+        variant="ghost"
+        className="h-auto p-0 font-medium hover:bg-transparent"
+        onClick={() => onSort(field)}
+      >
+        {children}
+        {activeField === field && (
+          <span className="ml-1">
+            {direction === "asc" ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
+          </span>
+        )}
+      </Button>
+    </TableHead>
+  );
+}
 
 const statusConfig = {
   pending: { label: "Pendiente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
@@ -99,40 +130,16 @@ export function AssessmentTable({
     }
   }, [statusFilter, periodFilter, onFiltersChange]);
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
-  const SortableHeader = ({
-    field,
-    children,
-  }: {
-    field: SortField;
-    children: React.ReactNode;
-  }) => (
-    <TableHead>
-      <Button
-        variant="ghost"
-        className="h-auto p-0 font-medium hover:bg-transparent"
-        onClick={() => handleSort(field)}
-      >
-        {children}
-        {sortField === field && (
-          <span className="ml-1">
-            {sortDirection === "asc" ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
-          </span>
-        )}
-      </Button>
-    </TableHead>
+  const handleSort = useCallback(
+    (field: SortField) => {
+      if (sortField === field) {
+        setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        setSortField(field);
+        setSortDirection("asc");
+      }
+    },
+    [sortField]
   );
 
   const formatDate = (dateString: string) => {
@@ -238,11 +245,46 @@ export function AssessmentTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortableHeader field="staff_name">Empleado</SortableHeader>
-                  <SortableHeader field="period">Periodo</SortableHeader>
-                  <SortableHeader field="status">Estado</SortableHeader>
-                  <SortableHeader field="risk_level">Nivel de Riesgo</SortableHeader>
-                  <SortableHeader field="created_at">Creado</SortableHeader>
+                  <SortableHeader
+                    field="staff_name"
+                    activeField={sortField}
+                    direction={sortDirection}
+                    onSort={handleSort}
+                  >
+                    Empleado
+                  </SortableHeader>
+                  <SortableHeader
+                    field="period"
+                    activeField={sortField}
+                    direction={sortDirection}
+                    onSort={handleSort}
+                  >
+                    Periodo
+                  </SortableHeader>
+                  <SortableHeader
+                    field="status"
+                    activeField={sortField}
+                    direction={sortDirection}
+                    onSort={handleSort}
+                  >
+                    Estado
+                  </SortableHeader>
+                  <SortableHeader
+                    field="risk_level"
+                    activeField={sortField}
+                    direction={sortDirection}
+                    onSort={handleSort}
+                  >
+                    Nivel de Riesgo
+                  </SortableHeader>
+                  <SortableHeader
+                    field="created_at"
+                    activeField={sortField}
+                    direction={sortDirection}
+                    onSort={handleSort}
+                  >
+                    Creado
+                  </SortableHeader>
                   <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>

@@ -2,13 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Building, Calendar, Target, Download } from "lucide-react";
+import { ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock, User, Calendar, Target, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { reportService, IndividualReportDTO } from "@/services/report.service";
+import { reportService } from "@/services/report.service";
 import { translations, getRiskLevelLabel, getRiskLevelDescription } from "@/lib/translations";
 
 /**
@@ -67,10 +66,6 @@ export default function AssessmentReportPage() {
         {getRiskLevelLabel(riskLevel)}
       </Badge>
     );
-  };
-
-  const formatScore = (score: number, maxScore: number = 100) => {
-    return `${score}/${maxScore}`;
   };
 
   // Use backend-provided risk levels instead of recalculating

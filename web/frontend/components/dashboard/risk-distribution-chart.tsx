@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { translations } from "@/lib/translations";
 
@@ -31,6 +31,27 @@ const RISK_LABELS = {
   muy_alto: "Muy Alto",
 };
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: { name: string; value: number } }>;
+}
+
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    const datum = payload[0]?.payload;
+    if (!datum) return null;
+    return (
+      <div className="bg-popover p-3 rounded-md shadow-md border">
+        <p className="font-medium">{datum.name}</p>
+        <p className="text-sm text-muted-foreground">
+          {datum.value} {translations.charts.totalAssessments.toLowerCase()}
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function RiskDistributionChart({ data, isLoading = false }: RiskDistributionChartProps) {
   // Validate and filter data
   const validData = (data || []).filter(item => 
@@ -46,19 +67,6 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
     value: item.count || 0,
     fill: RISK_COLORS[item.risk_level as keyof typeof RISK_COLORS] || "#6b7280",
   }));
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-popover p-3 rounded-md shadow-md border">
-          <p className="font-medium">{data.name}</p>
-          <p className="text-sm text-muted-foreground">{data.value} {translations.charts.totalAssessments.toLowerCase()}</p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   if (isLoading) {
     return (
@@ -109,7 +117,7 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
               outerRadius={75}
               paddingAngle={2}
               dataKey="value"
-              label={(entry: any) => {
+              label={(entry: { value: number }) => {
                 const total = chartData.reduce((sum, item) => sum + item.value, 0);
                 const percentage = total > 0 ? Math.round((entry.value / total) * 100) : 0;
                 // Only show label if percentage is significant (> 5%)

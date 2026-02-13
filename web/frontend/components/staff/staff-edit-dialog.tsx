@@ -141,10 +141,16 @@ export function StaffEditDialog({ staff, open, onOpenChange, onStaffUpdated }: S
       toast.success("Personal actualizado exitosamente");
       onOpenChange(false);
       onStaffUpdated?.();
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || "Error al actualizar el personal";
-      
-      if (error?.response?.status === 409) {
+    } catch (error: unknown) {
+      const axiosStatus = typeof error === "object" && error && "response" in error
+        ? (error as { response?: { status?: number } }).response?.status
+        : undefined;
+      const errorMessage =
+        typeof error === "object" && error && "response" in error && (error as { response?: { data?: { error?: string } } }).response?.data?.error
+          ? (error as { response: { data: { error: string } } }).response.data.error
+          : "Error al actualizar el personal";
+
+      if (axiosStatus === 409) {
         toast.error("El registro fue modificado por otro usuario. Por favor recarga la pagina.");
       } else {
         toast.error(errorMessage);

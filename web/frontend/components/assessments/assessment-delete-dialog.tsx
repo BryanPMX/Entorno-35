@@ -59,14 +59,17 @@ export function AssessmentDeleteDialog({
       toast.success("Evaluacion eliminada exitosamente");
       onOpenChange(false);
       onAssessmentDeleted?.();
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || "Error al eliminar la evaluacion";
-      
-      if (error?.response?.status === 404) {
+    } catch (error: unknown) {
+      const response = typeof error === "object" && error && "response" in error
+        ? (error as { response?: { data?: { error?: string }; status?: number } }).response
+        : undefined;
+      const errorMessage = response?.data?.error || "Error al eliminar la evaluacion";
+
+      if (response?.status === 404) {
         toast.error("La evaluacion ya no existe");
         onOpenChange(false);
         onAssessmentDeleted?.();
-      } else if (error?.response?.status === 400) {
+      } else if (response?.status === 400) {
         toast.error(errorMessage);
       } else {
         toast.error(errorMessage);

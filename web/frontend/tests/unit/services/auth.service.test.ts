@@ -62,7 +62,7 @@ describe('AuthService', () => {
       // Mock successful response
       vi.mocked(axiosClient.post).mockResolvedValue({
         data: mockResponse,
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof axiosClient.post>>);
 
       const result = await authService.login(mockCredentials);
 
@@ -87,7 +87,7 @@ describe('AuthService', () => {
 
       vi.mocked(axiosClient.post).mockResolvedValue({
         data: mockResponse,
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof axiosClient.post>>);
 
       await authService.login(mockCredentials);
 
@@ -136,4 +136,3 @@ describe('AuthService', () => {
     });
   });
 });
-

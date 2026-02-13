@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { assessmentService } from "@/services/assessment.service";
 import { toast } from "sonner";
-import type { Question } from "@/types/backend";
 
 /**
  * Public Assessment Exam Page
@@ -22,7 +21,6 @@ import type { Question } from "@/types/backend";
  */
 export default function AssessmentExamPage() {
   const params = useParams();
-  const router = useRouter();
   const token = params.token as string;
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -32,7 +30,6 @@ export default function AssessmentExamPage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [pressedKey, setPressedKey] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
-  const [currentCategory, setCurrentCategory] = useState<string>('');
 
   // Fetch assessment data and questions
   const {
@@ -64,12 +61,34 @@ export default function AssessmentExamPage() {
   const currentQuestion = questions[currentQuestionIndex];
   const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
 
-  // Update category when question changes
-  useEffect(() => {
-    if (currentQuestion?.category?.name) {
-      setCurrentCategory(currentQuestion.category.name);
-    }
-  }, [currentQuestion?.category?.name]);
+  const handlePrevious = useCallback(() => {
+    setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1));
+  }, [questions.length]);
+
+  const handleAnswerSelect = useCallback((value: number) => {
+    if (!currentQuestion) return;
+
+    setResponses(prev => ({
+      ...prev,
+      [currentQuestion.id]: value,
+    }));
+
+    setSaveStatus('saving');
+    setTimeout(() => setSaveStatus('saved'), 500);
+
+    setTimeout(() => {
+      setCurrentQuestionIndex(prev => {
+        if (prev < questions.length - 1) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 300);
+  }, [currentQuestion, questions.length]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -113,40 +132,7 @@ export default function AssessmentExamPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentQuestionIndex, questions.length, isSubmitting, submitSuccess, selectedOption]);
-
-  // Auto-advance to next question after selection (with delay)
-  const handleAnswerSelect = useCallback((value: number) => {
-    if (!currentQuestion) return;
-
-    setResponses(prev => ({
-      ...prev,
-      [currentQuestion.id]: value,
-    }));
-
-    // Update save status
-    setSaveStatus('saving');
-    setTimeout(() => setSaveStatus('saved'), 500);
-
-    // Auto-advance after a brief delay
-    setTimeout(() => {
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-      }
-    }, 300);
-  }, [currentQuestion, currentQuestionIndex, questions.length]);
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    }
-  };
+  }, [currentQuestionIndex, questions.length, isSubmitting, submitSuccess, selectedOption, handlePrevious, handleNext, handleAnswerSelect]);
 
   const handleSubmit = async () => {
     if (!assessment || !questions.length) return;
@@ -175,7 +161,7 @@ export default function AssessmentExamPage() {
 
     try {
       await submitMutation.mutateAsync(formattedResponses);
-    } catch (error) {
+    } catch {
       setIsSubmitting(false); // Reset submitting state on error
       // Error is handled by the mutation
     }
@@ -315,9 +301,9 @@ export default function AssessmentExamPage() {
               <div className="text-center space-y-8">
                 {/* Category Display */}
                 <AnimatePresence>
-                  {currentCategory && (
+                  {currentQuestion?.category?.name && (
                     <motion.div
-                      key={currentCategory}
+                      key={currentQuestion.category.name}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -325,7 +311,7 @@ export default function AssessmentExamPage() {
                       className="flex justify-center mb-6"
                     >
                       <Badge variant="outline" className="text-xs font-medium uppercase tracking-wider">
-                        {currentCategory}
+                        {currentQuestion.category.name}
                       </Badge>
                     </motion.div>
                   )}

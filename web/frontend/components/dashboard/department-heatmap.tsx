@@ -25,6 +25,29 @@ const RISK_COLORS = {
   muy_alto: "#ef4444", // Red
 };
 
+interface HeatmapTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: { averageRisk: number; totalAssessments: number } }>;
+  label?: string;
+}
+
+function HeatmapTooltip({ active, payload, label }: HeatmapTooltipProps) {
+  if (active && payload && payload.length) {
+    const datum = payload[0]?.payload;
+    if (!datum) return null;
+    return (
+      <div className="bg-popover p-3 rounded-md shadow-md border">
+        <p className="font-medium">{label}</p>
+        <p className="text-sm text-muted-foreground">Riesgo Promedio: {datum.averageRisk}</p>
+        <p className="text-sm text-muted-foreground">
+          {translations.charts.totalAssessments}: {datum.totalAssessments}
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmapProps) {
   // Group data by department and use actual average scores from backend
   const departmentStats = data.reduce((acc, item) => {
@@ -67,24 +90,6 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
       color: getRiskColor(dept.avgScore),
     };
   });
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-popover p-3 rounded-md shadow-md border">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm text-muted-foreground">
-            Riesgo Promedio: {data.averageRisk}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {translations.charts.totalAssessments}: {data.totalAssessments}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   if (isLoading) {
     return (
@@ -146,7 +151,7 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
               }}
               domain={[0, 100]}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<HeatmapTooltip />} />
             <Bar
               dataKey="averageRisk"
               radius={[4, 4, 0, 0]}

@@ -47,10 +47,13 @@ export function StaffDeleteDialog({ staff, open, onOpenChange, onStaffDeleted }:
       toast.success("Personal eliminado exitosamente");
       onOpenChange(false);
       onStaffDeleted?.();
-    } catch (error: any) {
-      const errorData = error?.response?.data;
-      const statusCode = error?.response?.status;
-      
+    } catch (error: unknown) {
+      const response = typeof error === "object" && error && "response" in error
+        ? (error as { response?: { data?: { error?: string }; status?: number } }).response
+        : undefined;
+      const errorData = response?.data;
+      const statusCode = response?.status;
+
       // Handle specific errors
       if (statusCode === 404) {
         toast.error("El registro ya no existe");

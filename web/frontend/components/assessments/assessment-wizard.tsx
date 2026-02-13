@@ -18,7 +18,6 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Users, Settings, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 import { staffService } from "@/services/staff.service";
 import { assessmentService } from "@/services/assessment.service";
-import { useAuthStore } from "@/lib/store/auth-store";
 import type { Staff } from "@/types/backend";
 
 interface AssessmentWizardProps {
@@ -40,7 +39,6 @@ export function AssessmentWizard({ trigger }: AssessmentWizardProps) {
   const [selectedStaff, setSelectedStaff] = useState<SelectedStaff[]>([]);
   const [period, setPeriod] = useState(new Date().getFullYear());
 
-  const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
   // Fetch staff data

@@ -118,8 +118,11 @@ export default function AssessmentsPage() {
         description: "El enlace de evaluacion ha sido enviado al correo del empleado.",
       });
       refetch();
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || "Error desconocido";
+    } catch (error: unknown) {
+      const errorMessage =
+        typeof error === "object" && error && "response" in error && (error as { response?: { data?: { error?: string } } }).response?.data?.error
+          ? (error as { response: { data: { error: string } } }).response.data.error
+          : "Error desconocido";
       toast.error("Error al enviar el correo", {
         description: errorMessage,
       });

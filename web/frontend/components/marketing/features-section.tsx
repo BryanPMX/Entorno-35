@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -123,7 +122,7 @@ export function FeaturesSection() {
         </div>
 
         {/* Feature clusters to avoid repetition */}
-        <div className="grid gap-8 lg:grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] mb-10">
+        <div className="grid gap-8 lg:grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] mb-10 isolate">
           <Card className="glass-panel-strong shimmer-border h-full">
             <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
@@ -132,13 +131,13 @@ export function FeaturesSection() {
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Flujos que reducen tiempo de despliegue</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate">
                 {features.slice(0, 5).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
                     <div
                       key={feature.title}
-                      className="group relative z-0 rounded-xl border border-white/30 dark:border-white/10 bg-gradient-to-br from-white/80 to-white/50 dark:from-white/5 dark:to-white/0 p-4 hover:-translate-y-1 transition-all shadow-sm h-full flex flex-col gap-2 hover:z-10"
+                      className="group relative z-0 rounded-xl border border-white/30 dark:border-white/10 bg-gradient-to-br from-white/80 to-white/50 dark:from-white/5 dark:to-white/0 p-4 hover:-translate-y-1 transition-all shadow-sm h-full flex flex-col gap-2 hover:z-20 overflow-hidden transform-gpu"
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>
@@ -170,13 +169,13 @@ export function FeaturesSection() {
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Confianza en cada interacción</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate">
                 {features.slice(5, 10).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
                     <div
                       key={feature.title}
-                      className="relative z-0 rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg hover:-translate-y-1 transition-all h-full flex flex-col gap-2 hover:z-10"
+                      className="relative z-0 rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg hover:-translate-y-1 transition-all h-full flex flex-col gap-2 hover:z-20 overflow-hidden transform-gpu"
                     >
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>

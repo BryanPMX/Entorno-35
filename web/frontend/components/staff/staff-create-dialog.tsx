@@ -115,8 +115,11 @@ export function StaffCreateDialog({ onStaffCreated, open: controlledOpen, onOpen
       form.reset();
       setOpen(false);
       onStaffCreated?.();
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || "Error al crear el personal";
+    } catch (error: unknown) {
+      const errorMessage =
+        typeof error === "object" && error && "response" in error && (error as { response?: { data?: { error?: string } } }).response?.data?.error
+          ? (error as { response: { data: { error: string } } }).response.data.error
+          : "Error al crear el personal";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);

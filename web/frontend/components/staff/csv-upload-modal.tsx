@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Upload, X, FileText, AlertCircle, CheckCircle, Eye, Download } from "lucide-react";
+import { Upload, X, FileText, AlertCircle, CheckCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -11,16 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { staffService } from "@/services/staff.service";
 import type { ImportResult } from "@/types/backend";
@@ -31,39 +22,10 @@ interface CsvUploadModalProps {
   onUploadComplete: () => void;
 }
 
-interface CsvAnalysis {
-  mappings: Array<{
-    csv_header: string;
-    expected_field: string;
-    confidence: number;
-    match_type: string;
-    inferred_type: string;
-    sample_values: string[];
-  }>;
-  unmapped_headers: string[];
-  overall_confidence: number;
-  warnings: string[];
-  requires_review: boolean;
-}
-
-interface CsvPreview {
-  total_rows: number;
-  valid_rows: number;
-  invalid_rows: number;
-  sample_records: Array<{
-    row_number: number;
-    data: Record<string, any>;
-    errors: string[];
-  }>;
-  errors: string[];
-}
-
 export function CsvUploadModal({ isOpen, onClose, onUploadComplete }: CsvUploadModalProps) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadStep, setUploadStep] = useState<'select' | 'analyze' | 'preview' | 'upload' | 'complete'>('select');
-  const [analysis, setAnalysis] = useState<CsvAnalysis | null>(null);
-  const [preview, setPreview] = useState<CsvPreview | null>(null);
+  const [uploadStep, setUploadStep] = useState<'select' | 'upload' | 'complete'>('select');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadResult, setUploadResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -106,21 +68,6 @@ export function CsvUploadModal({ isOpen, onClose, onUploadComplete }: CsvUploadM
     }
   };
 
-  const analyzeCsv = async () => {
-    if (!selectedFile) return;
-
-    try {
-      setUploadStep('analyze');
-      const response = await staffService.uploadCSV(selectedFile);
-      // Note: This is actually calling the import endpoint. For analysis, we'd need a separate endpoint
-      // For now, we'll simulate the analysis step
-      setUploadStep('preview');
-    } catch (err) {
-      setError("Failed to analyze CSV file. Please try again.");
-      console.error("CSV analysis error:", err);
-    }
-  };
-
   const uploadCsv = async () => {
     if (!selectedFile) return;
 
@@ -154,8 +101,6 @@ export function CsvUploadModal({ isOpen, onClose, onUploadComplete }: CsvUploadM
   const resetModal = () => {
     setSelectedFile(null);
     setUploadStep('select');
-    setAnalysis(null);
-    setPreview(null);
     setUploadProgress(0);
     setUploadResult(null);
     setError(null);
