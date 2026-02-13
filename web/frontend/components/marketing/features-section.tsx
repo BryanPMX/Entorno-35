@@ -122,7 +122,7 @@ export function FeaturesSection() {
         </div>
 
         {/* Feature clusters to avoid repetition */}
-        <div className="grid gap-8 lg:grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] mb-10 isolate">
+        <div className="grid gap-8 lg:grid-cols-1 xl:grid-cols-2 mb-10 isolate items-stretch">
           <Card className="glass-panel-strong shimmer-border h-full">
             <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
@@ -131,7 +131,7 @@ export function FeaturesSection() {
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Flujos que reducen tiempo de despliegue</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate content-start flex-1">
                 {features.slice(0, 5).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
@@ -169,7 +169,7 @@ export function FeaturesSection() {
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Confianza en cada interacción</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate content-start flex-1">
                 {features.slice(5, 10).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
