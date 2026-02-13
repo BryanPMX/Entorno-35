@@ -175,18 +175,18 @@ export function FeaturesSection() {
                   return (
                     <div
                       key={feature.title}
-                      className="relative z-0 rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg hover:-translate-y-1 transition-all h-full flex flex-col gap-2 hover:z-20 overflow-hidden transform-gpu"
+                      className="relative z-0 rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg hover:-translate-y-1 transition-all h-full flex flex-col gap-2 hover:z-20 transform-gpu"
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center flex-shrink-0`}>
                           <IconComponent className="w-5 h-5 text-gray-900 dark:text-white" />
                         </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                        <div className="space-y-1 min-w-0 w-full">
+                          <div className="flex items-start gap-2 flex-wrap">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-white min-w-0 break-words">
                               {feature.title}
                             </h3>
-                            <Badge variant="secondary" className="text-[11px] px-2">
+                            <Badge variant="secondary" className="text-[11px] px-2 shrink-0">
                               {feature.badge}
                             </Badge>
                           </div>
