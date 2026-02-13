@@ -56,7 +56,7 @@ export function PricingSection() {
       <div className="absolute inset-0 -z-10 soft-grid opacity-45" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 glass-panel rounded-2xl p-8 md:p-10 border border-white/50 dark:border-white/10 shadow-lg">
           <Badge variant="outline" className="mb-4 glass-panel px-4 py-2">
             Planes y Precios
           </Badge>
@@ -161,41 +161,41 @@ export function PricingSection() {
           <h3 className="text-2xl font-bold text-gray-900 mb-8">
             Preguntas Frecuentes
           </h3>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto text-left">
+            <div className="glass-panel rounded-xl p-5 border border-white/50 dark:border-white/10">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                 ¿Qué diferencia hay entre Mensual y Anual?
               </h4>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
                 Las funcionalidades son idénticas. El plan anual cuesta $6,000 MXN (equivalente a 6 meses);
                 pagar mes a mes durante 12 meses costaría $12,000 MXN. Con el plan anual ahorras $6,000 MXN
                 y obtienes un 50% de descuento efectivo.
               </p>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">
+            <div className="glass-panel rounded-xl p-5 border border-white/50 dark:border-white/10">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                 ¿Puedo cambiar de plan después?
               </h4>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
                 Sí. Puedes pasar de mensual a anual en cualquier momento para
                 aprovechar el ahorro, o mantener la facturación mensual si lo
                 prefieres.
               </p>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">
+            <div className="glass-panel rounded-xl p-5 border border-white/50 dark:border-white/10">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                 ¿Los datos están seguros?
               </h4>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
                 Sí. Utilizamos encriptación SSL de nivel bancario y cumplimiento
                 con NOM-035 en materia de confidencialidad de datos personales.
               </p>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">
+            <div className="glass-panel rounded-xl p-5 border border-white/50 dark:border-white/10">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                 ¿Incluyen soporte técnico?
               </h4>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
                 Sí. Todos los planes incluyen soporte técnico por correo para
                 configuración, importación de personal y uso de la plataforma.
               </p>
