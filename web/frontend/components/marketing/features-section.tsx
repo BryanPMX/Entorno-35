@@ -132,13 +132,13 @@ export function FeaturesSection() {
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Flujos que reducen tiempo de despliegue</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {features.slice(0, 5).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
                     <div
                       key={feature.title}
-                      className="group rounded-xl border border-white/30 dark:border-white/10 bg-gradient-to-br from-white/80 to-white/50 dark:from-white/5 dark:to-white/0 p-4 hover:translate-y-[-3px] transition-all shadow-sm h-full flex flex-col gap-2"
+                      className="group relative z-0 rounded-xl border border-white/30 dark:border-white/10 bg-gradient-to-br from-white/80 to-white/50 dark:from-white/5 dark:to-white/0 p-4 hover:-translate-y-1 transition-all shadow-sm h-full flex flex-col gap-2 hover:z-10"
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>
@@ -170,13 +170,13 @@ export function FeaturesSection() {
                 </span>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Confianza en cada interacción</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {features.slice(5, 10).map((feature) => {
                   const IconComponent = feature.icon;
                   return (
                     <div
                       key={feature.title}
-                      className="rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg transition-all h-full flex flex-col gap-2"
+                      className="relative z-0 rounded-xl border border-white/40 dark:border-white/10 bg-gradient-to-br from-white/70 to-white/40 dark:from-white/10 dark:to-white/0 p-4 hover:shadow-lg hover:-translate-y-1 transition-all h-full flex flex-col gap-2 hover:z-10"
                     >
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>
@@ -205,75 +205,9 @@ export function FeaturesSection() {
           </Card>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-16 grid gap-6 lg:grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] items-stretch">
-          <Card className="glass-panel-strong shimmer-border h-full">
-            <CardContent className="p-6 space-y-4 h-full flex flex-col">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm uppercase tracking-wide text-gray-500 dark:text-gray-300 mb-1">
-                    Implementación guiada
-                  </p>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    En vivo con un especialista NOM-035
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Incluye checklist, dominio seguro, branding y plantillas PDF listas.
-                  </p>
-                </div>
-                <Badge className="badge-glow text-white px-3 py-1 shadow">72h Go-Live</Badge>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-200">
-                {[
-                  "Diagnóstico inicial",
-                  "Configuración y pruebas",
-                  "Capacitación equipos",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-2 glass-panel rounded-lg px-3 py-2 border border-white/40 dark:border-white/10">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <Link
-                href="#pricing"
-                className="inline-flex items-center px-5 py-3 rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg hover:shadow-xl transition w-fit"
-              >
-                Ver precios
-                <span className="ml-2">→</span>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel border-dashed border-2 border-white/40 dark:border-white/10 h-full">
-            <CardContent className="p-6 space-y-4 text-gray-700 dark:text-gray-200 h-full flex flex-col">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 opacity-90 shadow-inner" />
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-300">SLA de soporte</p>
-                  <p className="text-lg font-semibold">Respuesta promedio 2h</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm flex-1">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Chat y email en horario laboral
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Escalamiento crítico &lt; 1h
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Revisiones trimestrales de riesgo
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Playbooks y runbooks listos
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Soft transition to adjacent sections */}
+        <div className="h-16 relative mt-12">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-gray-50 dark:via-white/5 dark:to-background blur-[2px]" />
         </div>
       </div>
     </section>
