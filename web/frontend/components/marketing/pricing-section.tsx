@@ -52,17 +52,18 @@ export function PricingSection() {
   ];
 
   return (
-    <section id="pricing" className="py-20 lg:py-28 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-background dark:via-background dark:to-background">
+      <div className="absolute inset-0 -z-10 bg-aurora opacity-70 dark:opacity-40" />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <Badge variant="outline" className="mb-4">
+          <Badge variant="outline" className="mb-4 glass-panel px-4 py-2">
             Planes y Precios
           </Badge>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Elige tu Suscripción
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Elige tu suscripción
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Precios en pesos mexicanos (MXN). Todos los planes incluyen las mismas
             funcionalidades; elige la periodicidad que mejor se adapte a tu organización.
           </p>
@@ -75,13 +76,13 @@ export function PricingSection() {
               key={plan.id}
               className={`relative flex flex-col ${
                 plan.popular
-                  ? "border-blue-500 shadow-xl ring-2 ring-blue-500/20"
-                  : "border-gray-200 shadow-lg"
+                  ? "glass-panel-strong shimmer-border shadow-xl"
+                  : "glass-panel shadow-lg"
               }`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-blue-600 text-white px-4 py-1 shadow-md">
+                  <Badge className="badge-glow text-white px-4 py-1 shadow-md">
                     <Sparkles className="w-3 h-3 mr-1 inline" />
                     Mejor valor
                   </Badge>
@@ -122,7 +123,7 @@ export function PricingSection() {
                 <div className="mt-auto">
                   <Button
                     className={`w-full ${
-                      plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""
+                      plan.popular ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:brightness-110" : ""
                     }`}
                     variant={plan.popular ? "default" : "outline"}
                     size="lg"
@@ -137,7 +138,7 @@ export function PricingSection() {
         </div>
 
         {/* Billing note - Stripe later */}
-        <p className="text-center text-sm text-gray-500 mt-8">
+        <p className="text-center text-sm text-gray-500 dark:text-gray-300 mt-8">
           Pago seguro. La integración con pasarela de pago se activará próximamente.
         </p>
 

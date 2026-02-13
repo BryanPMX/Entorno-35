@@ -22,6 +22,40 @@ func NewReportPDFService() *ReportPDFService {
 	return &ReportPDFService{}
 }
 
+// brand color helpers keep styling consistent across sections without altering content
+type rgb struct{ r, g, b int }
+
+func (c rgb) fill(pdf *gofpdf.Fpdf) { pdf.SetFillColor(c.r, c.g, c.b) }
+func (c rgb) text(pdf *gofpdf.Fpdf) { pdf.SetTextColor(c.r, c.g, c.b) }
+func (c rgb) draw(pdf *gofpdf.Fpdf) { pdf.SetDrawColor(c.r, c.g, c.b) }
+
+type brandPalette struct {
+	navy         rgb
+	primary      rgb
+	accent       rgb
+	surface      rgb
+	surfaceMuted rgb
+	border       rgb
+	mutedText    rgb
+	heading      rgb
+	badge        rgb
+}
+
+var (
+	brandColors = brandPalette{
+		navy:         rgb{15, 23, 42},    // #0F172A
+		primary:      rgb{59, 130, 246},  // #3B82F6
+		accent:       rgb{14, 165, 233},  // #0EA5E9
+		surface:      rgb{255, 255, 255}, // white
+		surfaceMuted: rgb{248, 250, 252}, // #F8FAFC
+		border:       rgb{226, 232, 240}, // #E2E8F0
+		mutedText:    rgb{100, 116, 139}, // #64748B
+		heading:      rgb{30, 41, 59},    // #1E293B
+		badge:        rgb{239, 68, 68},   // #EF4444
+	}
+	white = rgb{255, 255, 255}
+)
+
 // getFontPath resolves the absolute path to a font file
 // It tries multiple strategies to find the fonts directory:
 // 1. Relative to project root (by finding go.mod) - PRIORITY
@@ -204,16 +238,16 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	})
 
 	// ========== HEADER SECTION ==========
-	// Modern gradient header
-	pdf.SetFillColor(15, 23, 42) // Slate-900
+	// Modern gradient header using brand palette
+	brandColors.navy.fill(pdf)
 	pdf.Rect(0, 0, 210, 35, "F")
 
 	// Accent stripe
-	pdf.SetFillColor(59, 130, 246) // Blue-500
+	brandColors.primary.fill(pdf)
 	pdf.Rect(0, 35, 210, 3, "F")
 
 	// Header text - use UTF-8 font for Spanish characters
-	pdf.SetTextColor(255, 255, 255)
+	white.text(pdf)
 	pdf.SetFont("DejaVu", "B", 18)
 	pdf.SetXY(15, 10)
 	pdf.Cell(0, 0, "Reporte de Riesgo Psicosocial")
@@ -223,14 +257,14 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.Cell(0, 0, fmt.Sprintf("NOM-035-STPS-2018 | Guia %s", string(report.GuideType)))
 
 	// Confidential badge - properly centered
-	pdf.SetFillColor(239, 68, 68) // Red-500
+	brandColors.badge.fill(pdf)
 	badgeX := 155.0
 	badgeY := 8.0
 	badgeWidth := 42.0
 	badgeHeight := 8.0
 	pdf.RoundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, "1234", "F")
 	pdf.SetFont("DejaVu", "B", 8)
-	pdf.SetTextColor(255, 255, 255)
+	white.text(pdf)
 	// Use CellFormat with badgeHeight to properly center text vertically
 	pdf.SetXY(badgeX, badgeY)
 	pdf.CellFormat(badgeWidth, badgeHeight, "CONFIDENCIAL", "", 0, "CM", false, 0, "")
@@ -243,17 +277,18 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.SetY(48)
 
 	// ========== EMPLOYEE INFO CARD ==========
-	pdf.SetFillColor(248, 250, 252) // Slate-50
-	pdf.RoundedRect(15, pdf.GetY(), 180, 32, 4, "1234", "F")
+	brandColors.surfaceMuted.fill(pdf)
+	brandColors.border.draw(pdf)
+	pdf.RoundedRect(15, pdf.GetY(), 180, 32, 4, "1234", "FD")
 
 	infoY := pdf.GetY() + 6
 	pdf.SetFont("DejaVu", "B", 12)
-	pdf.SetTextColor(30, 41, 59)
+	brandColors.heading.text(pdf)
 	pdf.SetXY(22, infoY)
 	pdf.Cell(0, 0, report.StaffName)
 
 	pdf.SetFont("DejaVu", "", 10)
-	pdf.SetTextColor(100, 116, 139)
+	brandColors.mutedText.text(pdf)
 
 	// Row 1: Department & Shift
 	pdf.SetXY(22, infoY+10)
@@ -281,14 +316,15 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	riskConfig := getRiskColorConfig(riskLevel)
 
 	// Main score card with risk-based accent
-	pdf.SetFillColor(255, 255, 255)
-	pdf.RoundedRect(15, pdf.GetY(), 180, 50, 4, "1234", "F")
+	brandColors.surface.fill(pdf)
+	brandColors.border.draw(pdf)
+	pdf.RoundedRect(15, pdf.GetY(), 180, 50, 4, "1234", "FD")
 
 	scoreY := pdf.GetY() + 8
 
 	// Score section
 	pdf.SetFont("DejaVu", "B", 36)
-	pdf.SetTextColor(30, 41, 59)
+	brandColors.heading.text(pdf)
 	pdf.SetXY(28, scoreY)
 	pdf.Cell(0, 0, fmt.Sprintf("%.0f", report.TotalScore))
 
@@ -332,7 +368,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 
 	// Progress bar
 	barY := scoreY + 32
-	pdf.SetFillColor(226, 232, 240)
+	brandColors.border.fill(pdf)
 	pdf.RoundedRect(28, barY, 155, 6, 2, "1234", "F")
 
 	fillWidth := (percentage / 100.0) * 155
@@ -465,7 +501,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 			pdf.Ln(2)
 
 			// Questions table header
-			pdf.SetFillColor(248, 250, 252)
+			brandColors.surfaceMuted.fill(pdf)
 			pdf.SetFont("DejaVu", "B", 8)
 			pdf.SetTextColor(71, 85, 105)
 			pdf.SetX(15)
@@ -489,7 +525,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 					pdf.CellFormat(180, 8, categoryName+" (continuacion)", "", 1, "L", true, 0, "")
 					pdf.Ln(2)
 					// Redraw table header
-					pdf.SetFillColor(248, 250, 252)
+					brandColors.surfaceMuted.fill(pdf)
 					pdf.SetFont("DejaVu", "B", 8)
 					pdf.SetTextColor(71, 85, 105)
 					pdf.SetX(15)
@@ -503,9 +539,9 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 				}
 
 				if fill {
-					pdf.SetFillColor(248, 250, 252)
+					brandColors.surfaceMuted.fill(pdf)
 				} else {
-					pdf.SetFillColor(255, 255, 255)
+					brandColors.surface.fill(pdf)
 				}
 
 				// Truncate question text if too long
@@ -518,7 +554,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 					questionText += "..."
 				}
 
-				pdf.SetTextColor(30, 41, 59)
+				brandColors.heading.text(pdf)
 				pdf.SetX(15)
 				pdf.CellFormat(10, 6, fmt.Sprintf("%d", q.QuestionNumber), "", 0, "C", fill, 0, "")
 				pdf.CellFormat(115, 6, questionText, "", 0, "L", fill, 0, "")
@@ -549,11 +585,11 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.AddPage()
 
 	// Header
-	pdf.SetFillColor(15, 23, 42) // Dark blue #1A1F36 (26, 31, 54)
+	brandColors.navy.fill(pdf)
 	pdf.Rect(0, 0, 210, 35, "F")
 
 	// Accent stripe
-	pdf.SetFillColor(59, 130, 246) // Blue-500
+	brandColors.primary.fill(pdf)
 	pdf.Rect(0, 35, 210, 3, "F")
 
 	// Header text
@@ -567,7 +603,7 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 	pdf.Cell(0, 0, "NOM-035-STPS-2018 | Referencias y Glosario")
 
 	// Confidential badge
-	pdf.SetFillColor(255, 77, 79) // Red #FF4D4F
+	brandColors.badge.fill(pdf)
 	badgeX = 155.0
 	badgeY = 8.0
 	badgeWidth = 42.0
@@ -675,13 +711,13 @@ func (s *ReportPDFService) GenerateIndividualReportPDF(report *domain.Individual
 // drawModernSection draws a section header with improved spacing
 func drawModernSection(pdf *gofpdf.Fpdf, title, subtitle string) {
 	pdf.SetFont("DejaVu", "B", 14)
-	pdf.SetTextColor(15, 23, 42)
+	brandColors.heading.text(pdf)
 	pdf.SetX(15)
 	pdf.Cell(0, 8, title)
 	pdf.Ln(10) // Increased from 6 to 10 for more space between title and subtitle
 
 	pdf.SetFont("DejaVu", "", 10)
-	pdf.SetTextColor(100, 116, 139)
+	brandColors.mutedText.text(pdf)
 	pdf.SetX(15)
 	pdf.Cell(0, 5, subtitle)
 	pdf.Ln(8)
@@ -697,7 +733,7 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 	sort.Strings(keys)
 
 	// Header
-	pdf.SetFillColor(241, 245, 249)
+	brandColors.surfaceMuted.fill(pdf)
 	pdf.SetFont("DejaVu", "B", 9)
 	pdf.SetTextColor(71, 85, 105)
 
@@ -714,7 +750,7 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 		if pdf.GetY() > 250 {
 			pdf.AddPage()
 			// Redraw header
-			pdf.SetFillColor(241, 245, 249)
+			brandColors.surfaceMuted.fill(pdf)
 			pdf.SetFont("DejaVu", "B", 9)
 			pdf.SetTextColor(71, 85, 105)
 			pdf.SetX(15)
@@ -731,9 +767,9 @@ func drawModernTable(pdf *gofpdf.Fpdf, scores, maxScores map[string]float64, ris
 		config := getRiskColorConfig(riskLevel)
 
 		if fill {
-			pdf.SetFillColor(248, 250, 252)
+			brandColors.surfaceMuted.fill(pdf)
 		} else {
-			pdf.SetFillColor(255, 255, 255)
+			brandColors.surface.fill(pdf)
 		}
 
 		// Item name (truncate if needed)
@@ -924,15 +960,15 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 	// ========== HEADER SECTION ==========
 	// Modern gradient header - matching individual report format
-	pdf.SetFillColor(15, 23, 42) // Slate-900
+	brandColors.navy.fill(pdf)
 	pdf.Rect(0, 0, 210, 35, "F")
 
 	// Accent stripe
-	pdf.SetFillColor(59, 130, 246) // Blue-500
+	brandColors.primary.fill(pdf)
 	pdf.Rect(0, 35, 210, 3, "F")
 
 	// Header text
-	pdf.SetTextColor(255, 255, 255)
+	white.text(pdf)
 	pdf.SetFont("DejaVu", "B", 18)
 	pdf.SetXY(15, 10)
 	pdf.Cell(0, 0, "Reporte General de Cumplimiento")
@@ -946,7 +982,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.Cell(0, 0, fmt.Sprintf("NOM-035-STPS-2018 | %s", periodText))
 
 	// Confidential badge - properly centered
-	pdf.SetFillColor(239, 68, 68) // Red-500
+	brandColors.badge.fill(pdf)
 	badgeX := 155.0
 	badgeY := 8.0
 	badgeWidth := 42.0
@@ -967,17 +1003,18 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 	// ========== COMPANY INFO CARD ==========
 	// Matching individual report card format
-	pdf.SetFillColor(248, 250, 252) // Slate-50
-	pdf.RoundedRect(15, pdf.GetY(), 180, 32, 4, "1234", "F")
+	brandColors.surfaceMuted.fill(pdf)
+	brandColors.border.draw(pdf)
+	pdf.RoundedRect(15, pdf.GetY(), 180, 32, 4, "1234", "FD")
 
 	infoY := pdf.GetY() + 6
 	pdf.SetFont("DejaVu", "B", 12)
-	pdf.SetTextColor(30, 41, 59)
+	brandColors.heading.text(pdf)
 	pdf.SetXY(22, infoY)
 	pdf.Cell(0, 0, report.CompanyName)
 
 	pdf.SetFont("DejaVu", "", 10)
-	pdf.SetTextColor(100, 116, 139)
+	brandColors.mutedText.text(pdf)
 
 	// Row 1: Company ID
 	pdf.SetXY(22, infoY+10)
@@ -1294,8 +1331,8 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 		pdf.Ln(6)
 
 		// 2x2 grid layout - all 4 charts on one page
-		chartWidth := 80.0   // Slightly smaller for 2-column layout
-		chartHeight := 65.0  // Adjusted height to fit 2 rows comfortably
+		chartWidth := 80.0    // Slightly smaller for 2-column layout
+		chartHeight := 65.0   // Adjusted height to fit 2 rows comfortably
 		chartSpacingX := 15.0 // Horizontal spacing between columns
 		chartSpacingY := 15.0 // Vertical spacing between rows
 
@@ -1370,7 +1407,6 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 
 		// Page 5b: Experience and Marital Status Risk Distributions
 		pdf.AddPage()
-
 
 		startY = pdf.GetY()
 
@@ -1526,11 +1562,11 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.AddPage()
 
 	// Header
-	pdf.SetFillColor(15, 23, 42) // Dark blue #1A1F36 (26, 31, 54)
+	brandColors.navy.fill(pdf)
 	pdf.Rect(0, 0, 210, 35, "F")
 
 	// Accent stripe
-	pdf.SetFillColor(59, 130, 246) // Blue-500
+	brandColors.primary.fill(pdf)
 	pdf.Rect(0, 35, 210, 3, "F")
 
 	// Header text
@@ -1544,7 +1580,7 @@ func (s *ReportPDFService) GenerateGeneralReportPDF(report *domain.GeneralReport
 	pdf.Cell(0, 0, "NOM-035-STPS-2018 | Referencias y Glosario")
 
 	// Confidential badge
-	pdf.SetFillColor(255, 77, 79) // Red #FF4D4F
+	brandColors.badge.fill(pdf)
 	badgeX = 155.0
 	badgeY = 8.0
 	badgeWidth = 42.0
@@ -1736,12 +1772,12 @@ func drawDemoPieChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data [
 	}
 
 	// Card background
-	pdf.SetFillColor(248, 250, 252)
+	brandColors.surfaceMuted.fill(pdf)
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
 	// Title
 	pdf.SetFont("DejaVu", "B", 9)
-	pdf.SetTextColor(30, 41, 59)
+	brandColors.heading.text(pdf)
 	pdf.SetXY(x+4, y+4)
 	pdf.Cell(w-8, 5, title)
 
@@ -2002,12 +2038,12 @@ func drawDemoDonutChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, data
 	}
 
 	// Card background
-	pdf.SetFillColor(248, 250, 252)
+	brandColors.surfaceMuted.fill(pdf)
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
 	// Title
 	pdf.SetFont("DejaVu", "B", 10)
-	pdf.SetTextColor(30, 41, 59)
+	brandColors.heading.text(pdf)
 	pdf.SetXY(x+4, y+4)
 	pdf.Cell(w-8, 5, title)
 
@@ -2230,7 +2266,7 @@ func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title str
 	layout := createChartLayout(x, y, w, h, hasAxisLines)
 
 	// Card background - extend to cover legend area
-	pdf.SetFillColor(248, 250, 252)
+	brandColors.surfaceMuted.fill(pdf)
 	if hasAxisLines {
 		// For charts with axis lines, extend background to include legend
 		legendBottom := layout.LegendY + layout.LegendH + 5 // Extra padding
@@ -2243,7 +2279,7 @@ func drawDemographicRiskBarChart(pdf *gofpdf.Fpdf, x, y, w, h float64, title str
 
 	// Title
 	pdf.SetFont("DejaVu", "B", 10)
-	pdf.SetTextColor(30, 41, 59)
+	brandColors.heading.text(pdf)
 	pdf.SetXY(layout.CardX+4, layout.CardY+4)
 	pdf.Cell(layout.CardW-8, 5, title)
 
@@ -2466,12 +2502,12 @@ func drawDemoHorizontalBar(pdf *gofpdf.Fpdf, x, y, w, h float64, title string, d
 	}
 
 	// Card background
-	pdf.SetFillColor(248, 250, 252)
+	brandColors.surfaceMuted.fill(pdf)
 	pdf.RoundedRect(x, y, w, h, 4, "1234", "F")
 
 	// Title
 	pdf.SetFont("DejaVu", "B", 10)
-	pdf.SetTextColor(30, 41, 59)
+	brandColors.heading.text(pdf)
 	pdf.SetXY(x+4, y+4)
 	pdf.Cell(w-8, 5, title)
 

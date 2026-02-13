@@ -10,46 +10,41 @@ import { Button } from "@/components/ui/button";
  */
 export function MarketingNavigation() {
   return (
-    <nav className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-xl shadow-sm dark:bg-background/80">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
               <span className="text-white font-bold text-sm">35</span>
             </div>
-            <span className="font-semibold text-gray-900">Entorno 35</span>
+            <span className="font-semibold text-gray-900 dark:text-white">Entorno 35</span>
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="#features"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Características
-            </Link>
-            <Link
-              href="#compliance"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Cumplimiento
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Precios
-            </Link>
+          <div className="hidden md:flex items-center space-x-3 bg-gray-100/60 dark:bg-white/5 px-3 py-1.5 rounded-full border border-white/60 dark:border-white/10 shadow-sm">
+            {[
+              { href: "#features", label: "Características" },
+              { href: "#compliance", label: "Cumplimiento" },
+              { href: "#pricing", label: "Precios" },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full hover:bg-white hover:text-gray-900 dark:hover:bg-white/10 transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
 
           {/* CTA Button */}
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Iniciar Sesión</Link>
+          <div className="flex items-center space-x-3">
+            <Button variant="ghost" className="text-gray-700 dark:text-gray-200" asChild>
+              <Link href="/login">Iniciar sesión</Link>
             </Button>
-            <Button asChild>
-              <Link href="/login">Comenzar Ahora</Link>
+            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-md hover:brightness-110" asChild>
+              <Link href="/login">Comenzar ahora</Link>
             </Button>
           </div>
         </div>

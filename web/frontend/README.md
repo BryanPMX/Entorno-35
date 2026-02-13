@@ -157,6 +157,7 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 - **PDF export**: Report PDF download, NOM-035 layout, JWT-protected endpoint.
 - **Assessment UX**: Framer Motion transitions, category badges, keyboard navigation (arrows, 1–5, Enter), auto-save indicators, accessibility.
 - **Layout and marketing**: Focus-mode assessment layout, marketing landing (hero, features, compliance, pricing), subscription plans (monthly/yearly MXN), navigation and footer.
+- **Marketing visual refresh (2026-02)**: Glassmorphism accents, gradient badges, stat highlight cards, soft grid backgrounds, and animated hero metrics to improve clarity and conversion.
 
 ## License
 
