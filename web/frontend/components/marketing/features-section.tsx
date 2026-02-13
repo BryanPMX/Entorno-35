@@ -193,7 +193,6 @@ export function FeaturesSection() {
                           <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                             {feature.description}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{feature.microcopy}</p>
                         </div>
                       </div>
                     </div>
