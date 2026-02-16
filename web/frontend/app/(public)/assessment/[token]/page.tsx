@@ -514,10 +514,6 @@ export default function AssessmentExamPage() {
               <span className="font-mono">1-5</span>
               <span>Seleccionar</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <span className="font-mono">Intro</span>
-              <span>Confirmar</span>
-            </div>
           </div>
         </div>
 
