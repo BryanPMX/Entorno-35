@@ -44,9 +44,7 @@ export function ComplianceSection() {
   ];
 
   return (
-    <section id="compliance" className="relative overflow-hidden py-20 lg:py-28">
-      <div className="absolute inset-0 -z-10 bg-aurora opacity-70 dark:opacity-40" />
-      <div className="absolute inset-0 -z-10 soft-grid" />
+    <section id="compliance" className="glass-section glass-section-alt-a relative overflow-hidden py-20 lg:py-28">
       <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
       <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

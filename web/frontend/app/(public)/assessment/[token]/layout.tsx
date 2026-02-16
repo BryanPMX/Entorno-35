@@ -14,7 +14,7 @@ export default function PublicAssessmentLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="assessment-shell relative min-h-screen overflow-hidden">
+    <div className="page-background page-background-3 relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute -left-24 top-8 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
       <div className="pointer-events-none absolute -right-24 top-16 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
 

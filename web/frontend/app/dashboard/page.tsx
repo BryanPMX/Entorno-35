@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
   if (!hasData && !reportLoading) {
     return (
-      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+      <div className="page-content-shell page-content-shell-a space-y-12 animate-in fade-in slide-in-from-bottom-4">
         <div>
           <h1 className="heading-1">{translations.dashboard.title}</h1>
           <p className="label-muted mt-2">
@@ -150,7 +150,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+    <div className="page-content-shell page-content-shell-a space-y-12 animate-in fade-in slide-in-from-bottom-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="heading-1">{translations.dashboard.title}</h1>

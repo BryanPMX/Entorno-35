@@ -54,7 +54,7 @@ Authenticates a company or staff member and returns a JWT token.
 Lists all staff members with pagination.
 
 **Query Parameters**:
-- `limit` (integer): Items per page (default: 10)
+- `limit` (integer): Items per page (default: 50, max: 100)
 - `offset` (integer): Pagination offset (default: 0)
 
 **Response (200 OK)**:
@@ -74,7 +74,7 @@ Lists all staff members with pagination.
     }
   ],
   "total": 100,
-  "limit": 10,
+  "limit": 50,
   "offset": 0
 }
 ```
@@ -109,6 +109,8 @@ Creates a new assessment. Guide type is automatically determined based on compan
 }
 ```
 
+`period` is required and must be within the current year +/- 1.
+
 **Response (201 Created)**:
 ```json
 {
@@ -132,8 +134,10 @@ Lists assessments with optional filters.
 
 **Query Parameters**:
 - `staff_id` (uuid): Filter by staff
-- `period` (integer): Filter by period
+- `period` (integer): Filter by period (must be within current year +/- 1)
 - `status` (string): Filter by status
+- `limit` (integer): Items per page (default: 50, max: 100)
+- `offset` (integer): Pagination offset (default: 0)
 
 ### GET /api/v1/assessments/public/:token
 

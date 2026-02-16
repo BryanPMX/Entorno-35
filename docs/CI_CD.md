@@ -115,7 +115,40 @@ Your stack compose in Portainer should have:
 
 Optional: `container_name` (e.g. `entorno35-postgres`, `entorno35-redis`) and exposing Postgres/Redis only on the host loopback (e.g. `127.0.0.1:5432:5432`, `127.0.0.1:6379:6379`) if you need host access. Do not commit real `DB_PASSWORD` or `JWT_SECRET` in the repo; set them in Portainer env vars and use `${DB_PASSWORD}` etc. in the compose if you use the repo template.
 
-### 7. Checklist
+### 7. Seed questions (required once per environment)
+
+The API does **not** seed NOM-035 questions. The `questions` table is filled by running the seeder. If you see **"no questions configured for guide type II"** when taking an assessment, the database has no questions yet.
+
+**Local:** From the repo root with `DB_*` env vars set: `make seed` or `go run cmd/seeder/main.go`.
+
+**Production (container on server / Portainer):** The backend Docker image includes the seeder binary and `nom035_questions.json`. Run a **one-off container** that uses the same image and the same network as your stack so it can reach `postgres`.
+
+- **Portainer (UI):**  
+  1. Go to **Containers** → **Add container**.  
+  2. **Image:** same as your API (e.g. `brpmx/entorno35-backend:develop`).  
+  3. **Command:** override with `/app/seeder` (so it runs the seeder and exits).  
+  4. **Network:** attach the container to the **same network** as your stack (e.g. `entorno35_default` or the network your stack created).  
+  5. **Env:** add the same DB vars the API uses: `DB_HOST=postgres`, `DB_PORT=5432`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSLMODE=disable` (use the same values as in your stack env).  
+  6. **Restart policy:** Never.  
+  7. Deploy the container. It will run once, seed the database, and stop. You can remove the container afterward.
+
+- **From the server (SSH) with Docker:**  
+  Use the same network name as your stack (e.g. `entorno35_default` — in Portainer: Stacks → your stack → inspect the network name). Then run:
+  ```bash
+  docker run --rm \
+    --network entorno35_default \
+    -e DB_HOST=postgres \
+    -e DB_PORT=5432 \
+    -e DB_USER=postgres \
+    -e DB_PASSWORD=your_db_password \
+    -e DB_NAME=entorno35 \
+    -e DB_SSLMODE=disable \
+    brpmx/entorno35-backend:develop \
+    /app/seeder
+  ```
+  Replace `entorno35_default` with your stack’s network name and env values with your real ones. The container exits after seeding; safe to run again (idempotent).
+
+### 8. Checklist
 
 | Item | Where | Value / action |
 |------|--------|----------------|
@@ -126,7 +159,7 @@ Optional: `container_name` (e.g. `entorno35-postgres`, `entorno35-redis`) and ex
 | DB_PASSWORD, JWT_SECRET | stack env only | Never in Git |
 | All 3 containers healthy | Portainer | api, postgres, redis green |
 
-### 8. After a push to develop
+### 9. After a push to develop
 
 When GitHub Actions runs (backend paths or manual trigger) and Portainer secrets are set, the workflow will PUT the repo’s `docker-compose.prod.yml` to your stack with `pullImage: true`. Portainer will pull the new `develop` image and restart only the **api** container; postgres and redis keep running and keep their data.
 

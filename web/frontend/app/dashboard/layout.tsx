@@ -56,7 +56,7 @@ export default function DashboardLayout({
 
   return (
     <AuthGuard>
-      <div className="portal-shell portal-grid relative flex min-h-screen flex-col">
+      <div className="page-background page-background-2 portal-grid relative flex min-h-screen flex-col">
         <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
         <div className="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
 

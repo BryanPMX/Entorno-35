@@ -108,20 +108,20 @@ export default function ConnectionDiagnosticsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="page-background page-background-3 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white shadow-sm rounded-lg p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="portal-surface-strong rounded-2xl p-6 border-0">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Backend Connection Diagnostics
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             This page verifies connectivity, CORS configuration, and network communication with the backend API.
           </p>
 
           {/* API URL Display */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="text-sm font-medium text-gray-700 mb-1">API Base URL</div>
-            <div className="text-lg font-mono text-gray-900">{getApiUrl()}</div>
+          <div className="mb-6 p-4 rounded-lg border border-border bg-background/60">
+            <div className="text-sm font-medium text-muted-foreground mb-1">API Base URL</div>
+            <div className="text-lg font-mono text-foreground">{getApiUrl()}</div>
           </div>
 
           {/* Status Card */}
@@ -148,7 +148,7 @@ export default function ConnectionDiagnosticsPage() {
           {diagnostics.status === 'loading' && (
             <div className="p-6 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Testing connection...</p>
+              <p className="mt-4 text-muted-foreground">Testing connection...</p>
             </div>
           )}
 
@@ -166,15 +166,15 @@ export default function ConnectionDiagnosticsPage() {
               </div>
 
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Response Headers</h2>
-                <pre className="p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto text-sm">
+                <h2 className="text-lg font-semibold text-foreground mb-2">Response Headers</h2>
+                <pre className="p-4 rounded-lg border border-border bg-background/60 overflow-x-auto text-sm">
                   {JSON.stringify(diagnostics.headers, null, 2)}
                 </pre>
               </div>
 
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Response Data</h2>
-                <pre className="p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto text-sm">
+                <h2 className="text-lg font-semibold text-foreground mb-2">Response Data</h2>
+                <pre className="p-4 rounded-lg border border-border bg-background/60 overflow-x-auto text-sm">
                   {JSON.stringify(diagnostics.data, null, 2)}
                 </pre>
               </div>

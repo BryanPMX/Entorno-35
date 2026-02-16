@@ -8,9 +8,9 @@ export interface CreateAssessmentRequest {
 
 export interface ListAssessmentsParams {
   staff_id?: string;
-  period?: number;
+  period?: number; // Must be within current year +/- 1
   status?: string;
-  limit?: number;
+  limit?: number; // Default: 50, Max: 100
   offset?: number;
 }
 

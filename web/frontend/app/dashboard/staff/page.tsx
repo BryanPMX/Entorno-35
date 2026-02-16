@@ -51,7 +51,7 @@ export default function StaffPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="page-content-shell page-content-shell-b space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Gestion de Personal</h1>
         <p className="mt-2 text-muted-foreground">

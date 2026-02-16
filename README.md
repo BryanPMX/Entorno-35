@@ -150,17 +150,24 @@ For more control over individual services:
    export CORS_ORIGIN=http://localhost:3000
    ```
 
-5. **Start the backend (terminal 1)**
+5. **Seed the database with NOM-035 questions (required once)**  
+   The API does not seed questions. Run this so assessments have questions (otherwise you will see "no questions configured for guide type II"):
+   ```bash
+   make seed
+   ```
+   Or: `go run cmd/seeder/main.go` (same env vars as backend).
+
+6. **Start the backend (terminal 1)**
    ```bash
    cd cmd/api && go run main.go
    ```
 
-6. **Start the frontend (terminal 2)**
+7. **Start the frontend (terminal 2)**
    ```bash
    cd web/frontend && npm run dev
    ```
 
-7. **Verify installation**
+8. **Verify installation**
    ```bash
    # Backend health check
    curl http://localhost:8080/health
@@ -192,6 +199,7 @@ make docker-up      # Start PostgreSQL and Redis
 make docker-down    # Stop containers
 make migrate-up     # Run database migrations
 make migrate-down   # Rollback migrations
+make seed          # Seed NOM-035 questions (required once after migrations; needed for assessments)
 
 # Development
 make run            # Start backend API server

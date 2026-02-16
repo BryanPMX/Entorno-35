@@ -59,3 +59,7 @@ setup: ## Initial project setup
 	@go mod download
 	@go mod tidy
 
+seed: ## Seed database with NOM-035 questions (requires DB_* env vars; run after migrate)
+	@echo "Seeding database with questions..."
+	@go run cmd/seeder/main.go
+

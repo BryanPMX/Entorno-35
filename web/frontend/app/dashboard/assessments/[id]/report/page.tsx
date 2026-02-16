@@ -64,7 +64,7 @@ export default function AssessmentReportPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-full">
+      <div className="page-content-shell page-content-shell-a min-h-full">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="animate-pulse">
@@ -93,7 +93,7 @@ export default function AssessmentReportPage() {
 
   if (error || !report) {
     return (
-      <div className="min-h-full">
+      <div className="page-content-shell page-content-shell-a min-h-full">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <Button
@@ -118,7 +118,7 @@ export default function AssessmentReportPage() {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="page-content-shell page-content-shell-a min-h-full">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}

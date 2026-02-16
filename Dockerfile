@@ -16,12 +16,15 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application
-# CGO_ENABLED=0 creates a statically linked binary
+# Build the API and the seeder (seeder is used once per environment to load NOM-035 questions)
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -o /build/api \
     ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -o /build/seeder \
+    ./cmd/seeder
 
 # Final stage - minimal alpine image
 FROM alpine:latest
@@ -38,8 +41,10 @@ RUN apk --no-cache add ca-certificates tzdata wget && \
 # Set working directory
 WORKDIR /app
 
-# Copy the binary from builder stage
+# Copy binaries and question catalog (seeder runs as one-off to seed DB)
 COPY --from=builder /build/api /app/api
+COPY --from=builder /build/seeder /app/seeder
+COPY --from=builder /build/nom035_questions.json /app/nom035_questions.json
 
 # Copy fonts directory (needed for PDF generation)
 COPY --chown=appuser:appuser fonts/ /app/fonts/

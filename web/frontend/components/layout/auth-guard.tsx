@@ -61,7 +61,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="portal-shell min-h-screen flex items-center justify-center">
+      <div className="page-background page-background-2 min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );

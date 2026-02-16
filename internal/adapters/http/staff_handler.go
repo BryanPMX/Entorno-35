@@ -133,13 +133,7 @@ func (h *StaffHandler) ListStaff(c *gin.Context) {
 		return
 	}
 
-	// Validate pagination parameters
-	if req.Limit <= 0 || req.Limit > 100 {
-		req.Limit = 50
-	}
-	if req.Offset < 0 {
-		req.Offset = 0
-	}
+	req.Limit, req.Offset = normalizeListPagination(req.Limit, req.Offset)
 
 	staff, total, err := h.staffService.ListStaff(companyID, req.Limit, req.Offset)
 	if err != nil {

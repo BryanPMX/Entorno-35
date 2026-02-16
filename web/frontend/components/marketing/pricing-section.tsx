@@ -52,8 +52,7 @@ export function PricingSection() {
   ];
 
   return (
-    <section id="pricing" className="relative overflow-hidden py-20 lg:py-28">
-      <div className="absolute inset-0 -z-10 soft-grid opacity-50" />
+    <section id="pricing" className="glass-section glass-section-alt-b relative overflow-hidden py-20 lg:py-28">
       <div className="absolute -left-28 top-14 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
       <div className="absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

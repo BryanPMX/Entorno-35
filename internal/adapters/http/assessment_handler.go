@@ -55,6 +55,11 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 		return
 	}
 
+	if err := validateAssessmentPeriod(req.Period, time.Now()); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	// Verify staff belongs to company (should be handled by service/repository)
 	assessment, err := h.assessmentService.CreateAssessment(
 		services.CreateAssessmentRequest{
@@ -137,6 +142,15 @@ func (h *AssessmentHandler) ListAssessments(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if req.Period != nil {
+		if err := validateAssessmentPeriod(*req.Period, time.Now()); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	req.Limit, req.Offset = normalizeListPagination(req.Limit, req.Offset)
 
 	assessments, total, err := h.assessmentService.ListAssessments(companyID, req.StaffID, req.Period, req.Status, req.Limit, req.Offset)
 	if err != nil {
