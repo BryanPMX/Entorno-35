@@ -9,9 +9,11 @@ export function MarketingFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden bg-gradient-to-b from-[oklch(0.26_0.03_250)] via-[oklch(0.2_0.03_252)] to-[oklch(0.16_0.02_250)] text-white">
+    <footer className="portal-footer-shell relative overflow-hidden text-white">
       <div className="absolute inset-0 bg-aurora opacity-35 pointer-events-none" />
       <div className="absolute inset-0 soft-grid opacity-20 pointer-events-none" />
+      <div className="absolute -left-24 top-0 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl pointer-events-none" />
+      <div className="absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl pointer-events-none" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}

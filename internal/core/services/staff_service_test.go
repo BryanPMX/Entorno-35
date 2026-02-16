@@ -53,6 +53,21 @@ func (m *MockStaffRepository) BulkCreate(staff []*domain.Staff) (int, error) {
 	return args.Int(0), args.Error(1)
 }
 
+func (m *MockStaffRepository) HasCompletedAssessments(staffID uuid.UUID) (bool, error) {
+	args := m.Called(staffID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockStaffRepository) GenerateAndReserveEmployeeID(companyID uuid.UUID, prefix string) (string, error) {
+	args := m.Called(companyID, prefix)
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockStaffRepository) CreateWithEmployeeID(staff *domain.Staff, companyID uuid.UUID, prefix string) error {
+	args := m.Called(staff, companyID, prefix)
+	return args.Error(0)
+}
+
 func TestStaffService_ImportFromCSV_ValidCSV(t *testing.T) {
 	mockRepo := new(MockStaffRepository)
 	service := NewStaffService(mockRepo)
@@ -378,7 +393,7 @@ Juan Pérez,ABCD123456HIJKLM01,juan@example.com,Producción,Operador,Diurno,Masc
 func generateCURP(index int) string {
 	letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	digits := "0123456789"
-	
+
 	curp := ""
 	// First 4: letters
 	for i := 0; i < 4; i++ {
@@ -399,7 +414,7 @@ func generateCURP(index int) string {
 			curp += string(letters[(index+i)%26])
 		}
 	}
-	
+
 	return curp
 }
 
@@ -430,7 +445,7 @@ func TestStaffService_CreateStaff_DuplicateEmployeeIDRetry(t *testing.T) {
 	assert.Equal(t, "Test User", staff.FullName)
 	assert.Equal(t, "test@example.com", staff.Email)
 	assert.NotEmpty(t, staff.EmployeeID) // Should have generated an employee ID
-	assert.Nil(t, staff.CURP)           // Should not have CURP
+	assert.Nil(t, staff.CURP)            // Should not have CURP
 
 	// Verify Create was called twice (first failed, second succeeded)
 	mockRepo.AssertNumberOfCalls(t, "Create", 2)
@@ -553,4 +568,3 @@ func TestStaffService_CreateStaff_WithoutCURP_SetsEmployeeID(t *testing.T) {
 
 	mockRepo.AssertExpectations(t)
 }
-

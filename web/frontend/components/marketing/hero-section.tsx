@@ -14,8 +14,8 @@ export function HeroSection() {
     <section className="relative overflow-hidden py-20 lg:py-28">
       <div className="absolute inset-0 -z-10 bg-aurora opacity-70 dark:opacity-40" />
       <div className="absolute inset-0 -z-10 soft-grid" />
-      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
-      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
+      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
+      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-12 items-center">
@@ -57,15 +57,15 @@ export function HeroSection() {
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2 glass-panel px-3 py-2 rounded-full shadow-sm">
-                <CheckCircle className="w-4 h-4 text-[var(--nom-nulo)]" />
+                <CheckCircle className="w-4 h-4 text-green-500" />
                 100% compatible NOM-035
               </div>
               <div className="flex items-center gap-2 glass-panel px-3 py-2 rounded-full shadow-sm">
-                <Users className="w-4 h-4 text-[var(--nom-bajo)]" />
+                <Users className="w-4 h-4 text-blue-500" />
                 500+ empresas activas
               </div>
               <div className="flex items-center gap-2 glass-panel px-3 py-2 rounded-full shadow-sm">
-                <FileText className="w-4 h-4 text-[var(--nom-medio)]" />
+                <FileText className="w-4 h-4 text-purple-500" />
                 Reportes PDF listos para STPS
               </div>
             </div>
@@ -109,7 +109,7 @@ export function HeroSection() {
                   "Exportación PDF y CSV en un click",
                 ].map((benefit) => (
                   <div key={benefit} className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-[var(--nom-nulo)] mt-0.5" />
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
                     <span>{benefit}</span>
                   </div>
                 ))}

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +14,25 @@ import { Badge } from "@/components/ui/badge";
 import { assessmentService } from "@/services/assessment.service";
 import { toast } from "sonner";
 
+function resolveAssessmentErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const apiError = (error.response?.data as { error?: string } | undefined)?.error;
+    if (typeof apiError === "string" && apiError.trim().length > 0) {
+      return apiError;
+    }
+
+    if (typeof error.message === "string" && error.message.trim().length > 0) {
+      return error.message;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return "Failed to load assessment. The link may be invalid or expired.";
+}
+
 /**
  * Public Assessment Exam Page
  *
@@ -21,7 +41,8 @@ import { toast } from "sonner";
  */
 export default function AssessmentExamPage() {
   const params = useParams();
-  const token = params.token as string;
+  const tokenParam = params.token;
+  const token = Array.isArray(tokenParam) ? tokenParam[0] : tokenParam;
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<number, number>>({});
@@ -38,14 +59,18 @@ export default function AssessmentExamPage() {
     error: assessmentError,
   } = useQuery({
     queryKey: ["public-assessment", token],
-    queryFn: () => assessmentService.fetchByToken(token),
-    enabled: !!token,
+    queryFn: () => assessmentService.fetchByToken(token || ""),
+    enabled: Boolean(token),
   });
 
   // Submit responses mutation
   const submitMutation = useMutation({
-    mutationFn: (responses: { question_id: number; value: number }[]) =>
-      assessmentService.submitResponses(token, responses),
+    mutationFn: (responses: { question_id: number; value: number }[]) => {
+      if (!token) {
+        throw new Error("Invalid assessment link. Missing token.");
+      }
+      return assessmentService.submitResponses(token, responses);
+    },
     onSuccess: () => {
       setSubmitSuccess(true);
       setIsSubmitting(false);
@@ -176,6 +201,7 @@ export default function AssessmentExamPage() {
   const allQuestionsAnswered = questions.length > 0 && questions.every(q => responses[q.id] !== undefined);
   const answeredCount = Object.keys(responses).length;
   const totalQuestions = questions.length;
+  const assessmentErrorMessage = resolveAssessmentErrorMessage(assessmentError);
 
   // Loading state
   if (isLoadingAssessment) {
@@ -193,12 +219,12 @@ export default function AssessmentExamPage() {
   if (assessmentError) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="w-full max-w-md">
+        <Card className="portal-surface-strong w-full max-w-md border-0">
           <CardContent className="pt-6">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {assessmentError.message || "Failed to load assessment. The link may be invalid or expired."}
+                {assessmentErrorMessage}
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -211,9 +237,11 @@ export default function AssessmentExamPage() {
   if (submitSuccess) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="w-full max-w-md text-center">
+        <Card className="portal-surface-strong w-full max-w-md border-0 text-center">
           <CardContent className="pt-8 pb-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] shadow-lg">
+              <CheckCircle className="h-9 w-9 text-white" />
+            </div>
             <h2 className="text-2xl font-semibold mb-2">Assessment Completed</h2>
             <p className="text-muted-foreground mb-4">
               Thank you for completing the NOM-035 assessment.
@@ -228,16 +256,34 @@ export default function AssessmentExamPage() {
     );
   }
 
-  // No assessment data
-  if (!assessment || !questions.length) {
+  // Invalid token in URL
+  if (!token) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="w-full max-w-md">
+        <Card className="portal-surface-strong w-full max-w-md border-0">
           <CardContent className="pt-6">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Assessment not found or no questions available.
+                Invalid assessment link. Please use the full URL provided in your invitation.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // No assessment data
+  if (!assessment || !questions.length) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="portal-surface-strong w-full max-w-md border-0">
+          <CardContent className="pt-6">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Assessment could not be loaded. Please request a new assessment link.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -265,7 +311,7 @@ export default function AssessmentExamPage() {
                     </div>
                   )}
                   {saveStatus === "saved" && (
-                    <div className="flex items-center space-x-1 text-[var(--nom-nulo)]">
+                    <div className="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400">
                       <Cloud className="h-3 w-3" />
                       <span className="text-xs">Saved</span>
                     </div>
@@ -277,7 +323,7 @@ export default function AssessmentExamPage() {
                     </div>
                   )}
                 </div>
-                <span className={`text-sm ${allQuestionsAnswered ? "font-medium text-[var(--nom-nulo)]" : "text-muted-foreground"}`}>
+                <span className={`text-sm ${allQuestionsAnswered ? "font-medium text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
                   {allQuestionsAnswered ? "Complete!" : `${Math.round(progress)}% Complete`}
                 </span>
               </div>
@@ -372,7 +418,7 @@ export default function AssessmentExamPage() {
                                   isSelected
                                     ? "ring-2 ring-primary ring-offset-2"
                                     : isPressed
-                                      ? "ring-2 ring-[color:var(--nom-bajo)] ring-offset-2"
+                                      ? "ring-2 ring-primary/70 ring-offset-2"
                                       : ""
                                 }`}
                                 onClick={() => handleAnswerSelect(option.value)}
@@ -414,7 +460,7 @@ export default function AssessmentExamPage() {
               </Button>
             </motion.div>
 
-            <div className={`text-center text-sm ${allQuestionsAnswered ? "font-medium text-[var(--nom-nulo)]" : "text-muted-foreground"}`}>
+            <div className={`text-center text-sm ${allQuestionsAnswered ? "font-medium text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
               {answeredCount} of {totalQuestions} answered
               {allQuestionsAnswered && <span className="ml-1">✓</span>}
             </div>

@@ -22,7 +22,7 @@ export function MarketingNavigation() {
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-2 glass-panel rounded-full px-3 py-1.5 border border-white/70">
+          <div className="hidden md:flex items-center space-x-2 portal-surface rounded-full px-3 py-1.5 border-0">
             {[
               { href: "#features", label: "Características" },
               { href: "#compliance", label: "Cumplimiento" },
@@ -31,7 +31,7 @@ export function MarketingNavigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-muted-foreground px-3 py-1 rounded-full hover:bg-white/85 hover:text-foreground transition-colors"
+                className="portal-nav-link text-sm font-medium px-3 py-1 rounded-full transition-colors"
               >
                 {item.label}
               </Link>

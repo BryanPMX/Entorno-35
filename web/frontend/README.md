@@ -170,7 +170,7 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 - **PDF export**: Report PDF download, NOM-035 layout, JWT-protected endpoint.
 - **Assessment UX**: Framer Motion transitions, category badges, keyboard navigation (arrows, 1–5, Enter), auto-save indicators, accessibility.
 - **Layout and marketing**: Focus-mode assessment layout, marketing landing (hero, features, compliance, pricing), subscription plans (monthly/yearly MXN), navigation and footer.
-- **Design system consolidation (2026-02-16)**: Shared NOM-35 tokenized visual language across login, admin portal, public assessment, and marketing.
+- **Design system consolidation (2026-02-16)**: Shared visual tokenized language across login, admin portal, public assessment, and marketing, preserving centralized NOM-35 risk semantics.
 - **Risk style consolidation (2026-02-16)**: Centralized risk-level registry for color/label/badge mapping via `lib/nom35-risk.ts`.
 - **Visual regression baseline (2026-02-16)**: Snapshot coverage added for key shells to prevent style drift.
 

@@ -111,7 +111,20 @@ class AssessmentService {
    */
   async fetchByToken(token: string): Promise<{ assessment: Assessment; questions: Question[] }> {
     const response = await axiosClient.get(`/api/v1/assessments/public/${token}`);
-    return response.data;
+    const payload = response.data as { assessment?: Assessment; questions?: Question[] };
+
+    if (!payload?.assessment) {
+      throw new Error("Assessment not found for this link.");
+    }
+
+    if (!Array.isArray(payload.questions) || payload.questions.length === 0) {
+      throw new Error("No questions are configured for this assessment.");
+    }
+
+    return {
+      assessment: payload.assessment,
+      questions: payload.questions,
+    };
   }
 
   /**

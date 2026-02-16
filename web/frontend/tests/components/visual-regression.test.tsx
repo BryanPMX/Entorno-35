@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import LoginPage from "@/app/(auth)/login/page";
 import DashboardLayout from "@/app/dashboard/layout";
 import PublicAssessmentLayout from "@/app/(public)/assessment/[token]/layout";
+import { MarketingNavigation } from "@/components/marketing/navigation";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 const mockPush = vi.fn();
 const mockStoreLogin = vi.fn();
@@ -55,6 +57,16 @@ describe("Visual Regression", () => {
         <div>Assessment content</div>
       </PublicAssessmentLayout>
     );
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it("matches marketing header snapshot", () => {
+    const { container } = render(<MarketingNavigation />);
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it("matches marketing footer snapshot", () => {
+    const { container } = render(<MarketingFooter />);
     expect(container.firstChild).toMatchSnapshot();
   });
 });

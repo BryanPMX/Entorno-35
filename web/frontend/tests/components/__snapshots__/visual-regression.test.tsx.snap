@@ -5,10 +5,10 @@ exports[`Visual Regression > matches dashboard shell snapshot 1`] = `
   class="portal-shell portal-grid relative flex min-h-screen flex-col"
 >
   <div
-    class="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl"
+    class="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl"
   />
   <div
-    class="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl"
+    class="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl"
   />
   <header
     class="portal-surface sticky top-0 z-20 border-x-0 border-t-0"
@@ -207,10 +207,10 @@ exports[`Visual Regression > matches login page snapshot 1`] = `
   class="auth-shell portal-grid relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10"
 >
   <div
-    class="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl"
+    class="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl"
   />
   <div
-    class="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl"
+    class="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl"
   />
   <div
     class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl py-6 shadow-sm portal-surface-strong w-full max-w-md border-0"
@@ -292,15 +292,260 @@ exports[`Visual Regression > matches login page snapshot 1`] = `
 </div>
 `;
 
+exports[`Visual Regression > matches marketing footer snapshot 1`] = `
+<footer
+  class="portal-footer-shell relative overflow-hidden text-white"
+>
+  <div
+    class="absolute inset-0 bg-aurora opacity-35 pointer-events-none"
+  />
+  <div
+    class="absolute inset-0 soft-grid opacity-20 pointer-events-none"
+  />
+  <div
+    class="absolute -left-24 top-0 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl pointer-events-none"
+  />
+  <div
+    class="absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl pointer-events-none"
+  />
+  <div
+    class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative"
+  >
+    <div
+      class="grid grid-cols-1 md:grid-cols-4 gap-8"
+    >
+      <div
+        class="col-span-1 md:col-span-2"
+      >
+        <div
+          class="flex items-center space-x-2 mb-4"
+        >
+          <div
+            class="w-8 h-8 rounded-lg flex items-center justify-center shadow-md bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]"
+          >
+            <span
+              class="text-white font-bold text-sm"
+            >
+              35
+            </span>
+          </div>
+          <span
+            class="font-semibold text-xl"
+          >
+            Entorno 35
+          </span>
+        </div>
+        <p
+          class="text-white/70 mb-4 max-w-md"
+        >
+          Plataforma líder en evaluación de riesgos psicosociales conforme a NOM-035 STPS 2018. Ayudamos a organizaciones mexicanas a proteger la salud mental de sus colaboradores.
+        </p>
+      </div>
+      <div>
+        <h3
+          class="font-semibold mb-4"
+        >
+          Producto
+        </h3>
+        <ul
+          class="space-y-2"
+        >
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="#features"
+            >
+              Características
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="#compliance"
+            >
+              Cumplimiento NOM-035
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="#pricing"
+            >
+              Precios
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="/login"
+            >
+              Iniciar Sesión
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3
+          class="font-semibold mb-4"
+        >
+          Soporte
+        </h3>
+        <ul
+          class="space-y-2"
+        >
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="mailto:soporte@entorno35.com"
+            >
+              Soporte Técnico
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="https://docs.entorno35.com"
+            >
+              Documentación
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="#contact"
+            >
+              Contacto
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-white/70 hover:text-white transition-colors"
+              href="/privacy"
+            >
+              Privacidad
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div
+      class="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center"
+    >
+      <p
+        class="text-white/70 text-sm"
+      >
+        © 
+        2026
+         Entorno 35. Todos los derechos reservados.
+      </p>
+      <div
+        class="flex space-x-6 mt-4 md:mt-0"
+      >
+        <a
+          class="text-white/70 hover:text-white text-sm transition-colors"
+          href="/terms"
+        >
+          Términos de Servicio
+        </a>
+        <a
+          class="text-white/70 hover:text-white text-sm transition-colors"
+          href="/privacy"
+        >
+          Política de Privacidad
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+`;
+
+exports[`Visual Regression > matches marketing header snapshot 1`] = `
+<nav
+  class="portal-surface sticky top-0 z-50 border-x-0 border-t-0"
+>
+  <div
+    class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
+  >
+    <div
+      class="flex justify-between items-center h-16"
+    >
+      <a
+        class="flex items-center space-x-2"
+        href="/"
+      >
+        <div
+          class="w-9 h-9 rounded-lg flex items-center justify-center shadow-md bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]"
+        >
+          <span
+            class="text-white font-bold text-sm"
+          >
+            35
+          </span>
+        </div>
+        <span
+          class="font-semibold text-foreground"
+        >
+          Entorno 35
+        </span>
+      </a>
+      <div
+        class="hidden md:flex items-center space-x-2 portal-surface rounded-full px-3 py-1.5 border-0"
+      >
+        <a
+          class="portal-nav-link text-sm font-medium px-3 py-1 rounded-full transition-colors"
+          href="#features"
+        >
+          Características
+        </a>
+        <a
+          class="portal-nav-link text-sm font-medium px-3 py-1 rounded-full transition-colors"
+          href="#compliance"
+        >
+          Cumplimiento
+        </a>
+        <a
+          class="portal-nav-link text-sm font-medium px-3 py-1 rounded-full transition-colors"
+          href="#pricing"
+        >
+          Precios
+        </a>
+      </div>
+      <div
+        class="flex items-center space-x-3"
+      >
+        <a
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 text-muted-foreground hover:text-foreground"
+          data-size="default"
+          data-slot="button"
+          data-variant="ghost"
+          href="/login"
+        >
+          Iniciar sesión
+        </a>
+        <a
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] shadow-md hover:brightness-110 hover-shine text-white"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          href="/login"
+        >
+          Comenzar ahora
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+`;
+
 exports[`Visual Regression > matches public assessment shell snapshot 1`] = `
 <div
   class="assessment-shell relative min-h-screen overflow-hidden"
 >
   <div
-    class="pointer-events-none absolute -left-24 top-8 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl"
+    class="pointer-events-none absolute -left-24 top-8 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl"
   />
   <div
-    class="pointer-events-none absolute -right-24 top-16 h-72 w-72 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl"
+    class="pointer-events-none absolute -right-24 top-16 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl"
   />
   <div
     class="portal-surface relative z-10 border-x-0 border-t-0"

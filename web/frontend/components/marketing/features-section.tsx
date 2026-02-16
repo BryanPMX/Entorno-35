@@ -33,7 +33,7 @@ export function FeaturesSection() {
       title: "Reportes PDF Profesionales",
       description: "Reportes de cumplimiento NOM-035 listos para presentación ante autoridades.",
       badge: "Profesional",
-      accent: "from-sky-500/25 to-sky-500/5",
+      accent: "from-blue-500/25 to-blue-500/5",
       microcopy: "Brand-ready outputs",
     },
     {
@@ -41,7 +41,7 @@ export function FeaturesSection() {
       title: "Gestión de Personal",
       description: "Importación masiva de empleados via CSV con validación automática.",
       badge: "Eficiente",
-      accent: "from-cyan-500/25 to-cyan-500/5",
+      accent: "from-indigo-500/25 to-indigo-500/5",
       microcopy: "CSV + API ready",
     },
     {
@@ -49,7 +49,7 @@ export function FeaturesSection() {
       title: "Análisis de Riesgos",
       description: "Visualización de datos con gráficos y mapas de calor por departamento.",
       badge: "Analítico",
-      accent: "from-amber-500/25 to-amber-500/5",
+      accent: "from-purple-500/25 to-purple-500/5",
       microcopy: "Heatmaps & cohorts",
     },
     {
@@ -73,7 +73,7 @@ export function FeaturesSection() {
       title: "Envío Automático",
       description: "Links seguros enviados automáticamente por email a todo el personal.",
       badge: "Automático",
-      accent: "from-orange-500/25 to-orange-500/5",
+      accent: "from-pink-500/25 to-pink-500/5",
       microcopy: "Envía y monitorea",
     },
     {
@@ -81,7 +81,7 @@ export function FeaturesSection() {
       title: "Acceso Móvil",
       description: "Interfaz totalmente responsive optimizada para dispositivos móviles.",
       badge: "Móvil",
-      accent: "from-sky-500/25 to-sky-500/5",
+      accent: "from-blue-500/25 to-blue-500/5",
       microcopy: "Optimizada PWA",
     },
     {
@@ -105,8 +105,8 @@ export function FeaturesSection() {
   return (
     <section id="features" className="relative overflow-hidden py-20 lg:py-28">
       <div className="absolute inset-0 pointer-events-none bg-aurora opacity-60 dark:opacity-35" />
-      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
-      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
+      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
+      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -128,7 +128,7 @@ export function FeaturesSection() {
           <Card className="portal-surface-strong shimmer-border h-full border-0">
             <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--nom-bajo)] bg-[color:var(--nom-bajo-soft)] px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-200 bg-blue-100/70 dark:bg-blue-500/20 px-3 py-1 rounded-full">
                   Operación
                 </span>
                 <p className="text-sm text-muted-foreground">Flujos que reducen tiempo de despliegue</p>
@@ -166,7 +166,7 @@ export function FeaturesSection() {
           <Card className="portal-surface shadow-xl h-full border-0">
             <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--nom-medio)] bg-[color:var(--nom-medio-soft)] px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-200 bg-purple-100/70 dark:bg-purple-500/20 px-3 py-1 rounded-full">
                   Seguridad & Acceso
                 </span>
                 <p className="text-sm text-muted-foreground">Confianza en cada interacción</p>

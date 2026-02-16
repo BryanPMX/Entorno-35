@@ -47,8 +47,8 @@ export function ComplianceSection() {
     <section id="compliance" className="relative overflow-hidden py-20 lg:py-28">
       <div className="absolute inset-0 -z-10 bg-aurora opacity-70 dark:opacity-40" />
       <div className="absolute inset-0 -z-10 soft-grid" />
-      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
-      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
+      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
+      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -75,7 +75,7 @@ export function ComplianceSection() {
                 return (
                   <div key={point.title} className="flex items-start gap-4">
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--nom-nulo)] to-[var(--nom-bajo)] text-white flex items-center justify-center shadow-md">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/80 to-emerald-400/80 text-white flex items-center justify-center shadow-md">
                         <IconComponent className="w-5 h-5" />
                       </div>
                     </div>
@@ -100,7 +100,7 @@ export function ComplianceSection() {
 
           {/* Benefits */}
           <div className="portal-surface-strong rounded-2xl p-8 border-0 shadow-xl">
-            <div className="flex items-center gap-2 text-[var(--nom-nulo)] mb-4">
+            <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-4">
               <CheckCircle className="w-5 h-5" />
               <p className="text-sm uppercase tracking-wide">Protección integral</p>
             </div>
@@ -110,7 +110,7 @@ export function ComplianceSection() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {benefits.map((benefit) => (
                 <div key={benefit} className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-[var(--nom-nulo)] mt-0.5" />
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
                   <span className="text-foreground/90 text-sm">{benefit}</span>
                 </div>
               ))}

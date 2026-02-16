@@ -251,7 +251,7 @@ Key documents:
 
 Status snapshot as of **February 16, 2026**:
 
-- Frontend style architecture is consolidated with shared NOM-35 tokens and reusable visual utilities.
+- Frontend style architecture is consolidated with shared visual tokens and reusable utilities, while NOM-35 colors remain centralized for risk semantics.
 - Risk-level presentation now uses a single shared module (`web/frontend/lib/nom35-risk.ts`) across charts, tables, and reports.
 - Marketing, login, dashboard/admin, and public assessment flows follow a consistent visual language.
 - Visual regression snapshot coverage is in place for key surfaces (`tests/components/visual-regression.test.tsx`).

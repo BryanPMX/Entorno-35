@@ -74,8 +74,8 @@ export default function LoginPage() {
 
   return (
     <div className="auth-shell portal-grid relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
-      <div className="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
+      <div className="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
 
       <Card className="portal-surface-strong w-full max-w-md border-0">
         <CardHeader className="space-y-4 pb-4">

@@ -279,6 +279,9 @@ func (s *AssessmentService) GetPublicAssessment(token string) (*domain.Assessmen
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch questions: %w", err)
 	}
+	if len(questions) == 0 {
+		return nil, nil, fmt.Errorf("no questions configured for guide type %s", assessment.GuideType)
+	}
 
 	return assessment, questions, nil
 }

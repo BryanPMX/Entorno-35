@@ -50,40 +50,43 @@
   --font-geist-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-geist-mono: "SFMono-Regular", ui-monospace, "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
   --radius: 0.625rem;
-  --background: oklch(0.982 0.012 233);
-  --foreground: oklch(0.235 0.035 252);
-  --card: oklch(0.995 0.007 232);
-  --card-foreground: oklch(0.235 0.035 252);
-  --popover: oklch(0.998 0.004 232);
-  --popover-foreground: oklch(0.235 0.035 252);
-  --primary: oklch(0.56 0.17 252);
-  --primary-foreground: oklch(0.985 0.004 250);
-  --secondary: oklch(0.95 0.022 225);
-  --secondary-foreground: oklch(0.305 0.044 248);
-  --muted: oklch(0.954 0.016 225);
-  --muted-foreground: oklch(0.49 0.035 245);
-  --accent: oklch(0.935 0.032 201);
-  --accent-foreground: oklch(0.295 0.045 246);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.886 0.02 228);
-  --input: oklch(0.886 0.02 228);
-  --ring: oklch(0.656 0.145 244);
-  --chart-1: oklch(0.67 0.17 252);
-  --chart-2: oklch(0.74 0.14 195);
-  --chart-3: oklch(0.69 0.19 145);
-  --chart-4: oklch(0.76 0.14 80);
-  --chart-5: oklch(0.66 0.2 35);
-  --sidebar: oklch(0.98 0.009 230);
-  --sidebar-foreground: oklch(0.242 0.035 251);
-  --sidebar-primary: oklch(0.56 0.17 252);
-  --sidebar-primary-foreground: oklch(0.985 0.004 250);
-  --sidebar-accent: oklch(0.94 0.02 224);
-  --sidebar-accent-foreground: oklch(0.305 0.044 248);
-  --sidebar-border: oklch(0.886 0.02 228);
-  --sidebar-ring: oklch(0.656 0.145 244);
-  --gradient-start: oklch(0.58 0.18 248);
-  --gradient-end: oklch(0.68 0.14 195);
-  --gradient-iris: oklch(0.73 0.15 84);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --gradient-start: oklch(0.71 0.18 256);
+  --gradient-end: oklch(0.76 0.2 310);
+  --gradient-iris: oklch(0.72 0.17 320);
+  --brand-start-soft: color-mix(in oklab, var(--gradient-start) 22%, white 78%);
+  --brand-end-soft: color-mix(in oklab, var(--gradient-end) 22%, white 78%);
+  --brand-iris-soft: color-mix(in oklab, var(--gradient-iris) 18%, white 82%);
   --nom-nulo: #16a34a;
   --nom-bajo: #0284c7;
   --nom-medio: #d97706;
@@ -100,40 +103,43 @@
 }
 
 .dark {
-  --background: oklch(0.2 0.02 248);
-  --foreground: oklch(0.972 0.01 248);
-  --card: oklch(0.238 0.02 248);
-  --card-foreground: oklch(0.972 0.01 248);
-  --popover: oklch(0.25 0.02 248);
-  --popover-foreground: oklch(0.972 0.01 248);
-  --primary: oklch(0.73 0.15 238);
-  --primary-foreground: oklch(0.205 0.02 248);
-  --secondary: oklch(0.29 0.02 245);
-  --secondary-foreground: oklch(0.955 0.015 248);
-  --muted: oklch(0.29 0.02 245);
-  --muted-foreground: oklch(0.78 0.015 240);
-  --accent: oklch(0.35 0.025 228);
-  --accent-foreground: oklch(0.96 0.012 248);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.39 0.02 245 / 70%);
-  --input: oklch(0.39 0.02 245 / 80%);
-  --ring: oklch(0.72 0.12 236);
-  --chart-1: oklch(0.7 0.15 238);
-  --chart-2: oklch(0.74 0.12 190);
-  --chart-3: oklch(0.72 0.17 145);
-  --chart-4: oklch(0.75 0.14 78);
-  --chart-5: oklch(0.7 0.19 32);
-  --sidebar: oklch(0.24 0.02 248);
-  --sidebar-foreground: oklch(0.972 0.01 248);
-  --sidebar-primary: oklch(0.73 0.15 238);
-  --sidebar-primary-foreground: oklch(0.205 0.02 248);
-  --sidebar-accent: oklch(0.31 0.02 248);
-  --sidebar-accent-foreground: oklch(0.95 0.015 248);
-  --sidebar-border: oklch(0.39 0.02 245 / 70%);
-  --sidebar-ring: oklch(0.72 0.12 236);
-  --gradient-start: oklch(0.67 0.16 240);
-  --gradient-end: oklch(0.72 0.13 188);
-  --gradient-iris: oklch(0.77 0.14 87);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --gradient-start: oklch(0.63 0.24 265);
+  --gradient-end: oklch(0.72 0.24 316);
+  --gradient-iris: oklch(0.65 0.23 25);
+  --brand-start-soft: color-mix(in oklab, var(--gradient-start) 20%, black 80%);
+  --brand-end-soft: color-mix(in oklab, var(--gradient-end) 20%, black 80%);
+  --brand-iris-soft: color-mix(in oklab, var(--gradient-iris) 20%, black 80%);
   --nom-nulo-soft: color-mix(in oklab, var(--nom-nulo) 20%, black 80%);
   --nom-bajo-soft: color-mix(in oklab, var(--nom-bajo) 20%, black 80%);
   --nom-medio-soft: color-mix(in oklab, var(--nom-medio) 24%, black 76%);
@@ -280,9 +286,9 @@
 
   .portal-shell {
     background:
-      radial-gradient(85% 120% at 2% 0%, color-mix(in oklab, var(--nom-bajo) 18%, transparent) 0, transparent 55%),
-      radial-gradient(75% 110% at 100% 0%, color-mix(in oklab, var(--nom-nulo) 18%, transparent) 0, transparent 52%),
-      radial-gradient(90% 130% at 50% 100%, color-mix(in oklab, var(--nom-medio) 10%, transparent) 0, transparent 60%),
+      radial-gradient(85% 120% at 2% 0%, color-mix(in oklab, var(--gradient-start) 18%, transparent) 0, transparent 55%),
+      radial-gradient(75% 110% at 100% 0%, color-mix(in oklab, var(--gradient-end) 18%, transparent) 0, transparent 52%),
+      radial-gradient(90% 130% at 50% 100%, color-mix(in oklab, var(--gradient-iris) 10%, transparent) 0, transparent 60%),
       linear-gradient(165deg, color-mix(in oklab, var(--background) 94%, white 6%), color-mix(in oklab, var(--background) 82%, var(--accent) 18%));
   }
 
@@ -323,39 +329,51 @@
   }
 
   .portal-nav-link:hover {
-    background: color-mix(in oklab, var(--nom-bajo-soft) 70%, var(--card) 30%);
+    background: color-mix(in oklab, var(--brand-start-soft) 70%, var(--card) 30%);
     color: var(--foreground);
   }
 
   .portal-nav-link-active {
     background: linear-gradient(
       120deg,
-      color-mix(in oklab, var(--nom-bajo) 14%, white 86%),
-      color-mix(in oklab, var(--nom-nulo) 12%, white 88%)
+      color-mix(in oklab, var(--gradient-start) 14%, white 86%),
+      color-mix(in oklab, var(--gradient-end) 12%, white 88%)
     );
-    border-color: color-mix(in oklab, var(--nom-bajo) 35%, white 65%);
-    color: color-mix(in oklab, var(--foreground) 88%, var(--nom-bajo) 12%);
-    box-shadow: 0 8px 20px rgb(2 132 199 / 12%);
+    border-color: color-mix(in oklab, var(--gradient-start) 35%, white 65%);
+    color: color-mix(in oklab, var(--foreground) 88%, var(--gradient-start) 12%);
+    box-shadow: 0 8px 20px rgb(59 130 246 / 12%);
+  }
+
+  .portal-footer-shell {
+    background:
+      radial-gradient(75% 120% at 0% 0%, color-mix(in oklab, var(--gradient-start) 28%, transparent) 0, transparent 58%),
+      radial-gradient(65% 110% at 100% 0%, color-mix(in oklab, var(--gradient-end) 24%, transparent) 0, transparent 60%),
+      linear-gradient(
+        175deg,
+        color-mix(in oklab, var(--gradient-start) 18%, oklch(0.22 0.03 255) 82%),
+        color-mix(in oklab, var(--gradient-end) 16%, oklch(0.14 0.03 270) 84%)
+      );
+    border-top: 1px solid rgb(255 255 255 / 12%);
   }
 
   .auth-shell {
     background:
-      radial-gradient(110% 100% at 0% 0%, color-mix(in oklab, var(--nom-bajo) 24%, transparent) 0, transparent 52%),
-      radial-gradient(95% 95% at 100% 0%, color-mix(in oklab, var(--nom-nulo) 20%, transparent) 0, transparent 54%),
+      radial-gradient(110% 100% at 0% 0%, color-mix(in oklab, var(--gradient-start) 24%, transparent) 0, transparent 52%),
+      radial-gradient(95% 95% at 100% 0%, color-mix(in oklab, var(--gradient-end) 20%, transparent) 0, transparent 54%),
       linear-gradient(170deg, oklch(0.98 0.015 230), color-mix(in oklab, var(--background) 78%, var(--accent) 22%));
   }
 
   .assessment-shell {
     background:
-      radial-gradient(90% 120% at 0% 0%, color-mix(in oklab, var(--nom-bajo) 20%, transparent) 0, transparent 54%),
-      radial-gradient(70% 100% at 100% 0%, color-mix(in oklab, var(--nom-nulo) 16%, transparent) 0, transparent 52%),
+      radial-gradient(90% 120% at 0% 0%, color-mix(in oklab, var(--gradient-start) 20%, transparent) 0, transparent 54%),
+      radial-gradient(70% 100% at 100% 0%, color-mix(in oklab, var(--gradient-end) 16%, transparent) 0, transparent 52%),
       linear-gradient(180deg, color-mix(in oklab, var(--background) 92%, white 8%), color-mix(in oklab, var(--background) 80%, var(--accent) 20%));
   }
 
   .assessment-progress-shell {
     background: color-mix(in oklab, var(--card) 92%, white 8%);
     border: 1px solid color-mix(in oklab, var(--border) 88%, white 12%);
-    box-shadow: 0 10px 24px rgb(2 132 199 / 10%);
+    box-shadow: 0 10px 24px color-mix(in oklab, var(--gradient-start) 18%, transparent);
   }
 
   .risk-level-nulo {

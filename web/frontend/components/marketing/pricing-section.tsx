@@ -54,8 +54,8 @@ export function PricingSection() {
   return (
     <section id="pricing" className="relative overflow-hidden py-20 lg:py-28">
       <div className="absolute inset-0 -z-10 soft-grid opacity-50" />
-      <div className="absolute -left-28 top-14 h-72 w-72 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
-      <div className="absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
+      <div className="absolute -left-28 top-14 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
+      <div className="absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 portal-surface rounded-2xl p-8 md:p-10 border-0 shadow-lg">
@@ -105,7 +105,7 @@ export function PricingSection() {
                   )}
                 </div>
                 {plan.savings && (
-                  <p className="text-sm font-medium text-[var(--nom-nulo)] mt-2">
+                  <p className="text-sm font-medium text-green-600 mt-2">
                     {plan.savings}
                   </p>
                 )}
@@ -144,7 +144,7 @@ export function PricingSection() {
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {PLAN_FEATURES.map((feature) => (
                   <div key={feature} className="flex items-start gap-2 text-sm text-foreground/90">
-                    <Check className="w-4 h-4 text-[var(--nom-nulo)] mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                     <span>{feature}</span>
                   </div>
                 ))}
@@ -161,7 +161,7 @@ export function PricingSection() {
         {/* FAQ */}
         <div className="mt-16 text-center">
           <div className="relative portal-surface-strong shimmer-border rounded-3xl p-8 md:p-10 border-0 shadow-xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/35 via-white/10 to-[color:var(--nom-bajo-soft)] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/35 via-white/10 to-blue-100/15 pointer-events-none" />
             <div className="relative z-10">
               <Badge variant="outline" className="mb-4 glass-panel px-4 py-2 hover-shine shadow-sm">
                 Soporte y dudas

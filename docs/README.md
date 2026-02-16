@@ -28,8 +28,8 @@ Package READMEs under `cmd/`, `internal/`, `pkg/`, `migrations/`, `tests/`, `web
 
 - Project state is production-ready for the currently implemented feature set.
 - Frontend architecture now includes:
-  - Shared NOM-35 visual token system in `web/frontend/app/globals.css`.
-  - Centralized NOM-35 risk style registry in `web/frontend/lib/nom35-risk.ts`.
+  - Shared visual token system in `web/frontend/app/globals.css` for consistent brand surfaces.
+  - Centralized NOM-35 risk style registry in `web/frontend/lib/nom35-risk.ts` for charts, reports, and badges.
   - Visual regression snapshots in `web/frontend/tests/components/visual-regression.test.tsx`.
 - Latest verified frontend quality gates:
   - `cd web/frontend && npm run lint`
