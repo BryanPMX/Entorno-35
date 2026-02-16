@@ -34,11 +34,11 @@ function resolveAssessmentErrorMessage(error: unknown): string {
 }
 
 const LIKERT_OPTIONS = [
-  { value: 0, label: "Siempre", description: "Todo el tiempo", key: "1" },
-  { value: 1, label: "Casi siempre", description: "Casi todo el tiempo", key: "2" },
-  { value: 2, label: "Algunas veces", description: "De forma ocasional", key: "3" },
-  { value: 3, label: "Casi nunca", description: "Rara vez", key: "4" },
-  { value: 4, label: "Nunca", description: "En ningun momento", key: "5" },
+  { value: 0, label: "Siempre", key: "1" },
+  { value: 1, label: "Casi siempre", key: "2" },
+  { value: 2, label: "Algunas veces", key: "3" },
+  { value: 3, label: "Casi nunca", key: "4" },
+  { value: 4, label: "Nunca", key: "5" },
 ] as const;
 
 /**
@@ -418,7 +418,7 @@ export default function AssessmentExamPage() {
                             >
                               <Button
                                 variant={isSelected ? "default" : "outline"}
-                                className={`relative h-full min-h-[132px] w-full flex-col items-start justify-start gap-2 whitespace-normal rounded-lg px-3 py-3 text-left transition-all hover:shadow-md ${
+                                className={`relative h-full min-h-[96px] w-full flex-col items-start justify-center gap-2 whitespace-normal rounded-lg px-3 py-3 text-left transition-all hover:shadow-md ${
                                   isSelected
                                     ? "ring-2 ring-primary ring-offset-2"
                                     : isPressed
@@ -431,12 +431,7 @@ export default function AssessmentExamPage() {
                                 <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-md border border-border/70 bg-background/70 font-mono text-[10px] leading-none text-muted-foreground/80">
                                   {option.key}
                                 </span>
-                                <div className="w-full space-y-1 pr-7">
-                                  <span className="block break-words text-sm font-semibold leading-snug">{option.label}</span>
-                                  <span className={`block break-words text-xs leading-snug ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                                    {option.description}
-                                  </span>
-                                </div>
+                                <span className="block w-full break-words pr-7 text-sm font-semibold leading-snug">{option.label}</span>
                               </Button>
                             </motion.div>
                           );
