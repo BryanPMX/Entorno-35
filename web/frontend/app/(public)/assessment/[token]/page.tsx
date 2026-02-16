@@ -418,7 +418,7 @@ export default function AssessmentExamPage() {
                             >
                               <Button
                                 variant={isSelected ? "default" : "outline"}
-                                className={`relative h-full min-h-[96px] w-full flex-col items-start justify-center gap-2 whitespace-normal rounded-lg px-3 py-3 text-left transition-all hover:shadow-md ${
+                                className={`relative h-full min-h-[96px] w-full flex-col items-center justify-center gap-2 whitespace-normal rounded-lg px-3 py-3 text-center transition-all hover:shadow-md ${
                                   isSelected
                                     ? "ring-2 ring-primary ring-offset-2"
                                     : isPressed
@@ -431,7 +431,7 @@ export default function AssessmentExamPage() {
                                 <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-md border border-border/70 bg-background/70 font-mono text-[10px] leading-none text-muted-foreground/80">
                                   {option.key}
                                 </span>
-                                <span className="block w-full break-words pr-7 text-sm font-semibold leading-snug">{option.label}</span>
+                                <span className="block w-full break-words px-2 text-sm font-semibold leading-snug">{option.label}</span>
                               </Button>
                             </motion.div>
                           );
