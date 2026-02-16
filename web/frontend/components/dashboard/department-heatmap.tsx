@@ -3,6 +3,11 @@
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  NOM35_RISK_HEX_COLORS,
+  getGuideIIIRiskLevelByScore,
+  getNom35RiskLabel,
+} from "@/lib/nom35-risk";
 import { translations } from "@/lib/translations";
 
 interface DepartmentData {
@@ -16,14 +21,6 @@ interface DepartmentHeatmapProps {
   data: DepartmentData[];
   isLoading?: boolean;
 }
-
-const RISK_COLORS = {
-  nulo: "#22c55e", // Green
-  bajo: "#84cc16", // Light green
-  medio: "#eab308", // Yellow
-  alto: "#f97316", // Orange
-  muy_alto: "#ef4444", // Red
-};
 
 interface HeatmapTooltipProps {
   active?: boolean;
@@ -68,26 +65,14 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
     return acc;
   }, {} as Record<string, { department: string; totalAssessments: number; avgScore: number | null }>);
 
-  // Helper function to get risk color based on actual NOM-035 score thresholds
-  // Guide II: nulo: 0-20, bajo: 20-45, medio: 45-70, alto: 70-90, muy_alto: 90+
-  // Guide III: nulo: 0-50, bajo: 50-75, medio: 75-99, alto: 99-140, muy_alto: 140+
-  // Using Guide III thresholds as default (more common for larger organizations)
-  const getRiskColor = (score: number | null): string => {
-    if (score === null) return RISK_COLORS.nulo;
-    if (score < 50) return RISK_COLORS.nulo;
-    if (score < 75) return RISK_COLORS.bajo;
-    if (score < 99) return RISK_COLORS.medio;
-    if (score < 140) return RISK_COLORS.alto;
-    return RISK_COLORS.muy_alto;
-  };
-
   const chartData = Object.values(departmentStats).map((dept) => {
     const avgScore = dept.avgScore ?? 0;
+    const riskLevel = getGuideIIIRiskLevelByScore(dept.avgScore);
     return {
       department: dept.department,
       averageRisk: Math.round(avgScore),
       totalAssessments: dept.totalAssessments,
-      color: getRiskColor(dept.avgScore),
+      color: NOM35_RISK_HEX_COLORS[riskLevel],
     };
   });
 
@@ -170,52 +155,52 @@ export function DepartmentHeatmap({ data, isLoading = false }: DepartmentHeatmap
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div className="flex items-center space-x-2">
-              <div
-                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
-                style={{ backgroundColor: RISK_COLORS.nulo }}
-              />
+                <div
+                  className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                  style={{ backgroundColor: NOM35_RISK_HEX_COLORS.nulo }}
+                />
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Nulo</span>
+                <span className="text-sm font-medium text-foreground">{getNom35RiskLabel("nulo")}</span>
                 <span className="text-xs text-muted-foreground">0-49</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div
-                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
-                style={{ backgroundColor: RISK_COLORS.bajo }}
-              />
+                <div
+                  className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                  style={{ backgroundColor: NOM35_RISK_HEX_COLORS.bajo }}
+                />
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Bajo</span>
+                <span className="text-sm font-medium text-foreground">{getNom35RiskLabel("bajo")}</span>
                 <span className="text-xs text-muted-foreground">50-74</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div
-                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
-                style={{ backgroundColor: RISK_COLORS.medio }}
-              />
+                <div
+                  className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                  style={{ backgroundColor: NOM35_RISK_HEX_COLORS.medio }}
+                />
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Medio</span>
+                <span className="text-sm font-medium text-foreground">{getNom35RiskLabel("medio")}</span>
                 <span className="text-xs text-muted-foreground">75-98</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div
-                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
-                style={{ backgroundColor: RISK_COLORS.alto }}
-              />
+                <div
+                  className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                  style={{ backgroundColor: NOM35_RISK_HEX_COLORS.alto }}
+                />
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Alto</span>
+                <span className="text-sm font-medium text-foreground">{getNom35RiskLabel("alto")}</span>
                 <span className="text-xs text-muted-foreground">99-139</span>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div
-                className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
-                style={{ backgroundColor: RISK_COLORS.muy_alto }}
-              />
+                <div
+                  className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
+                  style={{ backgroundColor: NOM35_RISK_HEX_COLORS.muy_alto }}
+                />
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Muy Alto</span>
+                <span className="text-sm font-medium text-foreground">{getNom35RiskLabel("muy_alto")}</span>
                 <span className="text-xs text-muted-foreground">140+</span>
               </div>
             </div>

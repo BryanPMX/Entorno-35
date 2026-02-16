@@ -23,7 +23,7 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="portal-shell min-h-screen">
       {children}
     </div>
   );

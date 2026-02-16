@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/pagination";
 import { AssessmentWizard } from "./assessment-wizard";
 import { AssessmentDeleteDialog } from "./assessment-delete-dialog";
+import { getNom35RiskBadgeClass, isNom35RiskLevel } from "@/lib/nom35-risk";
+import { getRiskLevelLabel } from "@/lib/translations";
 import type { PaginatedResponse, Assessment } from "@/types/backend";
 
 interface AssessmentTableProps {
@@ -82,17 +84,9 @@ function SortableHeader({ field, children, activeField, direction, onSort }: Sor
 }
 
 const statusConfig = {
-  pending: { label: "Pendiente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
-  completed: { label: "Completado", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  cancelled: { label: "Cancelado", color: "bg-gray-100 text-gray-800", icon: AlertTriangle },
-};
-
-const riskLevelConfig = {
-  nulo: { label: "Nulo", color: "bg-green-100 text-green-800" },
-  bajo: { label: "Bajo", color: "bg-blue-100 text-blue-800" },
-  medio: { label: "Medio", color: "bg-yellow-100 text-yellow-800" },
-  alto: { label: "Alto", color: "bg-orange-100 text-orange-800" },
-  muy_alto: { label: "Muy Alto", color: "bg-red-100 text-red-800" },
+  pending: { label: "Pendiente", color: "bg-amber-100 text-amber-800 border border-amber-200", icon: Clock },
+  completed: { label: "Completado", color: "risk-level-nulo border", icon: CheckCircle },
+  cancelled: { label: "Cancelado", color: "bg-muted text-muted-foreground border border-border", icon: AlertTriangle },
 };
 
 export function AssessmentTable({
@@ -156,7 +150,7 @@ export function AssessmentTable({
 
     const IconComponent = config.icon;
     return (
-      <Badge className={`${config.color} border-0`}>
+      <Badge className={config.color}>
         <IconComponent className="h-3 w-3 mr-1" />
         {config.label}
       </Badge>
@@ -166,12 +160,11 @@ export function AssessmentTable({
   const getRiskBadge = (riskLevel?: string) => {
     if (!riskLevel) return <Badge variant="outline">-</Badge>;
 
-    const config = riskLevelConfig[riskLevel as keyof typeof riskLevelConfig];
-    if (!config) return <Badge variant="outline">{riskLevel}</Badge>;
+    if (!isNom35RiskLevel(riskLevel)) return <Badge variant="outline">{riskLevel}</Badge>;
 
     return (
-      <Badge className={`${config.color} border-0`}>
-        {config.label}
+      <Badge className={getNom35RiskBadgeClass(riskLevel)}>
+        {getRiskLevelLabel(riskLevel)}
       </Badge>
     );
   };
@@ -230,7 +223,7 @@ export function AssessmentTable({
       </div>
 
       {/* Table */}
-      <Card>
+      <Card className="portal-surface border-0">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <FileText className="h-5 w-5" />
@@ -293,23 +286,23 @@ export function AssessmentTable({
                   Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-32" />
+                        <div className="h-4 bg-muted rounded animate-pulse w-32" />
                       </TableCell>
                       <TableCell>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16" />
+                        <div className="h-4 bg-muted rounded animate-pulse w-16" />
                       </TableCell>
                       <TableCell>
-                        <div className="h-5 bg-gray-200 rounded animate-pulse w-20" />
+                        <div className="h-5 bg-muted rounded animate-pulse w-20" />
                       </TableCell>
                       <TableCell>
-                        <div className="h-5 bg-gray-200 rounded animate-pulse w-16" />
+                        <div className="h-5 bg-muted rounded animate-pulse w-16" />
                       </TableCell>
                       <TableCell>
-                        <div className="h-4 bg-gray-200 rounded animate-pulse w-20" />
+                        <div className="h-4 bg-muted rounded animate-pulse w-20" />
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <div className="h-8 bg-gray-200 rounded animate-pulse w-16" />
+                          <div className="h-8 bg-muted rounded animate-pulse w-16" />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -318,9 +311,9 @@ export function AssessmentTable({
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
-                        <FileText className="h-8 w-8 text-gray-400" />
-                        <p className="text-gray-500">No hay evaluaciones encontradas</p>
-                        <p className="text-sm text-gray-400">
+                        <FileText className="h-8 w-8 text-muted-foreground/70" />
+                        <p className="text-muted-foreground">No hay evaluaciones encontradas</p>
+                        <p className="text-sm text-muted-foreground/80">
                           Crea tu primera evaluacion para comenzar
                         </p>
                       </div>
@@ -340,7 +333,7 @@ export function AssessmentTable({
                       <TableCell>{assessment.period}</TableCell>
                       <TableCell>{getStatusBadge(assessment.status)}</TableCell>
                       <TableCell>{getRiskBadge(assessment.risk_level)}</TableCell>
-                      <TableCell className="text-sm text-gray-500">
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatDate(assessment.created_at)}
                       </TableCell>
                       <TableCell>
@@ -395,7 +388,7 @@ export function AssessmentTable({
           {/* Pagination */}
           {assessmentData && assessmentData.total > limit && (
             <div className="flex items-center justify-between px-2 py-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <span>Mostrar</span>
                 <Select
                   value={limit.toString()}

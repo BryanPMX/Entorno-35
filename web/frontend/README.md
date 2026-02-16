@@ -34,6 +34,7 @@ web/frontend/
 ├── lib/
 │   ├── axios.ts                # Axios client and interceptors
 │   ├── jwt.ts                  # JWT decode/session helpers
+│   ├── nom35-risk.ts           # Shared NOM-35 risk labels/colors/badge classes
 │   ├── query-client.ts         # TanStack Query config
 │   ├── store/auth-store.ts     # Zustand auth state
 │   ├── utils.ts                # cn() and helpers
@@ -58,6 +59,8 @@ web/frontend/
 2. **Type safety**: TypeScript interfaces in `types/backend.d.ts` match the Go backend domain models.
 3. **Data fetching**: TanStack Query handles caching, cancellation, and refetching.
 4. **Auth**: Axios interceptors attach the JWT and redirect to `/login` on 401.
+5. **Design system consistency**: `app/globals.css` provides shared visual tokens and reusable UI utilities for auth, portal, assessment, and marketing surfaces.
+6. **Single source of truth for risk UI**: `lib/nom35-risk.ts` centralizes NOM-35 risk labels, colors, thresholds, and badge classes used by charts and tables.
 
 ### Technologies
 
@@ -147,6 +150,16 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 | `npm test`          | Run Vitest                |
 | `npm run test:coverage` | Vitest with coverage  |
 
+## Testing and Quality Gates
+
+- **Unit/component tests**: Vitest + Testing Library
+- **Visual regression snapshots**: `tests/components/visual-regression.test.tsx`
+  - Login page shell
+  - Dashboard layout shell
+  - Public assessment shell
+- **Linting**: ESLint (`npm run lint`)
+- **Production build validation**: Next build (`npm run build`)
+
 ## Development Phases (Completed)
 
 - **Architecture and service layer**: Next.js setup, types, Axios interceptors, TanStack Query, service pattern.
@@ -157,7 +170,18 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 - **PDF export**: Report PDF download, NOM-035 layout, JWT-protected endpoint.
 - **Assessment UX**: Framer Motion transitions, category badges, keyboard navigation (arrows, 1–5, Enter), auto-save indicators, accessibility.
 - **Layout and marketing**: Focus-mode assessment layout, marketing landing (hero, features, compliance, pricing), subscription plans (monthly/yearly MXN), navigation and footer.
-- **Marketing visual refresh (2026-02)**: Glassmorphism accents, gradient badges, stat highlight cards, soft grid backgrounds, animated hero metrics, feature clusters to reduce repetición visual, y copy de precios actualizado (50% OFF anual).
+- **Design system consolidation (2026-02-16)**: Shared NOM-35 tokenized visual language across login, admin portal, public assessment, and marketing.
+- **Risk style consolidation (2026-02-16)**: Centralized risk-level registry for color/label/badge mapping via `lib/nom35-risk.ts`.
+- **Visual regression baseline (2026-02-16)**: Snapshot coverage added for key shells to prevent style drift.
+
+## Current Status (February 16, 2026)
+
+- Frontend compiles for production and passes all configured tests.
+- Verified commands:
+  - `npm run lint`
+  - `npm run test -- --run`
+  - `npm run build`
+- Current Vitest scope includes behavior tests plus snapshot-based visual regression for critical routes.
 
 ## License
 

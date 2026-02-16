@@ -53,8 +53,8 @@ export default function StaffPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestion de Personal</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-foreground">Gestion de Personal</h1>
+        <p className="mt-2 text-muted-foreground">
           Administra los miembros del personal, visualiza su informacion e importa mediante CSV
         </p>
       </div>

@@ -145,7 +145,7 @@ export function StaffTable({
       </div>
 
       {/* Staff Table */}
-      <Card>
+      <Card className="portal-surface border-0">
         <CardHeader>
           <CardTitle>Lista de Personal</CardTitle>
           <CardDescription>

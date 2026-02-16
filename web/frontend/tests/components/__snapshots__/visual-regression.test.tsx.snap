@@ -1,0 +1,350 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Visual Regression > matches dashboard shell snapshot 1`] = `
+<div
+  class="portal-shell portal-grid relative flex min-h-screen flex-col"
+>
+  <div
+    class="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl"
+  />
+  <div
+    class="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl"
+  />
+  <header
+    class="portal-surface sticky top-0 z-20 border-x-0 border-t-0"
+  >
+    <div
+      class="flex items-center justify-between px-6 h-16"
+    >
+      <div
+        class="flex items-center gap-3"
+      >
+        <div
+          class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-sm font-semibold text-white shadow-md"
+        >
+          35
+        </div>
+        <h1
+          class="text-xl font-semibold tracking-tight text-foreground"
+        >
+          Entorno 35
+        </h1>
+      </div>
+      <button
+        class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-xs hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md px-3 has-[>svg]:px-2.5 gap-2 border-primary/20 bg-background/70 text-foreground hover:bg-accent/70"
+        data-size="sm"
+        data-slot="button"
+        data-variant="outline"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-log-out h-4 w-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m16 17 5-5-5-5"
+          />
+          <path
+            d="M21 12H9"
+          />
+          <path
+            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+          />
+        </svg>
+        Cerrar Sesion
+      </button>
+    </div>
+  </header>
+  <div
+    class="flex flex-1"
+  >
+    <aside
+      class="portal-surface fixed top-16 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-y-0 border-l-0"
+    >
+      <nav
+        class="p-4 space-y-2"
+      >
+        <a
+          class="portal-nav-link flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all"
+          href="/dashboard"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-layout-dashboard h-5 w-5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              height="9"
+              rx="1"
+              width="7"
+              x="3"
+              y="3"
+            />
+            <rect
+              height="5"
+              rx="1"
+              width="7"
+              x="14"
+              y="3"
+            />
+            <rect
+              height="9"
+              rx="1"
+              width="7"
+              x="14"
+              y="12"
+            />
+            <rect
+              height="5"
+              rx="1"
+              width="7"
+              x="3"
+              y="16"
+            />
+          </svg>
+          Panel de Control
+        </a>
+        <a
+          class="portal-nav-link flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all"
+          href="/dashboard/staff"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-users h-5 w-5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+            />
+            <path
+              d="M16 3.128a4 4 0 0 1 0 7.744"
+            />
+            <path
+              d="M22 21v-2a4 4 0 0 0-3-3.87"
+            />
+            <circle
+              cx="9"
+              cy="7"
+              r="4"
+            />
+          </svg>
+          Personal
+        </a>
+        <a
+          class="portal-nav-link flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all portal-nav-link-active"
+          href="/dashboard/assessments"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-file-text h-5 w-5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"
+            />
+            <path
+              d="M14 2v5a1 1 0 0 0 1 1h5"
+            />
+            <path
+              d="M10 9H8"
+            />
+            <path
+              d="M16 13H8"
+            />
+            <path
+              d="M16 17H8"
+            />
+          </svg>
+          Evaluaciones
+        </a>
+      </nav>
+    </aside>
+    <main
+      class="relative z-10 ml-64 flex-1 p-6"
+    >
+      <div>
+        Dashboard content
+      </div>
+    </main>
+  </div>
+</div>
+`;
+
+exports[`Visual Regression > matches login page snapshot 1`] = `
+<div
+  class="auth-shell portal-grid relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10"
+>
+  <div
+    class="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl"
+  />
+  <div
+    class="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl"
+  />
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl py-6 shadow-sm portal-surface-strong w-full max-w-md border-0"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 space-y-4 pb-4"
+      data-slot="card-header"
+    >
+      <div
+        class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-lg font-bold text-white shadow-lg"
+      >
+        35
+      </div>
+      <div
+        class="space-y-1 text-center"
+      >
+        <div
+          class="text-2xl font-bold tracking-tight"
+          data-slot="card-title"
+        >
+          Entorno 35
+        </div>
+        <div
+          class="text-muted-foreground text-sm"
+          data-slot="card-description"
+        >
+          Sign in with your company RFC
+        </div>
+      </div>
+    </div>
+    <div
+      class="px-6"
+      data-slot="card-content"
+    >
+      <form
+        class="space-y-5"
+      >
+        <div
+          class="grid gap-2"
+          data-slot="form-item"
+        >
+          <label
+            class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+            data-error="false"
+            data-slot="form-label"
+            for="_r_0_-form-item"
+          >
+            RFC
+          </label>
+          <input
+            aria-describedby="_r_0_-form-item-description"
+            aria-invalid="false"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background/80"
+            data-slot="form-control"
+            id="_r_0_-form-item"
+            name="identifier"
+            placeholder="ABC123456789"
+            value=""
+          />
+        </div>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white shadow-md hover:brightness-110"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          type="submit"
+        >
+          Sign In
+        </button>
+        <p
+          class="text-center text-xs text-muted-foreground"
+        >
+          NOM-035 STPS 2018 compliance platform
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Visual Regression > matches public assessment shell snapshot 1`] = `
+<div
+  class="assessment-shell relative min-h-screen overflow-hidden"
+>
+  <div
+    class="pointer-events-none absolute -left-24 top-8 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl"
+  />
+  <div
+    class="pointer-events-none absolute -right-24 top-16 h-72 w-72 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl"
+  />
+  <div
+    class="portal-surface relative z-10 border-x-0 border-t-0"
+  >
+    <div
+      class="mx-auto max-w-4xl px-6 py-4"
+    >
+      <div
+        class="flex items-center justify-center"
+      >
+        <div
+          class="flex items-center space-x-3"
+        >
+          <div
+            class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] shadow-md"
+          >
+            <span
+              class="text-sm font-bold text-white"
+            >
+              35
+            </span>
+          </div>
+          <div>
+            <h1
+              class="text-lg font-semibold text-foreground"
+            >
+              Entorno35
+            </h1>
+            <p
+              class="text-xs text-muted-foreground"
+            >
+              NOM-035 Assessment
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="relative z-10 mx-auto max-w-4xl px-6 py-8"
+  >
+    <div>
+      Assessment content
+    </div>
+  </div>
+</div>
+`;

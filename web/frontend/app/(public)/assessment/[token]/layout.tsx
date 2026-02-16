@@ -14,18 +14,21 @@ export default function PublicAssessmentLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="assessment-shell relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute -left-24 top-8 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 top-16 h-72 w-72 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
+
       {/* Simple Company Logo Header */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-2xl mx-auto px-6 py-4">
+      <div className="portal-surface relative z-10 border-x-0 border-t-0">
+        <div className="mx-auto max-w-4xl px-6 py-4">
           <div className="flex items-center justify-center">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">35</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] shadow-md">
+                <span className="text-sm font-bold text-white">35</span>
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-slate-900">Entorno35</h1>
-                <p className="text-xs text-slate-500">NOM-035 Assessment</p>
+                <h1 className="text-lg font-semibold text-foreground">Entorno35</h1>
+                <p className="text-xs text-muted-foreground">NOM-035 Assessment</p>
               </div>
             </div>
           </div>
@@ -33,7 +36,7 @@ export default function PublicAssessmentLayout({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-8">
         {children}
       </div>
     </div>

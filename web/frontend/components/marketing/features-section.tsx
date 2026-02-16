@@ -33,7 +33,7 @@ export function FeaturesSection() {
       title: "Reportes PDF Profesionales",
       description: "Reportes de cumplimiento NOM-035 listos para presentación ante autoridades.",
       badge: "Profesional",
-      accent: "from-blue-500/25 to-blue-500/5",
+      accent: "from-sky-500/25 to-sky-500/5",
       microcopy: "Brand-ready outputs",
     },
     {
@@ -41,7 +41,7 @@ export function FeaturesSection() {
       title: "Gestión de Personal",
       description: "Importación masiva de empleados via CSV con validación automática.",
       badge: "Eficiente",
-      accent: "from-indigo-500/25 to-indigo-500/5",
+      accent: "from-cyan-500/25 to-cyan-500/5",
       microcopy: "CSV + API ready",
     },
     {
@@ -49,7 +49,7 @@ export function FeaturesSection() {
       title: "Análisis de Riesgos",
       description: "Visualización de datos con gráficos y mapas de calor por departamento.",
       badge: "Analítico",
-      accent: "from-purple-500/25 to-purple-500/5",
+      accent: "from-amber-500/25 to-amber-500/5",
       microcopy: "Heatmaps & cohorts",
     },
     {
@@ -73,7 +73,7 @@ export function FeaturesSection() {
       title: "Envío Automático",
       description: "Links seguros enviados automáticamente por email a todo el personal.",
       badge: "Automático",
-      accent: "from-pink-500/25 to-pink-500/5",
+      accent: "from-orange-500/25 to-orange-500/5",
       microcopy: "Envía y monitorea",
     },
     {
@@ -81,7 +81,7 @@ export function FeaturesSection() {
       title: "Acceso Móvil",
       description: "Interfaz totalmente responsive optimizada para dispositivos móviles.",
       badge: "Móvil",
-      accent: "from-blue-500/25 to-blue-500/5",
+      accent: "from-sky-500/25 to-sky-500/5",
       microcopy: "Optimizada PWA",
     },
     {
@@ -103,19 +103,21 @@ export function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-background dark:via-background dark:to-background">
+    <section id="features" className="relative overflow-hidden py-20 lg:py-28">
       <div className="absolute inset-0 pointer-events-none bg-aurora opacity-60 dark:opacity-35" />
+      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
+      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
         <div className="text-center mb-16">
           <Badge variant="outline" className="mb-4 glass-panel px-4 py-2">
             Características Principales
           </Badge>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
             Todo lo que necesitas para cumplir con{" "}
             <span className="gradient-text">NOM-035</span>
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Plataforma creada para equipos de Seguridad e Higiene que buscan precisión, trazabilidad y
             velocidad al gestionar el riesgo psicosocial.
           </p>
@@ -123,13 +125,13 @@ export function FeaturesSection() {
 
         {/* Feature clusters to avoid repetition */}
         <div className="grid gap-8 lg:grid-cols-1 xl:grid-cols-2 mb-10 isolate items-stretch">
-          <Card className="glass-panel-strong shimmer-border h-full">
+          <Card className="portal-surface-strong shimmer-border h-full border-0">
             <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-200 bg-blue-100/70 dark:bg-blue-500/20 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--nom-bajo)] bg-[color:var(--nom-bajo-soft)] px-3 py-1 rounded-full">
                   Operación
                 </span>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Flujos que reducen tiempo de despliegue</p>
+                <p className="text-sm text-muted-foreground">Flujos que reducen tiempo de despliegue</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate content-start flex-1">
                 {features.slice(0, 5).map((feature) => {
@@ -141,19 +143,19 @@ export function FeaturesSection() {
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center`}>
-                          <IconComponent className="w-5 h-5 text-gray-900 dark:text-white" />
+                          <IconComponent className="w-5 h-5 text-foreground" />
                         </div>
-                        <div className="text-xs font-medium text-gray-500 dark:text-gray-300">{feature.microcopy}</div>
+                        <div className="text-xs font-medium text-muted-foreground">{feature.microcopy}</div>
                       </div>
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                        <h3 className="text-base font-semibold text-foreground">
                           {feature.title}
                         </h3>
                         <Badge variant="secondary" className="text-[11px] px-2">
                           {feature.badge}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 flex-1">{feature.description}</p>
+                      <p className="text-sm text-muted-foreground flex-1">{feature.description}</p>
                     </div>
                   );
                 })}
@@ -161,13 +163,13 @@ export function FeaturesSection() {
             </CardContent>
           </Card>
 
-          <Card className="glass-panel shadow-xl h-full">
+          <Card className="portal-surface shadow-xl h-full border-0">
             <CardContent className="p-6 space-y-4 h-full flex flex-col">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-200 bg-purple-100/70 dark:bg-purple-500/20 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--nom-medio)] bg-[color:var(--nom-medio-soft)] px-3 py-1 rounded-full">
                   Seguridad & Acceso
                 </span>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Confianza en cada interacción</p>
+                <p className="text-sm text-muted-foreground">Confianza en cada interacción</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 isolate content-start flex-1">
                 {features.slice(5, 10).map((feature) => {
@@ -179,18 +181,18 @@ export function FeaturesSection() {
                     >
                       <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.accent} flex items-center justify-center flex-shrink-0`}>
-                          <IconComponent className="w-5 h-5 text-gray-900 dark:text-white" />
+                          <IconComponent className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="space-y-1 min-w-0 w-full">
                           <div className="flex items-start gap-2 flex-wrap">
-                            <h3 className="text-base font-semibold text-gray-900 dark:text-white min-w-0 break-words">
+                            <h3 className="text-base font-semibold text-foreground min-w-0 break-words">
                               {feature.title}
                             </h3>
                             <Badge variant="secondary" className="text-[11px] px-2 shrink-0">
                               {feature.badge}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {feature.description}
                           </p>
                         </div>
@@ -205,7 +207,7 @@ export function FeaturesSection() {
 
         {/* Soft transition to adjacent sections */}
         <div className="h-16 relative mt-12">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-gray-50 dark:via-white/5 dark:to-background blur-[2px]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/70 to-background blur-[2px]" />
         </div>
       </div>
     </section>

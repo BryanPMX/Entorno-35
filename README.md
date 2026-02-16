@@ -23,6 +23,9 @@ NOM-035-STPS-2018 is a Mexican federal standard that requires employers to ident
 - CSV staff import with CURP validation
 - Mobile-responsive assessment interface with focus mode layout
 - Professional analytics dashboard with interactive visualizations
+- Unified NOM-35 visual design system (shared tokens for auth, portal, assessment, and marketing)
+- Centralized NOM-35 risk style registry (single source for labels, colors, and badge classes)
+- Frontend visual regression snapshots for critical surfaces (login, dashboard shell, assessment shell)
 - Secure token-based assessments with expiration handling
 - Multi-company support with tenant isolation
 
@@ -62,7 +65,7 @@ Entorno35/
 ├── web/frontend/         # Next.js frontend application
 │   ├── app/              # Next.js App Router pages
 │   ├── components/       # React components
-│   ├── lib/              # Utilities and configurations
+│   ├── lib/              # Utilities and configurations (includes NOM-35 risk style registry)
 │   ├── services/         # API service layer
 │   └── types/            # TypeScript type definitions
 ├── docs/                 # Technical and operational documentation (see docs/README.md)
@@ -216,6 +219,12 @@ make test
 # Run frontend tests
 cd web/frontend && npm test
 
+# Run frontend linting
+cd web/frontend && npm run lint
+
+# Run frontend production build
+cd web/frontend && npm run build
+
 # Run integration tests
 go test ./tests/integration/...
 ```
@@ -240,7 +249,18 @@ Key documents:
 
 ## Project Status
 
-This project implements a complete NOM-035 compliance solution with:
+Status snapshot as of **February 16, 2026**:
+
+- Frontend style architecture is consolidated with shared NOM-35 tokens and reusable visual utilities.
+- Risk-level presentation now uses a single shared module (`web/frontend/lib/nom35-risk.ts`) across charts, tables, and reports.
+- Marketing, login, dashboard/admin, and public assessment flows follow a consistent visual language.
+- Visual regression snapshot coverage is in place for key surfaces (`tests/components/visual-regression.test.tsx`).
+- Quality gates verified:
+  - `cd web/frontend && npm run lint`
+  - `cd web/frontend && npm run test -- --run`
+  - `cd web/frontend && npm run build`
+
+The project implements a complete NOM-035 compliance solution with:
 
 - **Backend API**: RESTful Go service with PostgreSQL and professional PDF generation
 - **Frontend Application**: Modern React/Next.js interface with advanced UX
@@ -249,7 +269,7 @@ This project implements a complete NOM-035 compliance solution with:
 - **User Experience**: Typeform-like assessment interface with full accessibility
 - **Security**: JWT authentication with multi-tenant isolation
 
-All core features are implemented and tested. The platform features enterprise-grade UX with professional PDF reporting and is production-ready for NOM-035-STPS-2018 compliance automation.
+All core features are implemented and tested. The platform is production-ready for NOM-035-STPS-2018 compliance automation.
 
 ## Contributing
 

@@ -71,7 +71,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <Card className="animate-in fade-in slide-in-from-bottom-4">
+        <Card className="portal-surface animate-in fade-in slide-in-from-bottom-4 border-0">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
               <FileText className="h-8 w-8 text-muted-foreground" />
@@ -94,7 +94,7 @@ export default function DashboardPage() {
         </Card>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
-          <Card className="hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4">
+          <Card className="portal-surface hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4 border-0">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5" />
@@ -111,7 +111,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '500ms' }}>
+          <Card className="portal-surface hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4 border-0" style={{ animationDelay: '500ms' }}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
@@ -128,7 +128,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '600ms' }}>
+          <Card className="portal-surface hover-lift shadow-sm animate-in fade-in slide-in-from-bottom-4 border-0" style={{ animationDelay: '600ms' }}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5" />
@@ -200,7 +200,7 @@ export default function DashboardPage() {
       {/* Demographic Analysis */}
       <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}>
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">{translations.dashboard.demographicAnalysis}</h2>
+          <h2 className="text-xl font-semibold text-foreground">{translations.dashboard.demographicAnalysis}</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {translations.dashboard.demographicDesc}
           </p>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
         (reportData?.marital_status_risk_distribution?.length ?? 0) > 0) && (
         <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '400ms' }}>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">{translations.dashboard.demographicRiskAnalysis}</h2>
+            <h2 className="text-xl font-semibold text-foreground">{translations.dashboard.demographicRiskAnalysis}</h2>
             <p className="text-sm text-muted-foreground mt-1">
               {translations.dashboard.demographicRiskDesc}
             </p>
@@ -301,7 +301,7 @@ export default function DashboardPage() {
       )}
 
       {/* Quick Actions */}
-      <Card className="animate-in fade-in slide-in-from-bottom-4 shadow-sm hover:shadow-md transition-all" style={{ animationDelay: '500ms' }}>
+      <Card className="portal-surface animate-in fade-in slide-in-from-bottom-4 shadow-sm hover:shadow-md transition-all border-0" style={{ animationDelay: '500ms' }}>
         <CardHeader>
           <CardTitle>{translations.dashboard.quickActions}</CardTitle>
           <CardDescription>
@@ -340,4 +340,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

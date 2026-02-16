@@ -1,13 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuthStore } from "@/lib/store/auth-store";
-import { AuthGuard } from "@/components/layout/auth-guard";
-import { Button } from "@/components/ui/button";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, LayoutDashboard, Users, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { AuthGuard } from "@/components/layout/auth-guard";
+import { Button } from "@/components/ui/button";
 import { translations } from "@/lib/translations";
+import { useAuthStore } from "@/lib/store/auth-store";
+import { cn } from "@/lib/utils";
 
 /**
  * Dashboard Layout
@@ -22,8 +23,30 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuthStore();
+
+  const navItems = [
+    {
+      href: "/dashboard",
+      label: translations.nav.dashboard,
+      icon: LayoutDashboard,
+      isActive: pathname === "/dashboard",
+    },
+    {
+      href: "/dashboard/staff",
+      label: translations.nav.staff,
+      icon: Users,
+      isActive: pathname.startsWith("/dashboard/staff"),
+    },
+    {
+      href: "/dashboard/assessments",
+      label: translations.nav.assessments,
+      icon: FileText,
+      isActive: pathname.startsWith("/dashboard/assessments"),
+    },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -33,18 +56,24 @@ export default function DashboardLayout({
 
   return (
     <AuthGuard>
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="portal-shell portal-grid relative flex min-h-screen flex-col">
+        <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
+        <div className="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
+
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <header className="portal-surface sticky top-0 z-20 border-x-0 border-t-0">
           <div className="flex items-center justify-between px-6 h-16">
-            <h1 className="text-xl font-semibold text-gray-900">
-              Entorno 35
-            </h1>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-sm font-semibold text-white shadow-md">
+                35
+              </div>
+              <h1 className="text-xl font-semibold tracking-tight text-foreground">Entorno 35</h1>
+            </div>
             <Button
               variant="outline"
               size="sm"
               onClick={handleLogout}
-              className="gap-2"
+              className="gap-2 border-primary/20 bg-background/70 text-foreground hover:bg-accent/70"
             >
               <LogOut className="h-4 w-4" />
               {translations.nav.logout}
@@ -54,34 +83,29 @@ export default function DashboardLayout({
 
         <div className="flex flex-1">
           {/* Sidebar */}
-          <aside className="w-64 bg-white border-r border-gray-200 fixed h-[calc(100vh-4rem)] top-16 overflow-y-auto">
+          <aside className="portal-surface fixed top-16 h-[calc(100vh-4rem)] w-64 overflow-y-auto border-y-0 border-l-0">
             <nav className="p-4 space-y-2">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <LayoutDashboard className="h-5 w-5" />
-                {translations.nav.dashboard}
-              </Link>
-              <Link
-                href="/dashboard/staff"
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <Users className="h-5 w-5" />
-                {translations.nav.staff}
-              </Link>
-              <Link
-                href="/dashboard/assessments"
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <FileText className="h-5 w-5" />
-                {translations.nav.assessments}
-              </Link>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "portal-nav-link flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all",
+                      item.isActive && "portal-nav-link-active"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </nav>
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 ml-64 p-6">
+          <main className="relative z-10 ml-64 flex-1 p-6">
             {children}
           </main>
         </div>
@@ -89,4 +113,3 @@ export default function DashboardLayout({
     </AuthGuard>
   );
 }
-

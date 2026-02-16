@@ -31,7 +31,7 @@ export function MetricCard({
 }: MetricCardProps) {
   if (isLoading) {
     return (
-      <Card className={cn("hover-lift", className)} style={style}>
+      <Card className={cn("portal-surface border-0 hover-lift", className)} style={style}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium label-muted">
             <Skeleton className="h-4 w-24" />
@@ -47,7 +47,7 @@ export function MetricCard({
   }
 
   return (
-    <Card className={cn("hover-lift animate-in fade-in slide-in-from-bottom-4", className)} style={style}>
+    <Card className={cn("portal-surface border-0 hover-lift animate-in fade-in slide-in-from-bottom-4", className)} style={style}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium label-muted">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />

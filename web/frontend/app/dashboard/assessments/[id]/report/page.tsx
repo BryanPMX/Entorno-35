@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getNom35RiskBadgeClass, getNom35RiskHexColor, isNom35RiskLevel } from "@/lib/nom35-risk";
 import { reportService } from "@/services/report.service";
 import { translations, getRiskLevelLabel, getRiskLevelDescription } from "@/lib/translations";
 
@@ -50,56 +51,37 @@ export default function AssessmentReportPage() {
   });
 
   const getRiskBadge = (riskLevel: string) => {
-    const riskConfig = {
-      nulo: { color: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-      bajo: { color: "bg-sky-100 text-sky-800 border-sky-200" },
-      medio: { color: "bg-amber-100 text-amber-800 border-amber-200" },
-      alto: { color: "bg-orange-100 text-orange-800 border-orange-200" },
-      muy_alto: { color: "bg-red-100 text-red-800 border-red-200" },
-    };
-
-    const config = riskConfig[riskLevel as keyof typeof riskConfig];
-    if (!config) return <Badge variant="outline">{riskLevel}</Badge>;
+    if (!isNom35RiskLevel(riskLevel)) return <Badge variant="outline">{riskLevel}</Badge>;
 
     return (
-      <Badge className={`${config.color} border text-sm px-3 py-1 font-medium`}>
+      <Badge className={`${getNom35RiskBadgeClass(riskLevel)} text-sm px-3 py-1 font-medium`}>
         {getRiskLevelLabel(riskLevel)}
       </Badge>
     );
   };
 
-  // Use backend-provided risk levels instead of recalculating
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case "nulo": return "bg-emerald-500";
-      case "bajo": return "bg-sky-500";
-      case "medio": return "bg-amber-500";
-      case "alto": return "bg-orange-500";
-      case "muy_alto": return "bg-red-600";
-      default: return "bg-gray-400";
-    }
-  };
+  const getRiskColor = (riskLevel: string) => getNom35RiskHexColor(riskLevel, "#9ca3af");
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-full">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+              <div className="h-4 bg-muted rounded w-1/4"></div>
             </div>
             <div className="grid gap-6 md:grid-cols-2">
-              <Card className="animate-pulse">
+              <Card className="portal-surface border-0 animate-pulse">
                 <CardContent className="p-6">
-                  <div className="h-20 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-20 bg-muted rounded mb-4"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
                 </CardContent>
               </Card>
-              <Card className="animate-pulse">
+              <Card className="portal-surface border-0 animate-pulse">
                 <CardContent className="p-6">
-                  <div className="h-20 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-20 bg-muted rounded mb-4"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
                 </CardContent>
               </Card>
             </div>
@@ -111,7 +93,7 @@ export default function AssessmentReportPage() {
 
   if (error || !report) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-full">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <Button
@@ -136,7 +118,7 @@ export default function AssessmentReportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-full">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
@@ -153,27 +135,27 @@ export default function AssessmentReportPage() {
                 <Button
                   onClick={handleDownloadPDF}
                   disabled={!report}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white hover:brightness-110"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   {translations.reports.downloadPDF}
                 </Button>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">{translations.reports.title}</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-3xl font-bold text-foreground">{translations.reports.title}</h1>
+              <p className="mt-2 text-muted-foreground">
                 {translations.reports.subtitle}
               </p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-500">Assessment ID</div>
-              <div className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+              <div className="text-sm text-muted-foreground">Assessment ID</div>
+              <div className="font-mono text-xs bg-muted px-2 py-1 rounded">
                 {assessmentId.slice(0, 8)}...
               </div>
             </div>
           </div>
 
           {/* Staff Information */}
-          <Card>
+          <Card className="portal-surface border-0">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <User className="h-5 w-5" />
@@ -187,24 +169,24 @@ export default function AssessmentReportPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Nombre</div>
+                    <div className="text-sm font-medium text-muted-foreground">Nombre</div>
                     <div className="text-lg font-semibold">{report.staff_name}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Departamento</div>
+                    <div className="text-sm font-medium text-muted-foreground">Departamento</div>
                     <div>{report.department || "No especificado"}</div>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm font-medium text-gray-500">{translations.reports.assessmentPeriod}</div>
+                    <div className="text-sm font-medium text-muted-foreground">{translations.reports.assessmentPeriod}</div>
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4" />
                       <span className="font-semibold">{report.period}</span>
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Turno</div>
+                    <div className="text-sm font-medium text-muted-foreground">Turno</div>
                     <div>{report.shift || "No especificado"}</div>
                   </div>
                 </div>
@@ -213,7 +195,7 @@ export default function AssessmentReportPage() {
           </Card>
 
           {/* Risk Assessment */}
-          <Card>
+          <Card className="portal-surface border-0">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Target className="h-5 w-5" />
@@ -229,20 +211,23 @@ export default function AssessmentReportPage() {
                   <div className="text-2xl font-bold mb-1">
                     {report.total_score.toFixed(1)} / {report.total_max_score.toFixed(0)}
                   </div>
-                  <div className="text-sm text-gray-600">{translations.reports.totalScore}</div>
+                  <div className="text-sm text-muted-foreground">{translations.reports.totalScore}</div>
                 </div>
                 <div className="text-right">
                   <div className="mb-2">{getRiskBadge(report.risk_level)}</div>
-                  <div className="text-sm text-gray-600 max-w-xs">
+                  <div className="max-w-xs text-sm text-muted-foreground">
                     {getRiskLevelDescription(report.risk_level)}
                   </div>
                 </div>
               </div>
 
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="h-3 w-full rounded-full bg-secondary/70">
                 <div
-                  className={`h-3 rounded-full transition-all duration-500 ${getRiskColor(report.risk_level)}`}
-                  style={{ width: `${Math.min((report.total_score / report.total_max_score) * 100, 100)}%` }}
+                  className="h-3 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.min((report.total_score / report.total_max_score) * 100, 100)}%`,
+                    backgroundColor: getRiskColor(report.risk_level),
+                  }}
                 ></div>
               </div>
 
@@ -258,7 +243,7 @@ export default function AssessmentReportPage() {
           </Card>
 
           {/* Category Scores */}
-          <Card>
+          <Card className="portal-surface border-0">
             <CardHeader>
               <CardTitle>{translations.reports.categoryAnalysis}</CardTitle>
               <CardDescription>
@@ -277,8 +262,8 @@ export default function AssessmentReportPage() {
                       {/* Header with category name and risk badge */}
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center space-x-3 min-w-0 flex-1">
-                          <span className="text-sm font-medium text-gray-600 w-6 flex-shrink-0">{index + 1}.</span>
-                          <span className="font-semibold text-gray-900 truncate">{category}</span>
+                          <span className="w-6 flex-shrink-0 text-sm font-medium text-muted-foreground">{index + 1}.</span>
+                          <span className="truncate font-semibold text-foreground">{category}</span>
                         </div>
                         <div className="flex-shrink-0">
                           {getRiskBadge(riskLevel)}
@@ -288,21 +273,24 @@ export default function AssessmentReportPage() {
                       {/* Progress bar and score */}
                       <div className="flex items-center gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                          <div className="h-3 w-full overflow-hidden rounded-full bg-secondary/60">
                             <div
-                              className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
-                              style={{ width: `${percentage}%` }}
+                              className="h-3 rounded-full transition-all duration-700 ease-out shadow-sm"
+                              style={{
+                                width: `${percentage}%`,
+                                backgroundColor: getRiskColor(riskLevel),
+                              }}
                             ></div>
                           </div>
                         </div>
                         <div className="flex items-baseline space-x-1 flex-shrink-0">
-                          <span className="text-lg font-bold text-gray-900 tabular-nums whitespace-nowrap">
+                          <span className="text-lg font-bold tabular-nums whitespace-nowrap text-foreground">
                             {score.toFixed(1)}
                           </span>
-                          <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                          <span className="text-sm font-medium whitespace-nowrap text-muted-foreground">
                             /{maxScore}
                           </span>
-                          <span className="text-xs text-gray-400 whitespace-nowrap">
+                          <span className="text-xs whitespace-nowrap text-muted-foreground/80">
                             ({percentage.toFixed(0)}%)
                           </span>
                         </div>
@@ -315,7 +303,7 @@ export default function AssessmentReportPage() {
           </Card>
 
           {/* Domain Scores */}
-          <Card>
+          <Card className="portal-surface border-0">
             <CardHeader>
               <CardTitle>{translations.reports.domainAnalysis}</CardTitle>
               <CardDescription>
@@ -334,8 +322,8 @@ export default function AssessmentReportPage() {
                       {/* Header with domain name and risk badge */}
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center space-x-3 min-w-0 flex-1">
-                          <span className="text-sm font-medium text-gray-600 w-6 flex-shrink-0">{index + 1}.</span>
-                          <span className="font-semibold text-gray-900 truncate">{domain}</span>
+                          <span className="w-6 flex-shrink-0 text-sm font-medium text-muted-foreground">{index + 1}.</span>
+                          <span className="truncate font-semibold text-foreground">{domain}</span>
                         </div>
                         <div className="flex-shrink-0">
                           {getRiskBadge(riskLevel)}
@@ -345,21 +333,24 @@ export default function AssessmentReportPage() {
                       {/* Progress bar and score */}
                       <div className="flex items-center gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                          <div className="h-3 w-full overflow-hidden rounded-full bg-secondary/60">
                             <div
-                              className={`h-3 rounded-full transition-all duration-700 ease-out ${getRiskColor(riskLevel)} shadow-sm`}
-                              style={{ width: `${percentage}%` }}
+                              className="h-3 rounded-full transition-all duration-700 ease-out shadow-sm"
+                              style={{
+                                width: `${percentage}%`,
+                                backgroundColor: getRiskColor(riskLevel),
+                              }}
                             ></div>
                           </div>
                         </div>
                         <div className="flex items-baseline space-x-1 flex-shrink-0">
-                          <span className="text-lg font-bold text-gray-900 tabular-nums whitespace-nowrap">
+                          <span className="text-lg font-bold tabular-nums whitespace-nowrap text-foreground">
                             {score.toFixed(1)}
                           </span>
-                          <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                          <span className="text-sm font-medium whitespace-nowrap text-muted-foreground">
                             /{maxScore}
                           </span>
-                          <span className="text-xs text-gray-400 whitespace-nowrap">
+                          <span className="text-xs whitespace-nowrap text-muted-foreground/80">
                             ({percentage.toFixed(0)}%)
                           </span>
                         </div>
@@ -373,7 +364,7 @@ export default function AssessmentReportPage() {
 
           {/* Recommendations */}
           {report.recommendations && report.recommendations.length > 0 && (
-            <Card>
+            <Card className="portal-surface border-0">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <CheckCircle className="h-5 w-5" />
@@ -387,10 +378,10 @@ export default function AssessmentReportPage() {
                 <ul className="space-y-3">
                   {report.recommendations.map((recommendation, index) => (
                     <li key={index} className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                        <span className="text-xs font-semibold text-blue-600">{index + 1}</span>
+                      <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <span className="text-xs font-semibold text-primary">{index + 1}</span>
                       </div>
-                      <p className="text-gray-700">{recommendation}</p>
+                      <p className="text-foreground/90">{recommendation}</p>
                     </li>
                   ))}
                 </ul>
@@ -399,7 +390,7 @@ export default function AssessmentReportPage() {
           )}
 
           {/* Assessment Metadata */}
-          <Card>
+          <Card className="portal-surface border-0">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
@@ -412,7 +403,7 @@ export default function AssessmentReportPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <div className="font-medium text-gray-500">Tipo de Guia</div>
+                  <div className="font-medium text-muted-foreground">Tipo de Guia</div>
                   <div className="flex items-center space-x-2">
                     <span>NOM-035 {report.guide_type}</span>
                     <Badge variant="outline" className="text-xs">
@@ -421,21 +412,21 @@ export default function AssessmentReportPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-500">{translations.reports.assessmentPeriod}</div>
+                  <div className="font-medium text-muted-foreground">{translations.reports.assessmentPeriod}</div>
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4" />
                     <span>{report.period}</span>
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-500">Estado</div>
+                  <div className="font-medium text-muted-foreground">Estado</div>
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span>Completado</span>
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-500">Fecha de Finalizacion</div>
+                  <div className="font-medium text-muted-foreground">Fecha de Finalizacion</div>
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4" />
                     <span>
@@ -453,8 +444,8 @@ export default function AssessmentReportPage() {
                   </div>
                 </div>
               </div>
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm text-blue-800">
+              <div className="mt-4 rounded-md border border-primary/20 bg-primary/5 p-3">
+                <p className="text-sm text-primary/90">
                   <strong>Importante:</strong> Este reporte refleja los resultados de la evaluacion de riesgo psicosocial solo para el periodo {report.period}.
                   {translations.reports.multipleAssessmentsNote}
                 </p>

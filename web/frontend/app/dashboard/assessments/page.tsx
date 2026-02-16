@@ -162,8 +162,8 @@ export default function AssessmentsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Evaluaciones</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">Evaluaciones</h1>
+          <p className="mt-2 text-muted-foreground">
             Crea y gestiona evaluaciones NOM-035 para tu personal
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function AssessmentsPage() {
           variant="outline"
           onClick={handleDownloadGeneralReport}
           disabled={isDownloading}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 border-primary/20 bg-background/60 hover:bg-accent/70"
         >
           {isDownloading ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

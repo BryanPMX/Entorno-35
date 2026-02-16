@@ -3,6 +3,7 @@
 import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getNom35RiskHexColor, getNom35RiskLabel } from "@/lib/nom35-risk";
 import { translations } from "@/lib/translations";
 
 interface RiskData {
@@ -14,22 +15,6 @@ interface RiskDistributionChartProps {
   data: RiskData[];
   isLoading?: boolean;
 }
-
-const RISK_COLORS = {
-  nulo: "#22c55e", // Green
-  bajo: "#84cc16", // Light green
-  medio: "#eab308", // Yellow
-  alto: "#f97316", // Orange
-  muy_alto: "#ef4444", // Red
-};
-
-const RISK_LABELS = {
-  nulo: "Nulo",
-  bajo: "Bajo",
-  medio: "Medio",
-  alto: "Alto",
-  muy_alto: "Muy Alto",
-};
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -63,9 +48,9 @@ export function RiskDistributionChart({ data, isLoading = false }: RiskDistribut
   );
   
   const chartData = validData.map((item) => ({
-    name: RISK_LABELS[item.risk_level as keyof typeof RISK_LABELS] || item.risk_level,
+    name: getNom35RiskLabel(item.risk_level),
     value: item.count || 0,
-    fill: RISK_COLORS[item.risk_level as keyof typeof RISK_COLORS] || "#6b7280",
+    fill: getNom35RiskHexColor(item.risk_level),
   }));
 
   if (isLoading) {

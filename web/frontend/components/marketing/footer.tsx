@@ -9,7 +9,7 @@ export function MarketingFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black text-white">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-[oklch(0.26_0.03_250)] via-[oklch(0.2_0.03_252)] to-[oklch(0.16_0.02_250)] text-white">
       <div className="absolute inset-0 bg-aurora opacity-35 pointer-events-none" />
       <div className="absolute inset-0 soft-grid opacity-20 pointer-events-none" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
@@ -17,12 +17,12 @@ export function MarketingFooter() {
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-md bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]">
                 <span className="text-white font-bold text-sm">35</span>
               </div>
               <span className="font-semibold text-xl">Entorno 35</span>
             </div>
-            <p className="text-gray-400 mb-4 max-w-md">
+            <p className="text-white/70 mb-4 max-w-md">
               Plataforma líder en evaluación de riesgos psicosociales conforme a NOM-035 STPS 2018.
               Ayudamos a organizaciones mexicanas a proteger la salud mental de sus colaboradores.
             </p>
@@ -33,22 +33,22 @@ export function MarketingFooter() {
             <h3 className="font-semibold mb-4">Producto</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="#features" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="#features" className="text-white/70 hover:text-white transition-colors">
                   Características
                 </Link>
               </li>
               <li>
-                <Link href="#compliance" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="#compliance" className="text-white/70 hover:text-white transition-colors">
                   Cumplimiento NOM-035
                 </Link>
               </li>
               <li>
-                <Link href="#pricing" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="#pricing" className="text-white/70 hover:text-white transition-colors">
                   Precios
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="/login" className="text-white/70 hover:text-white transition-colors">
                   Iniciar Sesión
                 </Link>
               </li>
@@ -60,22 +60,22 @@ export function MarketingFooter() {
             <h3 className="font-semibold mb-4">Soporte</h3>
             <ul className="space-y-2">
               <li>
-                <a href="mailto:soporte@entorno35.com" className="text-gray-400 hover:text-white transition-colors">
+                <a href="mailto:soporte@entorno35.com" className="text-white/70 hover:text-white transition-colors">
                   Soporte Técnico
                 </a>
               </li>
               <li>
-                <a href="https://docs.entorno35.com" className="text-gray-400 hover:text-white transition-colors">
+                <a href="https://docs.entorno35.com" className="text-white/70 hover:text-white transition-colors">
                   Documentación
                 </a>
               </li>
               <li>
-                <Link href="#contact" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="#contact" className="text-white/70 hover:text-white transition-colors">
                   Contacto
                 </Link>
               </li>
               <li>
-                <a href="/privacy" className="text-gray-400 hover:text-white transition-colors">
+                <a href="/privacy" className="text-white/70 hover:text-white transition-colors">
                   Privacidad
                 </a>
               </li>
@@ -85,14 +85,14 @@ export function MarketingFooter() {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">
+          <p className="text-white/70 text-sm">
             © {currentYear} Entorno 35. Todos los derechos reservados.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
+            <a href="/terms" className="text-white/70 hover:text-white text-sm transition-colors">
               Términos de Servicio
             </a>
-            <a href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
+            <a href="/privacy" className="text-white/70 hover:text-white text-sm transition-colors">
               Política de Privacidad
             </a>
           </div>

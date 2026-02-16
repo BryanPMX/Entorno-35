@@ -24,6 +24,25 @@ Package READMEs under `cmd/`, `internal/`, `pkg/`, `migrations/`, `tests/`, `web
 
 ---
 
+## Current Status Snapshot (February 16, 2026)
+
+- Project state is production-ready for the currently implemented feature set.
+- Frontend architecture now includes:
+  - Shared NOM-35 visual token system in `web/frontend/app/globals.css`.
+  - Centralized NOM-35 risk style registry in `web/frontend/lib/nom35-risk.ts`.
+  - Visual regression snapshots in `web/frontend/tests/components/visual-regression.test.tsx`.
+- Latest verified frontend quality gates:
+  - `cd web/frontend && npm run lint`
+  - `cd web/frontend && npm run test -- --run`
+  - `cd web/frontend && npm run build`
+
+For the most current setup and status details:
+
+- Root project status: [README.md](../README.md)
+- Frontend implementation status: [web/frontend/README.md](../web/frontend/README.md)
+
+---
+
 ## Overview
 
 | Document | Description |

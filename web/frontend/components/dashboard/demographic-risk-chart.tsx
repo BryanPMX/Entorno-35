@@ -3,6 +3,14 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  NOM35_RISK_HEX_COLORS,
+  NOM35_RISK_LEVELS,
+  getNom35RiskHexColor,
+  getNom35RiskLabel,
+  isNom35RiskLevel,
+  type Nom35RiskLevel,
+} from "@/lib/nom35-risk";
 import { DemographicRiskDistribution } from "@/services/report.service";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { LucideIcon } from "lucide-react";
@@ -18,28 +26,6 @@ export interface DemographicRiskChartProps {
   data: DemographicRiskDistribution[];
   isLoading?: boolean;
 }
-
-/**
- * Risk level colors matching the system standard
- */
-const RISK_COLORS = {
-  nulo: "#22c55e", // Green
-  bajo: "#84cc16", // Light green
-  medio: "#eab308", // Yellow
-  alto: "#f97316", // Orange
-  muy_alto: "#ef4444", // Red
-} as const;
-
-/**
- * Risk level labels in Spanish
- */
-const RISK_LABELS = {
-  nulo: "Nulo",
-  bajo: "Bajo",
-  medio: "Medio",
-  alto: "Alto",
-  muy_alto: "Muy Alto",
-} as const;
 
 /**
  * Custom Tooltip for Risk Distribution
@@ -68,8 +54,7 @@ const RiskTooltip: React.FC<RiskTooltipProps> = ({ active, payload }) => {
   const validEntries = payload
     .filter(entry => entry.value > 0)
     .sort((a, b) => {
-      const riskOrder = ['nulo', 'bajo', 'medio', 'alto', 'muy_alto'];
-      return riskOrder.indexOf(a.dataKey) - riskOrder.indexOf(b.dataKey);
+      return NOM35_RISK_LEVELS.indexOf(a.dataKey as Nom35RiskLevel) - NOM35_RISK_LEVELS.indexOf(b.dataKey as Nom35RiskLevel);
     });
 
   return (
@@ -77,8 +62,8 @@ const RiskTooltip: React.FC<RiskTooltipProps> = ({ active, payload }) => {
       <p className="font-semibold text-sm mb-3">{category}</p>
       <div className="space-y-2">
         {validEntries.map((entry, index) => {
-          const riskLabel = RISK_LABELS[entry.dataKey as keyof typeof RISK_LABELS] || entry.dataKey;
-          const riskColor = RISK_COLORS[entry.dataKey as keyof typeof RISK_COLORS] || "#6b7280";
+          const riskLabel = getNom35RiskLabel(entry.dataKey);
+          const riskColor = getNom35RiskHexColor(entry.dataKey);
 
           return (
             <div key={index} className="flex items-center space-x-2">
@@ -193,13 +178,8 @@ export function DemographicRiskChart({
 
   // Transform data for stacked bar chart
   // Group by category and create stacked data
-  interface CategoryRiskData {
+  interface CategoryRiskData extends Record<Nom35RiskLevel, number> {
     category: string;
-    nulo: number;
-    bajo: number;
-    medio: number;
-    alto: number;
-    muy_alto: number;
   }
 
   const categoryMap = new Map<string, CategoryRiskData>();
@@ -229,17 +209,9 @@ export function DemographicRiskChart({
     const categoryData = categoryMap.get(category)!;
     const riskLevel = item.risk_level;
     const count = item.count || 0;
-    
-    if (riskLevel === "nulo") {
-      categoryData.nulo = count;
-    } else if (riskLevel === "bajo") {
-      categoryData.bajo = count;
-    } else if (riskLevel === "medio") {
-      categoryData.medio = count;
-    } else if (riskLevel === "alto") {
-      categoryData.alto = count;
-    } else if (riskLevel === "muy_alto") {
-      categoryData.muy_alto = count;
+
+    if (isNom35RiskLevel(riskLevel)) {
+      categoryData[riskLevel] = count;
     }
   });
 
@@ -274,7 +246,7 @@ export function DemographicRiskChart({
     total: item.nulo + item.bajo + item.medio + item.alto + item.muy_alto,
   }));
 
-  const riskLevels: Array<keyof typeof RISK_COLORS> = ["nulo", "bajo", "medio", "alto", "muy_alto"];
+  const riskLevels = NOM35_RISK_LEVELS;
 
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
@@ -312,8 +284,8 @@ export function DemographicRiskChart({
                 key={level}
                 dataKey={level}
                 stackId="a"
-                fill={RISK_COLORS[level]}
-                name={RISK_LABELS[level]}
+                fill={NOM35_RISK_HEX_COLORS[level]}
+                name={getNom35RiskLabel(level)}
                 maxBarSize={45}
               />
             ))}
@@ -331,9 +303,9 @@ export function DemographicRiskChart({
                 <div key={level} className="flex items-center space-x-2">
                   <div
                     className="w-4 h-4 rounded flex-shrink-0 border border-border/50"
-                    style={{ backgroundColor: RISK_COLORS[level] }}
+                    style={{ backgroundColor: NOM35_RISK_HEX_COLORS[level] }}
                   />
-                  <span className="text-foreground font-medium">{RISK_LABELS[level]}:</span>
+                  <span className="text-foreground font-medium">{getNom35RiskLabel(level)}:</span>
                   <span className="font-semibold">{total.toLocaleString()}</span>
                 </div>
               );

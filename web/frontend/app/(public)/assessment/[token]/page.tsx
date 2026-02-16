@@ -247,237 +247,243 @@ export default function AssessmentExamPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12">
-      <div className="max-w-4xl mx-auto w-full space-y-8">
+    <div className="min-h-screen py-10">
+      <div className="mx-auto w-full max-w-4xl space-y-8">
         {/* Progress Bar */}
-        <div className="max-w-2xl mx-auto">
-          <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 -mx-6 px-6 py-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-slate-700">
-            Question {currentQuestionIndex + 1} of {questions.length}
-          </span>
-          <div className="flex items-center space-x-3">
-            <div className="w-20 flex justify-end">
-              {saveStatus === 'saving' && (
-                <div className="flex items-center space-x-1 text-blue-600">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span className="text-xs">Saving...</span>
+        <div className="mx-auto max-w-3xl">
+          <div className="assessment-progress-shell sticky top-2 z-10 rounded-xl px-5 py-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">
+                Question {currentQuestionIndex + 1} of {questions.length}
+              </span>
+              <div className="flex items-center space-x-3">
+                <div className="flex w-20 justify-end">
+                  {saveStatus === "saving" && (
+                    <div className="flex items-center space-x-1 text-primary">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span className="text-xs">Saving...</span>
+                    </div>
+                  )}
+                  {saveStatus === "saved" && (
+                    <div className="flex items-center space-x-1 text-[var(--nom-nulo)]">
+                      <Cloud className="h-3 w-3" />
+                      <span className="text-xs">Saved</span>
+                    </div>
+                  )}
+                  {saveStatus === "error" && (
+                    <div className="flex items-center space-x-1 text-destructive">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">Offline</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              {saveStatus === 'saved' && (
-                <div className="flex items-center space-x-1 text-green-600">
-                  <Cloud className="h-3 w-3" />
-                  <span className="text-xs">Saved</span>
-                </div>
-              )}
-              {saveStatus === 'error' && (
-                <div className="flex items-center space-x-1 text-red-600">
-                  <AlertCircle className="h-3 w-3" />
-                  <span className="text-xs">Offline</span>
-                </div>
-              )}
+                <span className={`text-sm ${allQuestionsAnswered ? "font-medium text-[var(--nom-nulo)]" : "text-muted-foreground"}`}>
+                  {allQuestionsAnswered ? "Complete!" : `${Math.round(progress)}% Complete`}
+                </span>
+              </div>
             </div>
-            <span className={`text-sm ${allQuestionsAnswered ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
-              {allQuestionsAnswered ? 'Complete!' : `${Math.round(progress)}% Complete`}
-            </span>
-          </div>
-        </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-2.5 bg-secondary/70" />
           </div>
         </div>
 
         {/* Question Card */}
-        <div className="max-w-2xl mx-auto">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentQuestionIndex}
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -50, opacity: 0 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-          <Card className="shadow-sm">
-            <CardContent className="pt-8 pb-8">
-              <div className="text-center space-y-8">
-                {/* Category Display */}
-                <AnimatePresence>
-                  {currentQuestion?.category?.name && (
-                    <motion.div
-                      key={currentQuestion.category.name}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex justify-center mb-6"
-                    >
-                      <Badge variant="outline" className="text-xs font-medium uppercase tracking-wider">
-                        {currentQuestion.category.name}
-                      </Badge>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Question Text */}
-                <div className="text-center space-y-4">
-                  <motion.h1
-                    className="text-2xl font-medium text-slate-900 leading-tight mb-8"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1, duration: 0.3 }}
-                  >
-                    {currentQuestion?.text}
-                  </motion.h1>
-                  {currentQuestion?.subsection && (
-                    <motion.p
-                      className="text-sm text-slate-600"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2, duration: 0.3 }}
-                    >
-                      {currentQuestion.subsection}
-                    </motion.p>
-                  )}
-                </div>
-
-                {/* Likert Scale Options */}
-                <motion.div
-                  className="space-y-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.3 }}
-                >
-                  <p className="text-sm font-medium text-slate-700">
-                    Select your response: (Use keyboard: 1-5 or arrow keys)
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4 max-w-2xl mx-auto">
-                    {[
-                      { value: 0, label: "Siempre", description: "Always", key: "1" },
-                      { value: 1, label: "Casi Siempre", description: "Almost Always", key: "2" },
-                      { value: 2, label: "Algunas Veces", description: "Sometimes", key: "3" },
-                      { value: 3, label: "Casi Nunca", description: "Almost Never", key: "4" },
-                      { value: 4, label: "Nunca", description: "Never", key: "5" },
-                    ].map((option) => {
-                      const isSelected = responses[currentQuestion?.id] === option.value;
-                      const isPressed = pressedKey === option.key || selectedOption === option.value;
-
-                      return (
-                        <motion.div
-                          key={option.value}
-                          whileTap={{ scale: 0.95 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                        >
-                          <Button
-                            variant={isSelected ? "default" : "outline"}
-                            className={`h-auto py-6 px-3 flex flex-col items-center justify-center space-y-2 text-center hover:shadow-md transition-all relative min-h-[110px] w-full ${
-                              isSelected ? 'ring-2 ring-primary ring-offset-2' : isPressed ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-                            }`}
-                            onClick={() => handleAnswerSelect(option.value)}
-                            disabled={isSubmitting}
-                          >
-                            <span className="font-medium text-sm leading-tight break-words">{option.label}</span>
-                            <span className="text-xs opacity-75 leading-tight break-words">{option.description}</span>
-                            <span className="absolute top-2 right-2 text-[10px] font-mono text-muted-foreground/50">
-                              {option.key}
-                            </span>
-                          </Button>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
-
-        {/* Navigation */}
-        <motion.div
-          className="flex items-center justify-between max-w-2xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.3 }}
-        >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0 || isSubmitting}
-              className="flex items-center space-x-2"
+        <div className="mx-auto max-w-3xl">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentQuestionIndex}
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -50, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <ChevronLeft className="h-4 w-4" />
-              <span>Previous</span>
-            </Button>
-          </motion.div>
+              <Card className="portal-surface-strong border-0 shadow-sm">
+                <CardContent className="py-8">
+                  <div className="space-y-8 text-center">
+                    {/* Category Display */}
+                    <AnimatePresence>
+                      {currentQuestion?.category?.name && (
+                        <motion.div
+                          key={currentQuestion.category.name}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="mb-6 flex justify-center"
+                        >
+                          <Badge variant="outline" className="border-primary/20 bg-primary/5 text-xs font-medium uppercase tracking-wider text-primary">
+                            {currentQuestion.category.name}
+                          </Badge>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-          <div className={`text-center text-sm ${allQuestionsAnswered ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
-            {answeredCount} of {totalQuestions} answered
-            {allQuestionsAnswered && <span className="ml-1">✓</span>}
-          </div>
+                    {/* Question Text */}
+                    <div className="space-y-4 text-center">
+                      <motion.h1
+                        className="mb-8 text-2xl font-medium leading-tight text-foreground"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1, duration: 0.3 }}
+                      >
+                        {currentQuestion?.text}
+                      </motion.h1>
+                      {currentQuestion?.subsection && (
+                        <motion.p
+                          className="text-sm text-muted-foreground"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.2, duration: 0.3 }}
+                        >
+                          {currentQuestion.subsection}
+                        </motion.p>
+                      )}
+                    </div>
 
-          {isLastQuestion ? (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                onClick={handleSubmit}
-                disabled={!allQuestionsAnswered || isSubmitting}
-                className="flex items-center space-x-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Submitting...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Submit Assessment</span>
-                    <CheckCircle className="h-4 w-4" />
-                  </>
-                )}
-              </Button>
+                    {/* Likert Scale Options */}
+                    <motion.div
+                      className="space-y-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3, duration: 0.3 }}
+                    >
+                      <p className="text-sm font-medium text-foreground/90">
+                        Select your response: (Use keyboard: 1-5 or arrow keys)
+                      </p>
+                      <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-5">
+                        {[
+                          { value: 0, label: "Siempre", description: "Always", key: "1" },
+                          { value: 1, label: "Casi Siempre", description: "Almost Always", key: "2" },
+                          { value: 2, label: "Algunas Veces", description: "Sometimes", key: "3" },
+                          { value: 3, label: "Casi Nunca", description: "Almost Never", key: "4" },
+                          { value: 4, label: "Nunca", description: "Never", key: "5" },
+                        ].map((option) => {
+                          const isSelected = responses[currentQuestion?.id] === option.value;
+                          const isPressed = pressedKey === option.key || selectedOption === option.value;
+
+                          return (
+                            <motion.div
+                              key={option.value}
+                              whileTap={{ scale: 0.95 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            >
+                              <Button
+                                variant={isSelected ? "default" : "outline"}
+                                className={`relative min-h-[110px] h-auto w-full space-y-2 px-3 py-6 text-center transition-all hover:shadow-md ${
+                                  isSelected
+                                    ? "ring-2 ring-primary ring-offset-2"
+                                    : isPressed
+                                      ? "ring-2 ring-[color:var(--nom-bajo)] ring-offset-2"
+                                      : ""
+                                }`}
+                                onClick={() => handleAnswerSelect(option.value)}
+                                disabled={isSubmitting}
+                              >
+                                <span className="break-words text-sm font-medium leading-tight">{option.label}</span>
+                                <span className="break-words text-xs leading-tight opacity-75">{option.description}</span>
+                                <span className="absolute right-2 top-2 font-mono text-[10px] text-muted-foreground/60">
+                                  {option.key}
+                                </span>
+                              </Button>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
-          ) : (
+          </AnimatePresence>
+
+          {/* Navigation */}
+          <motion.div
+            className="mx-auto flex max-w-3xl items-center justify-between"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.3 }}
+          >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 variant="outline"
-                onClick={handleNext}
-                disabled={!canProceed || isSubmitting}
-                className="flex items-center space-x-2"
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0 || isSubmitting}
+                className="space-x-2 border-primary/20 bg-background/60"
               >
-                <span>Next</span>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4" />
+                <span>Previous</span>
               </Button>
             </motion.div>
-          )}
-        </motion.div>
 
-        {/* Keyboard Legend */}
-        <div className="flex items-center justify-center space-x-6 mt-6 text-xs text-muted-foreground">
-          <div className="flex items-center space-x-1">
-            <ChevronLeft className="w-3 h-3" />
-            <ChevronRight className="w-3 h-3" />
-            <span>Navigate</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <span className="font-mono">1-5</span>
-            <span>Select</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <span className="font-mono">Enter</span>
-            <span>Confirm</span>
+            <div className={`text-center text-sm ${allQuestionsAnswered ? "font-medium text-[var(--nom-nulo)]" : "text-muted-foreground"}`}>
+              {answeredCount} of {totalQuestions} answered
+              {allQuestionsAnswered && <span className="ml-1">✓</span>}
+            </div>
+
+            {isLastQuestion ? (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!allQuestionsAnswered || isSubmitting}
+                  className="space-x-2 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Submit Assessment</span>
+                      <CheckCircle className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  onClick={handleNext}
+                  disabled={!canProceed || isSubmitting}
+                  className="space-x-2 border-primary/20 bg-background/60"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Keyboard Legend */}
+          <div className="mt-6 flex items-center justify-center space-x-6 text-xs text-muted-foreground">
+            <div className="flex items-center space-x-1">
+              <ChevronLeft className="h-3 w-3" />
+              <ChevronRight className="h-3 w-3" />
+              <span>Navigate</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <span className="font-mono">1-5</span>
+              <span>Select</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <span className="font-mono">Enter</span>
+              <span>Confirm</span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-      {/* Submit Error */}
-      {submitMutation.isError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Failed to submit assessment. Please try again.
-          </AlertDescription>
-        </Alert>
-      )}
+        {/* Submit Error */}
+        {submitMutation.isError && (
+          <div className="mx-auto max-w-2xl">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Failed to submit assessment. Please try again.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

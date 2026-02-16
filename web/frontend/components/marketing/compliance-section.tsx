@@ -44,29 +44,29 @@ export function ComplianceSection() {
   ];
 
   return (
-    <section id="compliance" className="relative overflow-hidden py-20 lg:py-28 bg-gradient-to-b from-white via-blue-50/60 to-white dark:from-background dark:via-background dark:to-background">
+    <section id="compliance" className="relative overflow-hidden py-20 lg:py-28">
       <div className="absolute inset-0 -z-10 bg-aurora opacity-70 dark:opacity-40" />
       <div className="absolute inset-0 -z-10 soft-grid" />
-      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-gradient-to-br from-blue-300/50 to-purple-400/40 blur-3xl" />
-      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-gradient-to-tl from-purple-500/40 to-indigo-400/35 blur-3xl" />
+      <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-[color:var(--nom-bajo-soft)] blur-3xl" />
+      <div className="absolute -right-32 -bottom-10 h-80 w-80 rounded-full bg-[color:var(--nom-nulo-soft)] blur-3xl" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
           <Badge variant="outline" className="mb-4 glass-panel px-4 py-2">
             Cumplimiento NOM-035
           </Badge>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
             Norma Oficial Mexicana 035
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Diseñada para cubrir requisitos legales, mantener trazabilidad y entregar evidencia clara durante auditorías.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
           {/* Compliance Requirements */}
-          <div className="glass-panel rounded-2xl p-8 border border-white/40 dark:border-white/10 shadow-lg">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <div className="portal-surface rounded-2xl p-8 border-0 shadow-lg">
+            <h3 className="text-2xl font-bold text-foreground mb-6">
               Requisitos cubiertos
             </h3>
             <div className="space-y-6">
@@ -75,20 +75,20 @@ export function ComplianceSection() {
                 return (
                   <div key={point.title} className="flex items-start gap-4">
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/80 to-emerald-400/80 text-white flex items-center justify-center shadow-md">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--nom-nulo)] to-[var(--nom-bajo)] text-white flex items-center justify-center shadow-md">
                         <IconComponent className="w-5 h-5" />
                       </div>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                        <h4 className="font-semibold text-foreground">
                           {point.title}
                         </h4>
                         <Badge variant="outline" className="text-xs">
                           {point.requirement}
                         </Badge>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300">
+                      <p className="text-muted-foreground">
                         {point.description}
                       </p>
                     </div>
@@ -99,19 +99,19 @@ export function ComplianceSection() {
           </div>
 
           {/* Benefits */}
-          <div className="glass-panel-strong rounded-2xl p-8 border border-white/30 dark:border-white/10 shadow-xl">
-            <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-4">
+          <div className="portal-surface-strong rounded-2xl p-8 border-0 shadow-xl">
+            <div className="flex items-center gap-2 text-[var(--nom-nulo)] mb-4">
               <CheckCircle className="w-5 h-5" />
               <p className="text-sm uppercase tracking-wide">Protección integral</p>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            <h3 className="text-2xl font-bold text-foreground mb-6">
               Beneficios del cumplimiento
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {benefits.map((benefit) => (
                 <div key={benefit} className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
-                  <span className="text-gray-800 dark:text-gray-100 text-sm">{benefit}</span>
+                  <CheckCircle className="w-4 h-4 text-[var(--nom-nulo)] mt-0.5" />
+                  <span className="text-foreground/90 text-sm">{benefit}</span>
                 </div>
               ))}
             </div>
@@ -120,7 +120,7 @@ export function ComplianceSection() {
 
         {/* Soft transition to next sections */}
         <div className="h-16 relative mt-8">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-gray-50 dark:via-white/5 dark:to-background blur-[2px]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background blur-[2px]" />
         </div>
       </div>
     </section>
