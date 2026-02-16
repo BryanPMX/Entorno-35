@@ -30,8 +30,16 @@ function resolveAssessmentErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return "Failed to load assessment. The link may be invalid or expired.";
+  return "No se pudo cargar la evaluacion. El enlace puede ser invalido o haber expirado.";
 }
+
+const LIKERT_OPTIONS = [
+  { value: 0, label: "Siempre", description: "Todo el tiempo", key: "1" },
+  { value: 1, label: "Casi siempre", description: "Casi todo el tiempo", key: "2" },
+  { value: 2, label: "Algunas veces", description: "De forma ocasional", key: "3" },
+  { value: 3, label: "Casi nunca", description: "Rara vez", key: "4" },
+  { value: 4, label: "Nunca", description: "En ningun momento", key: "5" },
+] as const;
 
 /**
  * Public Assessment Exam Page
@@ -67,7 +75,7 @@ export default function AssessmentExamPage() {
   const submitMutation = useMutation({
     mutationFn: (responses: { question_id: number; value: number }[]) => {
       if (!token) {
-        throw new Error("Invalid assessment link. Missing token.");
+        throw new Error("Enlace de evaluacion invalido. Falta el token.");
       }
       return assessmentService.submitResponses(token, responses);
     },
@@ -168,9 +176,10 @@ export default function AssessmentExamPage() {
       // Show error and navigate to first unanswered question
       const firstUnansweredIndex = questions.findIndex(q => responses[q.id] === undefined);
       setCurrentQuestionIndex(firstUnansweredIndex);
+      const unansweredLabel = unansweredQuestions.length === 1 ? "pregunta" : "preguntas";
 
-      toast.error("Please answer all questions before submitting", {
-        description: `You have ${unansweredQuestions.length} unanswered question(s). We've navigated to the first one.`,
+      toast.error("Responde todas las preguntas antes de enviar", {
+        description: `Tienes ${unansweredQuestions.length} ${unansweredLabel} sin responder. Te llevamos a la primera pendiente.`,
         duration: 5000,
       });
       return;
@@ -201,6 +210,7 @@ export default function AssessmentExamPage() {
   const allQuestionsAnswered = questions.length > 0 && questions.every(q => responses[q.id] !== undefined);
   const answeredCount = Object.keys(responses).length;
   const totalQuestions = questions.length;
+  const answeredLabel = answeredCount === 1 ? "respondida" : "respondidas";
   const assessmentErrorMessage = resolveAssessmentErrorMessage(assessmentError);
 
   // Loading state
@@ -209,7 +219,7 @@ export default function AssessmentExamPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Loading assessment...</p>
+          <p className="text-muted-foreground">Cargando evaluacion...</p>
         </div>
       </div>
     );
@@ -242,13 +252,13 @@ export default function AssessmentExamPage() {
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] shadow-lg">
               <CheckCircle className="h-9 w-9 text-white" />
             </div>
-            <h2 className="text-2xl font-semibold mb-2">Assessment Completed</h2>
+            <h2 className="text-2xl font-semibold mb-2">Evaluacion completada</h2>
             <p className="text-muted-foreground mb-4">
-              Thank you for completing the NOM-035 assessment.
-              Your responses have been submitted successfully.
+              Gracias por completar la evaluacion NOM-035.
+              Tus respuestas se enviaron correctamente.
             </p>
             <p className="text-sm text-muted-foreground">
-              You can now close this window.
+              Ahora puedes cerrar esta ventana.
             </p>
           </CardContent>
         </Card>
@@ -265,7 +275,7 @@ export default function AssessmentExamPage() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Invalid assessment link. Please use the full URL provided in your invitation.
+                Enlace de evaluacion invalido. Usa la URL completa enviada en tu invitacion.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -283,7 +293,7 @@ export default function AssessmentExamPage() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Assessment could not be loaded. Please request a new assessment link.
+                No se pudo cargar la evaluacion. Solicita un nuevo enlace de evaluacion.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -300,31 +310,31 @@ export default function AssessmentExamPage() {
           <div className="assessment-progress-shell sticky top-2 z-10 rounded-xl px-5 py-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">
-                Question {currentQuestionIndex + 1} of {questions.length}
+                Pregunta {currentQuestionIndex + 1} de {questions.length}
               </span>
               <div className="flex items-center space-x-3">
                 <div className="flex w-20 justify-end">
                   {saveStatus === "saving" && (
                     <div className="flex items-center space-x-1 text-primary">
                       <Loader2 className="h-3 w-3 animate-spin" />
-                      <span className="text-xs">Saving...</span>
+                      <span className="text-xs">Guardando...</span>
                     </div>
                   )}
                   {saveStatus === "saved" && (
                     <div className="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400">
                       <Cloud className="h-3 w-3" />
-                      <span className="text-xs">Saved</span>
+                      <span className="text-xs">Guardado</span>
                     </div>
                   )}
                   {saveStatus === "error" && (
                     <div className="flex items-center space-x-1 text-destructive">
                       <AlertCircle className="h-3 w-3" />
-                      <span className="text-xs">Offline</span>
+                      <span className="text-xs">Sin conexion</span>
                     </div>
                   )}
                 </div>
                 <span className={`text-sm ${allQuestionsAnswered ? "font-medium text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
-                  {allQuestionsAnswered ? "Complete!" : `${Math.round(progress)}% Complete`}
+                  {allQuestionsAnswered ? "Completado" : `${Math.round(progress)}% completado`}
                 </span>
               </div>
             </div>
@@ -393,16 +403,10 @@ export default function AssessmentExamPage() {
                       transition={{ delay: 0.3, duration: 0.3 }}
                     >
                       <p className="text-sm font-medium text-foreground/90">
-                        Select your response: (Use keyboard: 1-5 or arrow keys)
+                        Selecciona tu respuesta (teclado: 1-5 o flechas)
                       </p>
-                      <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-5">
-                        {[
-                          { value: 0, label: "Siempre", description: "Always", key: "1" },
-                          { value: 1, label: "Casi Siempre", description: "Almost Always", key: "2" },
-                          { value: 2, label: "Algunas Veces", description: "Sometimes", key: "3" },
-                          { value: 3, label: "Casi Nunca", description: "Almost Never", key: "4" },
-                          { value: 4, label: "Nunca", description: "Never", key: "5" },
-                        ].map((option) => {
+                      <div className="mx-auto grid max-w-4xl auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                        {LIKERT_OPTIONS.map((option) => {
                           const isSelected = responses[currentQuestion?.id] === option.value;
                           const isPressed = pressedKey === option.key || selectedOption === option.value;
 
@@ -414,7 +418,7 @@ export default function AssessmentExamPage() {
                             >
                               <Button
                                 variant={isSelected ? "default" : "outline"}
-                                className={`relative min-h-[110px] h-auto w-full space-y-2 px-3 py-6 text-center transition-all hover:shadow-md ${
+                                className={`relative h-full min-h-[132px] w-full flex-col items-start justify-start gap-2 whitespace-normal rounded-lg px-3 py-3 text-left transition-all hover:shadow-md ${
                                   isSelected
                                     ? "ring-2 ring-primary ring-offset-2"
                                     : isPressed
@@ -424,11 +428,15 @@ export default function AssessmentExamPage() {
                                 onClick={() => handleAnswerSelect(option.value)}
                                 disabled={isSubmitting}
                               >
-                                <span className="break-words text-sm font-medium leading-tight">{option.label}</span>
-                                <span className="break-words text-xs leading-tight opacity-75">{option.description}</span>
-                                <span className="absolute right-2 top-2 font-mono text-[10px] text-muted-foreground/60">
+                                <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-md border border-border/70 bg-background/70 font-mono text-[10px] leading-none text-muted-foreground/80">
                                   {option.key}
                                 </span>
+                                <div className="w-full space-y-1 pr-7">
+                                  <span className="block break-words text-sm font-semibold leading-snug">{option.label}</span>
+                                  <span className={`block break-words text-xs leading-snug ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                                    {option.description}
+                                  </span>
+                                </div>
                               </Button>
                             </motion.div>
                           );
@@ -443,7 +451,7 @@ export default function AssessmentExamPage() {
 
           {/* Navigation */}
           <motion.div
-            className="mx-auto flex max-w-3xl items-center justify-between"
+            className="mx-auto mt-6 flex max-w-3xl items-center justify-between"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.3 }}
@@ -456,12 +464,12 @@ export default function AssessmentExamPage() {
                 className="space-x-2 border-primary/20 bg-background/60"
               >
                 <ChevronLeft className="h-4 w-4" />
-                <span>Previous</span>
+                <span>Anterior</span>
               </Button>
             </motion.div>
 
             <div className={`text-center text-sm ${allQuestionsAnswered ? "font-medium text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
-              {answeredCount} of {totalQuestions} answered
+              {answeredCount} de {totalQuestions} {answeredLabel}
               {allQuestionsAnswered && <span className="ml-1">✓</span>}
             </div>
 
@@ -475,11 +483,11 @@ export default function AssessmentExamPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Submitting...</span>
+                      <span>Enviando...</span>
                     </>
                   ) : (
                     <>
-                      <span>Submit Assessment</span>
+                      <span>Enviar evaluacion</span>
                       <CheckCircle className="h-4 w-4" />
                     </>
                   )}
@@ -493,7 +501,7 @@ export default function AssessmentExamPage() {
                   disabled={!canProceed || isSubmitting}
                   className="space-x-2 border-primary/20 bg-background/60"
                 >
-                  <span>Next</span>
+                  <span>Siguiente</span>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </motion.div>
@@ -505,15 +513,15 @@ export default function AssessmentExamPage() {
             <div className="flex items-center space-x-1">
               <ChevronLeft className="h-3 w-3" />
               <ChevronRight className="h-3 w-3" />
-              <span>Navigate</span>
+              <span>Navegar</span>
             </div>
             <div className="flex items-center space-x-1">
               <span className="font-mono">1-5</span>
-              <span>Select</span>
+              <span>Seleccionar</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="font-mono">Enter</span>
-              <span>Confirm</span>
+              <span className="font-mono">Intro</span>
+              <span>Confirmar</span>
             </div>
           </div>
         </div>
@@ -524,7 +532,7 @@ export default function AssessmentExamPage() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Failed to submit assessment. Please try again.
+                No se pudo enviar la evaluacion. Intentalo de nuevo.
               </AlertDescription>
             </Alert>
           </div>

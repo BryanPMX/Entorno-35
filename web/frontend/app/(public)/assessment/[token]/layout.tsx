@@ -28,7 +28,7 @@ export default function PublicAssessmentLayout({
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-foreground">Entorno35</h1>
-                <p className="text-xs text-muted-foreground">NOM-035 Assessment</p>
+                <p className="text-xs text-muted-foreground">Evaluacion NOM-035</p>
               </div>
             </div>
           </div>
