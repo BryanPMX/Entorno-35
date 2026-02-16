@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { isTokenExpired } from "@/lib/jwt";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -20,7 +21,8 @@ interface AuthGuardProps {
  */
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
-  const { isAuthenticated, isLoading, hydrate } = useAuthStore();
+  const { isAuthenticated, isLoading, token, hydrate, logout } = useAuthStore();
+  const tokenExpired = token ? isTokenExpired(token) : true;
 
   useEffect(() => {
     // Hydrate auth state from localStorage on mount
@@ -28,11 +30,33 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }, [hydrate]);
 
   useEffect(() => {
-    // Redirect to login if not authenticated (after render)
-    if (!isAuthenticated && !isLoading) {
-      router.push("/login");
+    const handleUnauthorized = () => {
+      logout();
+      router.replace("/login");
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
+  }, [logout, router]);
+
+  useEffect(() => {
+    // Redirect to login when token is missing/invalid/expired (after hydrate)
+    if (isLoading) {
+      return;
     }
-  }, [isAuthenticated, isLoading, router]);
+
+    if (!isAuthenticated || !token) {
+      router.replace("/login");
+      return;
+    }
+
+    if (tokenExpired) {
+      logout();
+      router.replace("/login");
+    }
+  }, [isAuthenticated, isLoading, logout, router, token, tokenExpired]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -44,7 +68,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }
 
   // Don't render anything while redirecting
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !token || tokenExpired) {
     return null;
   }
 

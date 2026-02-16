@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { User, AuthResponse } from "@/types/backend";
-import { decodeJWT } from "@/lib/jwt";
+import { decodeJWT, isTokenExpired } from "@/lib/jwt";
 
 interface AuthState {
   user: User | null;
@@ -35,6 +35,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     
     // Decode user from JWT token
     const user = decodeJWT(token);
+    const expired = isTokenExpired(token);
+
+    if (!user || expired) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
+
+      set({
+        token: null,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+      return;
+    }
     
     // Save to localStorage
     if (typeof window !== "undefined") {
@@ -81,11 +96,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (token) {
       // Decode user from token
       const user = decodeJWT(token);
+      const expired = isTokenExpired(token);
+
+      if (!user || expired) {
+        localStorage.removeItem("token");
+        set({
+          token: null,
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+        return;
+      }
       
       set({
         token,
         user,
-        isAuthenticated: true,
+        isAuthenticated: Boolean(user),
         isLoading: false,
       });
     } else {
@@ -98,4 +125,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
-

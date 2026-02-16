@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import { useAuthStore } from "@/lib/store/auth-store";
 
 /**
  * API Base URL
@@ -57,10 +58,12 @@ axiosClient.interceptors.response.use(
         const isLoginRequest = error.config?.url?.includes("/auth/login");
         const isLoginPage = window.location.pathname === "/login";
 
-        if (!isLoginRequest && !isLoginPage) {
-          // Clear token and redirect to login
-          localStorage.removeItem("token");
-          window.location.href = "/login";
+        if (!isLoginRequest) {
+          useAuthStore.getState().logout();
+
+          if (!isLoginPage) {
+            window.dispatchEvent(new Event("auth:unauthorized"));
+          }
         }
       }
     }
@@ -75,4 +78,3 @@ if (typeof window !== "undefined") {
 }
 
 export default axiosClient;
-

@@ -1,4 +1,5 @@
 import axiosClient from "@/lib/axios";
+import { isTokenExpired } from "@/lib/jwt";
 import type { AuthResponse, LoginRequest } from "@/types/backend";
 
 /**
@@ -54,14 +55,18 @@ class AuthService {
   /**
    * Check if user is authenticated
    * 
-   * @returns true if token exists, false otherwise
+   * @returns true if a non-expired token exists, false otherwise
    */
   isAuthenticated(): boolean {
-    return this.getToken() !== null;
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    return !isTokenExpired(token);
   }
 }
 
 // Export singleton instance
 export const authService = new AuthService();
 export default authService;
-

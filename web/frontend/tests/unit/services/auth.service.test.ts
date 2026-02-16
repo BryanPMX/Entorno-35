@@ -15,6 +15,16 @@ vi.mock('@/lib/axios', () => {
 import { authService } from '@/services/auth.service';
 import axiosClient from '@/lib/axios';
 
+function toBase64Url(value: string): string {
+  return btoa(value).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+function createToken(payload: Record<string, unknown>): string {
+  const header = toBase64Url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const body = toBase64Url(JSON.stringify(payload));
+  return `${header}.${body}.signature`;
+}
+
 describe('AuthService', () => {
   // Mock localStorage
   const localStorageMock = (() => {
@@ -123,14 +133,30 @@ describe('AuthService', () => {
   });
 
   describe('isAuthenticated', () => {
-    it('should return true if token exists', () => {
-      localStorage.setItem('token', 'test-token');
+    it('should return true if token exists and is not expired', () => {
+      const validToken = createToken({
+        company_id: 'company-1',
+        role: 'company',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+      localStorage.setItem('token', validToken);
 
       expect(authService.isAuthenticated()).toBe(true);
     });
 
     it('should return false if token does not exist', () => {
       localStorage.removeItem('token');
+
+      expect(authService.isAuthenticated()).toBe(false);
+    });
+
+    it('should return false if token is expired', () => {
+      const expiredToken = createToken({
+        company_id: 'company-1',
+        role: 'company',
+        exp: Math.floor(Date.now() / 1000) - 10,
+      });
+      localStorage.setItem('token', expiredToken);
 
       expect(authService.isAuthenticated()).toBe(false);
     });

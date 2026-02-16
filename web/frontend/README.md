@@ -33,7 +33,7 @@ web/frontend/
 │   └── ui/                     # Shadcn UI primitives (button, card, dialog, etc.)
 ├── lib/
 │   ├── axios.ts                # Axios client and interceptors
-│   ├── jwt.ts                  # JWT decode/session helpers
+│   ├── jwt.ts                  # JWT decode/session helpers (library-based decode + exp checks)
 │   ├── nom35-risk.ts           # Shared NOM-35 risk labels/colors/badge classes
 │   ├── query-client.ts         # TanStack Query config
 │   ├── store/auth-store.ts     # Zustand auth state
@@ -58,7 +58,7 @@ web/frontend/
 1. **Service layer**: Components do not call Axios directly. All API calls go through services (e.g. `authService.login()`, `staffService.getAll()`).
 2. **Type safety**: TypeScript interfaces in `types/backend.d.ts` match the Go backend domain models.
 3. **Data fetching**: TanStack Query handles caching, cancellation, and refetching.
-4. **Auth**: Axios interceptors attach the JWT and redirect to `/login` on 401.
+4. **Auth**: Axios interceptors attach the JWT, clear auth state on 401, and trigger client-side navigation to `/login` (no full page reload).
 5. **Design system consistency**: `app/globals.css` provides shared visual tokens and reusable UI utilities for auth, portal, assessment, and marketing surfaces.
 6. **Single source of truth for risk UI**: `lib/nom35-risk.ts` centralizes NOM-35 risk labels, colors, thresholds, and badge classes used by charts and tables.
 
@@ -115,7 +115,7 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 ### Auth (`services/auth.service.ts`)
 
 - `authService.login({ identifier, type: 'COMPANY' })` — returns JWT and user info
-- `authService.isAuthenticated()` — whether a valid token is present
+- `authService.isAuthenticated()` — whether a non-expired valid token is present
 - `authService.logout()` — clears token and state
 
 ### Staff (`services/staff.service.ts`)
@@ -127,7 +127,7 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 ### Axios client (`lib/axios.ts`)
 
 - Injects `Authorization: Bearer <token>` from localStorage
-- On 401, redirects to `/login`
+- On 401, clears auth state and redirects client-side to `/login` (no full page reload)
 - Base URL from `NEXT_PUBLIC_API_URL`
 
 ### TanStack Query
