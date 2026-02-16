@@ -52,10 +52,16 @@ func Close() error {
 	return sqlDB.Close()
 }
 
-// Migrate runs database migrations for all models
+// Migrate runs database migrations for all models.
+// It enables the uuid-ossp extension first so uuid_generate_v4() is available for GORM-generated schema.
 func Migrate(models ...interface{}) error {
 	if DB == nil {
 		return fmt.Errorf("database connection not established")
+	}
+
+	// Enable uuid-ossp so DEFAULT uuid_generate_v4() works in GORM AutoMigrate
+	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`).Error; err != nil {
+		return fmt.Errorf("failed to enable uuid-ossp extension: %w", err)
 	}
 
 	return DB.AutoMigrate(models...)
