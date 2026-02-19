@@ -1,5 +1,6 @@
 "use client";
 
+import "@/styles/tw-animate.css";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, LayoutDashboard, Users, FileText } from "lucide-react";

@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -475,6 +474,19 @@
       0 18px 50px rgb(15 23 42 / 16%),
       0 1px 0 rgb(255 255 255 / 30%) inset;
     backdrop-filter: blur(16px) saturate(128%);
+  }
+
+  /* Reduce expensive blur compositing for mobile login LCP. */
+  .login-surface-optimized {
+    backdrop-filter: none;
+    background: color-mix(in oklab, var(--frosted-strong) 92%, white 8%);
+  }
+
+  @media (min-width: 640px) {
+    .login-surface-optimized {
+      background: var(--frosted-strong);
+      backdrop-filter: blur(16px) saturate(128%);
+    }
   }
 
   .portal-nav-link {

@@ -208,14 +208,14 @@ exports[`Visual Regression > matches login page snapshot 1`] = `
 >
   <div
     aria-hidden="true"
-    class="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl"
+    class="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-2xl md:blur-3xl"
   />
   <div
     aria-hidden="true"
-    class="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl"
+    class="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-2xl md:blur-3xl"
   />
   <section
-    class="portal-surface-strong relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border-0 shadow-2xl"
+    class="portal-surface-strong login-surface-optimized relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border-0 shadow-2xl"
   >
     <div
       class="grid lg:grid-cols-[1.1fr_1fr]"

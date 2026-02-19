@@ -72,10 +72,10 @@ export default function LoginPage() {
 
   return (
     <div className="page-background page-background-4 portal-grid relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
-      <div className="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-2xl md:blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-2xl md:blur-3xl" aria-hidden="true" />
 
-      <section className="portal-surface-strong relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border-0 shadow-2xl">
+      <section className="portal-surface-strong login-surface-optimized relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border-0 shadow-2xl">
         <div className="grid lg:grid-cols-[1.1fr_1fr]">
           <div className="relative overflow-hidden border-b border-white/20 px-7 py-9 lg:border-b-0 lg:border-r lg:px-10 lg:py-12">
             <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" aria-hidden="true" />
