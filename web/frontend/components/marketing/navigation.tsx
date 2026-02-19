@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -15,9 +16,7 @@ export function MarketingNavigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-md bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]">
-              <span className="text-white font-bold text-sm">35</span>
-            </div>
+            <Image src="/logo.png" alt="Entorno 35" width={36} height={36} className="h-9 w-auto object-contain" priority />
             <span className="font-semibold text-foreground">Entorno 35</span>
           </Link>
 

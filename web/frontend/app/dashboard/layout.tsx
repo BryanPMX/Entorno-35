@@ -2,6 +2,7 @@
 
 import "@/styles/tw-animate.css";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, LayoutDashboard, Users, FileText } from "lucide-react";
 import { Toaster, toast } from "sonner";
@@ -67,9 +68,7 @@ export default function DashboardLayout({
           <header className="portal-surface sticky top-0 z-20 border-x-0 border-t-0">
             <div className="flex items-center justify-between px-6 h-16">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-sm font-semibold text-white shadow-md">
-                  35
-                </div>
+                <Image src="/logo.png" alt="Entorno 35" width={36} height={36} className="h-9 w-auto object-contain" priority />
                 <h1 className="text-xl font-semibold tracking-tight text-foreground">Entorno 35</h1>
               </div>
               <Button

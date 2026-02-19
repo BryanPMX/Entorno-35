@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 type FeedbackState = {
   type: "error" | "success";
@@ -82,9 +83,7 @@ export default function LoginPage() {
             <div className="pointer-events-none absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" aria-hidden="true" />
             <div className="relative space-y-8">
               <div className="space-y-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-lg font-bold text-white shadow-lg">
-                  35
-                </div>
+                <Image src="/logo.png" alt="Entorno 35" width={48} height={48} className="h-12 w-auto object-contain" priority />
                 <div className="space-y-2">
                   <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     Entorno 35
