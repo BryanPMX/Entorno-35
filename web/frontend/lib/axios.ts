@@ -72,9 +72,4 @@ axiosClient.interceptors.response.use(
   }
 );
 
-// Log initialization (for verification)
-if (typeof window !== "undefined") {
-  console.log("✅ Axios client initialized with base URL:", API_BASE_URL);
-}
-
 export default axiosClient;

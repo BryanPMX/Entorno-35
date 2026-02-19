@@ -1,36 +1,11 @@
 "use client";
 
+import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { authService } from "@/services/auth.service";
-import { useAuthStore } from "@/lib/store/auth-store";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { toast } from "sonner";
-
-// Login form schema - matches backend API requirements
-const loginSchema = z.object({
-  identifier: z.string().min(1, "RFC is required"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+type FeedbackState = {
+  type: "error" | "success";
+  message: string;
+} | null;
 
 /**
  * Login Page
@@ -40,91 +15,163 @@ type LoginFormValues = z.infer<typeof loginSchema>;
  */
 export default function LoginPage() {
   const router = useRouter();
-  const { login: storeLogin } = useAuthStore();
+  const [identifier, setIdentifier] = useState("");
+  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      identifier: "",
-    },
-  });
+  const normalizedIdentifier = useMemo(() => identifier.trim().toUpperCase(), [identifier]);
 
-  const onSubmit = async (values: LoginFormValues) => {
+  const validateRFC = (value: string): string | null => {
+    if (!value) return "RFC is required";
+    if (value.length < 12) return "RFC must contain at least 12 characters";
+    return null;
+  };
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const validationError = validateRFC(normalizedIdentifier);
+    if (validationError) {
+      setFieldError(validationError);
+      setFeedback(null);
+      return;
+    }
+
+    setFieldError(null);
+    setFeedback(null);
+    setIsSubmitting(true);
+
     try {
-      // Prepare login request (match backend API)
+      const [{ authService }, { useAuthStore }] = await Promise.all([
+        import("@/services/auth.service"),
+        import("@/lib/store/auth-store"),
+      ]);
+
       const loginRequest = {
-        identifier: values.identifier.trim(),
+        identifier: normalizedIdentifier,
         type: "COMPANY" as const,
       };
 
-      // Call auth service
       const response = await authService.login(loginRequest);
-
-      // Update auth store
-      storeLogin(response);
-
-      // Redirect to dashboard
+      useAuthStore.getState().login(response);
+      setFeedback({
+        type: "success",
+        message: "Access validated. Redirecting to dashboard...",
+      });
       router.push("/dashboard");
-      toast.success("Login successful!");
     } catch (error: unknown) {
-      console.error("Login error:", error);
-      toast.error("Invalid credentials. Please try again.");
+      void error;
+      setFeedback({
+        type: "error",
+        message: "Invalid credentials. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="page-background page-background-4 portal-grid relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
-      <div className="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" />
+    <div className="page-background page-background-4 portal-grid relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
+      <div className="pointer-events-none absolute -left-28 top-6 h-72 w-72 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" aria-hidden="true" />
 
-      <Card className="portal-surface-strong w-full max-w-md border-0">
-        <CardHeader className="space-y-4 pb-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-lg font-bold text-white shadow-lg">
-            35
-          </div>
-          <div className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">Entorno 35</CardTitle>
-            <CardDescription>
-              Sign in with your company RFC
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* RFC Field */}
-              <FormField
-                control={form.control}
-                name="identifier"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>RFC</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="ABC123456789"
-                        className="bg-background/80"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <section className="portal-surface-strong relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border-0 shadow-2xl">
+        <div className="grid lg:grid-cols-[1.1fr_1fr]">
+          <div className="relative overflow-hidden border-b border-white/20 px-7 py-9 lg:border-b-0 lg:border-r lg:px-10 lg:py-12">
+            <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[color:var(--brand-start-soft)] blur-3xl" aria-hidden="true" />
+            <div className="pointer-events-none absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" aria-hidden="true" />
+            <div className="relative space-y-8">
+              <div className="space-y-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-lg font-bold text-white shadow-lg">
+                  35
+                </div>
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                    Entorno 35
+                  </h1>
+                  <p className="max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+                    Centralized NOM-035 access for compliance teams. Securely sign in to manage staff, assessments, and reporting.
+                  </p>
+                </div>
+              </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white shadow-md hover:brightness-110"
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting ? "Signing in..." : "Sign In"}
-              </Button>
+              <div className="space-y-3 text-sm">
+                <p className="rounded-lg border border-white/25 bg-background/55 px-4 py-3 text-foreground/95">
+                  Unified dashboards with risk tracking by department and demographic groups.
+                </p>
+                <p className="rounded-lg border border-white/25 bg-background/55 px-4 py-3 text-foreground/95">
+                  Secure links for staff assessments with real-time progress visibility.
+                </p>
+                <p className="rounded-lg border border-white/25 bg-background/55 px-4 py-3 text-foreground/95">
+                  Export-ready reporting aligned with NOM-035 STPS 2018 requirements.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-7 py-9 sm:px-10 sm:py-12">
+            <div className="space-y-6">
+              <header className="space-y-1">
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sign In</h2>
+                <p className="text-sm text-muted-foreground">Use your company RFC to enter the platform.</p>
+              </header>
+
+              <form onSubmit={onSubmit} noValidate className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="identifier" className="block text-sm font-medium text-foreground">
+                    RFC
+                  </label>
+                  <input
+                    id="identifier"
+                    name="identifier"
+                    autoComplete="username"
+                    placeholder="ABC123456789"
+                    className="h-11 w-full rounded-lg border border-input bg-background/80 px-3 text-sm shadow-xs outline-none transition focus:border-ring focus:ring-[3px] focus:ring-ring/40"
+                    value={identifier}
+                    onChange={(event) => {
+                      setIdentifier(event.target.value.toUpperCase());
+                      if (fieldError) setFieldError(null);
+                      if (feedback?.type === "error") setFeedback(null);
+                    }}
+                    aria-invalid={Boolean(fieldError)}
+                    aria-describedby={fieldError ? "identifier-error" : undefined}
+                    disabled={isSubmitting}
+                  />
+                  {fieldError ? (
+                    <p id="identifier-error" className="text-xs text-destructive">
+                      {fieldError}
+                    </p>
+                  ) : null}
+                </div>
+
+                <button
+                  type="submit"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] px-4 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Signing in..." : "Sign In"}
+                </button>
+              </form>
+
+              {feedback ? (
+                <p
+                  className={
+                    feedback.type === "success"
+                      ? "rounded-lg border border-emerald-300/50 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-800"
+                      : "rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+                  }
+                >
+                  {feedback.message}
+                </p>
+              ) : null}
+
               <p className="text-center text-xs text-muted-foreground">
                 NOM-035 STPS 2018 compliance platform
               </p>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

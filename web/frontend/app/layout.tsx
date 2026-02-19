@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { QueryProvider } from "@/components/providers/query-provider";
-import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Entorno 35 - NOM-035 Compliance Platform",
@@ -25,10 +23,7 @@ export default function RootLayout({
         className="antialiased"
         suppressHydrationWarning={true}
       >
-        <QueryProvider>
-          {children}
-          <Toaster position="top-center" />
-        </QueryProvider>
+        {children}
       </body>
     </html>
   );

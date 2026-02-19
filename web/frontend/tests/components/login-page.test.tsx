@@ -27,30 +27,22 @@ import { authService } from '@/services/auth.service';
 
 // Mock Zustand store
 const mockStoreLogin = vi.fn();
-let mockStoreState: {
-  login: typeof mockStoreLogin;
-} = {
+const mockGetState = vi.fn(() => ({
   login: mockStoreLogin,
-};
-
-vi.mock('@/lib/store/auth-store', () => ({
-  useAuthStore: vi.fn(() => mockStoreState),
 }));
 
-// Mock toast (sonner)
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
+vi.mock('@/lib/store/auth-store', () => ({
+  useAuthStore: {
+    getState: mockGetState,
   },
 }));
 
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockStoreState = {
+    mockGetState.mockReturnValue({
       login: mockStoreLogin,
-    };
+    });
   });
 
   describe('Validation', () => {
@@ -115,9 +107,8 @@ describe('LoginPage', () => {
 
 
   describe('Error Handling', () => {
-    it('should show error toast when login fails', async () => {
+    it('should show inline error when login fails', async () => {
       const user = userEvent.setup();
-      const { toast } = await import('sonner');
 
       // Mock failed login
       vi.mocked(authService.login).mockRejectedValue(new Error('Invalid credentials'));
@@ -126,16 +117,14 @@ describe('LoginPage', () => {
 
       // Fill and submit form
       const identifierInput = screen.getByLabelText(/rfc/i);
-      await user.type(identifierInput, 'INVALID123');
+      await user.type(identifierInput, 'INVALID123456');
 
       const signInButton = screen.getByRole('button', { name: /sign in/i });
       await user.click(signInButton);
 
       // Wait for error handling
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
-          'Invalid credentials. Please try again.'
-        );
+        expect(screen.getByText('Invalid credentials. Please try again.')).toBeInTheDocument();
       });
 
       // Assert: router.push was NOT called
