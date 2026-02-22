@@ -68,7 +68,7 @@ export default function DashboardLayout({
           <header className="portal-surface sticky top-0 z-20 border-x-0 border-t-0">
             <div className="flex items-center justify-between px-6 h-16">
               <div className="flex items-center">
-                <Image src="/logo.png" alt="Entorno 35" width={180} height={48} className="h-10 w-auto object-contain" priority />
+                <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-12 w-auto object-contain md:h-14" priority />
               </div>
               <Button
                 variant="outline"

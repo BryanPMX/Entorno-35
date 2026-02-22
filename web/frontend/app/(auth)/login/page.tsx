@@ -83,15 +83,10 @@ export default function LoginPage() {
             <div className="pointer-events-none absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-[color:var(--brand-end-soft)] blur-3xl" aria-hidden="true" />
             <div className="relative space-y-8">
               <div className="space-y-5">
-                <Image src="/logo.png" alt="Entorno 35" width={48} height={48} className="h-12 w-auto object-contain" priority />
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                    Entorno 35
-                  </h1>
-                  <p className="max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
-                    Centralized NOM-035 access for compliance teams. Securely sign in to manage staff, assessments, and reporting.
-                  </p>
-                </div>
+                <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-16 w-auto object-contain md:h-20" priority />
+                <p className="max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+                  Centralized NOM-035 access for compliance teams. Securely sign in to manage staff, assessments, and reporting.
+                </p>
               </div>
 
               <div className="space-y-3 text-sm">

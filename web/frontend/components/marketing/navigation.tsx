@@ -16,7 +16,7 @@ export function MarketingNavigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Image src="/logo.png" alt="Entorno 35" width={180} height={48} className="h-10 w-auto object-contain" priority />
+            <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-12 w-auto object-contain md:h-14" priority />
           </Link>
 
           {/* Navigation Links */}

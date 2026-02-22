@@ -27,7 +27,7 @@ export default function PublicAssessmentLayout({
           <div className="mx-auto max-w-4xl px-6 py-4">
             <div className="flex items-center justify-center">
               <div className="flex items-center">
-                <Image src="/logo.png" alt="Entorno 35" width={180} height={48} className="h-10 w-auto object-contain" priority />
+                <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-12 w-auto object-contain md:h-14" priority />
               </div>
             </div>
           </div>
