@@ -15,9 +15,8 @@ export function MarketingNavigation() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Image src="/logo.png" alt="Entorno 35" width={36} height={36} className="h-9 w-auto object-contain" priority />
-            <span className="font-semibold text-foreground">Entorno 35</span>
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.png" alt="Entorno 35" width={180} height={48} className="h-10 w-auto object-contain" priority />
           </Link>
 
           {/* Navigation Links */}

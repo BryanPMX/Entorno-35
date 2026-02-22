@@ -26,12 +26,8 @@ export default function PublicAssessmentLayout({
         <div className="portal-surface relative z-10 border-x-0 border-t-0">
           <div className="mx-auto max-w-4xl px-6 py-4">
             <div className="flex items-center justify-center">
-              <div className="flex items-center space-x-3">
-                <Image src="/logo.png" alt="Entorno 35" width={36} height={36} className="h-9 w-auto object-contain" priority />
-                <div>
-                  <h1 className="text-lg font-semibold text-foreground">Entorno35</h1>
-                  <p className="text-xs text-muted-foreground">Evaluacion NOM-035</p>
-                </div>
+              <div className="flex items-center">
+                <Image src="/logo.png" alt="Entorno 35" width={180} height={48} className="h-10 w-auto object-contain" priority />
               </div>
             </div>
           </div>
