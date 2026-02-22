@@ -12,15 +12,15 @@ import { Button } from "@/components/ui/button";
 export function MarketingNavigation() {
   return (
     <nav className="portal-surface sticky top-0 z-50 border-x-0 border-t-0">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between md:relative md:justify-center">
+      <div className="w-full px-4 sm:px-6 lg:px-10">
+        <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center md:absolute md:left-0">
-            <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-12 w-auto object-contain md:h-14" priority />
+          <Link href="/" className="justify-self-start">
+            <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-11 w-auto object-contain md:h-14" priority />
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:absolute md:left-1/2 md:flex md:-translate-x-1/2 md:items-center md:space-x-2 portal-surface rounded-full px-3 py-1.5 border-0">
+          <div className="hidden justify-self-center md:flex md:items-center md:space-x-2 portal-surface rounded-full px-3 py-1.5 border-0">
             {[
               { href: "#features", label: "Características" },
               { href: "#compliance", label: "Cumplimiento" },
@@ -36,8 +36,11 @@ export function MarketingNavigation() {
             ))}
           </div>
 
-          {/* Login Button */}
-          <div className="flex items-center md:absolute md:right-0">
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-2 justify-self-end">
+            <Button variant="outline" className="hidden sm:inline-flex" asChild>
+              <Link href="/register">Crear cuenta</Link>
+            </Button>
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
               <Link href="/login">Iniciar sesión</Link>
             </Button>

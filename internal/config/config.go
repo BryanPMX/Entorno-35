@@ -13,6 +13,7 @@ type Config struct {
 	Redis    RedisConfig
 	JWT      JWTConfig
 	CORS     CORSConfig
+	Stripe   StripeConfig
 }
 
 // AppConfig holds application-level configuration
@@ -51,6 +52,16 @@ type CORSConfig struct {
 	Origin string
 }
 
+// StripeConfig holds Stripe billing configuration.
+type StripeConfig struct {
+	SecretKey      string
+	WebhookSecret  string
+	MonthlyPriceID string
+	YearlyPriceID  string
+	SuccessURL     string
+	CancelURL      string
+}
+
 // Load loads configuration from environment variables
 func Load() *Config {
 	return &Config{
@@ -79,6 +90,14 @@ func Load() *Config {
 		},
 		CORS: CORSConfig{
 			Origin: getEnv("CORS_ORIGIN", "http://localhost:3000"),
+		},
+		Stripe: StripeConfig{
+			SecretKey:      getEnv("STRIPE_SECRET_KEY", ""),
+			WebhookSecret:  getEnv("STRIPE_WEBHOOK_SECRET", ""),
+			MonthlyPriceID: getEnv("STRIPE_PRICE_MONTHLY", ""),
+			YearlyPriceID:  getEnv("STRIPE_PRICE_YEARLY", ""),
+			SuccessURL:     getEnv("STRIPE_SUCCESS_URL", ""),
+			CancelURL:      getEnv("STRIPE_CANCEL_URL", ""),
 		},
 	}
 }

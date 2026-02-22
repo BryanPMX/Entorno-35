@@ -148,6 +148,10 @@ For more control over individual services:
    export DB_SSLMODE=disable
    export JWT_SECRET=your-secret-key-min-32-chars-long
    export CORS_ORIGIN=http://localhost:3000
+   export STRIPE_SECRET_KEY=sk_live_or_test_key
+   export STRIPE_WEBHOOK_SECRET=whsec_xxx
+   export STRIPE_PRICE_MONTHLY=price_monthly_id
+   export STRIPE_PRICE_YEARLY=price_yearly_id
    ```
 
 5. **Seed the database with NOM-035 questions (required once)**  
@@ -216,7 +220,7 @@ npm test            # Run test suite
 
 ### Environment Configuration
 
-Production uses **Portainer stack environment variables** only; no `.env` files on the server. Required backend vars are listed in `docker-compose.prod.yml` (e.g. `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, `REDIS_HOST`, `SMTP_*`). Set them in Portainer when creating or editing the stack. Never commit `.env` or `.env.stripe` (they are in `.gitignore`).
+Production uses **Portainer stack environment variables** only; no `.env` files on the server. Required backend vars are listed in `docker-compose.prod.yml` (e.g. `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, `REDIS_HOST`, `SMTP_*`, `STRIPE_*`). Set them in Portainer when creating or editing the stack. Never commit `.env` or `.env.stripe` (they are in `.gitignore`).
 
 ### Testing
 

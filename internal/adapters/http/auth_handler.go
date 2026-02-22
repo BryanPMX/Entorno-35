@@ -3,20 +3,22 @@ package http
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/entorno35/backend/internal/adapters/postgres"
 	"github.com/entorno35/backend/internal/core/jwt"
+	"github.com/entorno35/backend/internal/core/password"
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/domain"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // LoginRequest represents the login request payload
 type LoginRequest struct {
 	Identifier string `json:"identifier" binding:"required"` // RFC for COMPANY
 	Type       string `json:"type" binding:"required"`       // Must be "COMPANY"
+	Password   string `json:"password" binding:"required"`   // Admin password
 }
 
 // LoginResponse represents the login response payload
@@ -26,17 +28,19 @@ type LoginResponse struct {
 
 // AuthHandler handles authentication HTTP requests (High cohesion - HTTP concerns only)
 type AuthHandler struct {
-	jwtService    jwt.Service
-	authRepo      ports.AuthRepository
-	tokenExpiry   time.Duration
+	jwtService     jwt.Service
+	authRepo       ports.AuthRepository
+	passwordHasher password.Hasher
+	tokenExpiry    time.Duration
 }
 
 // NewAuthHandler creates a new auth handler
 func NewAuthHandler(jwtService jwt.Service, authRepo ports.AuthRepository, tokenExpiry time.Duration) *AuthHandler {
 	return &AuthHandler{
-		jwtService:  jwtService,
-		authRepo:    authRepo,
-		tokenExpiry: tokenExpiry,
+		jwtService:     jwtService,
+		authRepo:       authRepo,
+		passwordHasher: password.NewDefaultHasher(),
+		tokenExpiry:    tokenExpiry,
 	}
 }
 
@@ -55,33 +59,32 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Find company by RFC, or create it if it doesn't exist (for demo purposes)
-	company, err := h.authRepo.GetCompanyByRFC(req.Identifier)
+	normalizedRFC := strings.ToUpper(strings.TrimSpace(req.Identifier))
+
+	// Find company by RFC
+	company, err := h.authRepo.GetCompanyByRFC(normalizedRFC)
 	if err != nil {
-		// If company not found, auto-create it for demo purposes
 		if errors.Is(err, postgres.ErrCompanyNotFound) {
-			// Generate UUID in Go to ensure we have it after creation
-			// (database default won't populate the struct field)
-			company = &domain.Company{
-				ID:                 uuid.New(),
-				RFC:                req.Identifier,
-				Name:               "Demo Company - " + req.Identifier,
-				SubscriptionStatus: domain.SubscriptionStatusActive,
-				EmployeeCount:      50, // Default for demo
-			}
-			// Create company in database
-			if createErr := h.authRepo.CreateCompany(company); createErr != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create demo company"})
-				return
-			}
-		} else if errors.Is(err, postgres.ErrCompanyInactive) {
-			statusCode := http.StatusUnauthorized
-			c.JSON(statusCode, gin.H{"error": err.Error()})
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 			return
 		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if company.SubscriptionStatus != domain.SubscriptionStatusActive {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "subscription is inactive. complete payment to activate your account"})
+		return
+	}
+
+	if company.AdminPasswordHash == nil || *company.AdminPasswordHash == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		return
+	}
+
+	if verifyErr := h.passwordHasher.Verify(*company.AdminPasswordHash, req.Password); verifyErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		return
 	}
 
 	// Generate token for company
@@ -99,4 +102,3 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, LoginResponse{Token: token})
 }
-

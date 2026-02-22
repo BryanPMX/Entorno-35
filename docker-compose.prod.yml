@@ -33,6 +33,14 @@ services:
       - JWT_EXPIRY=24h
       # Must match the frontend origin (e.g. https://www.entorno35.com)
       - CORS_ORIGIN=${CORS_ORIGIN:-https://www.entorno35.com}
+
+      # Stripe Billing
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRICE_MONTHLY=${STRIPE_PRICE_MONTHLY}
+      - STRIPE_PRICE_YEARLY=${STRIPE_PRICE_YEARLY}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
       
       # Email (Fill these in if you have them, otherwise leave as is)
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}

@@ -174,10 +174,15 @@ type Company struct {
 	RFC                   string             `gorm:"type:varchar(13);uniqueIndex;not null" json:"rfc"`
 	Name                  string             `gorm:"type:varchar(255);not null" json:"name"`
 	Address               string             `gorm:"type:text" json:"address"`
+	AdminEmail            *string            `gorm:"type:varchar(255);index" json:"admin_email,omitempty"`
+	AdminPasswordHash     *string            `gorm:"type:varchar(255)" json:"-"`
 	SubscriptionStatus    SubscriptionStatus `gorm:"type:varchar(20);not null;default:'inactive'" json:"subscription_status"`
 	EmployeeCount         int                `gorm:"not null;default:0" json:"employee_count"`
 	SubscriptionStartDate *time.Time         `gorm:"type:date" json:"subscription_start_date,omitempty"`
 	SubscriptionEndDate   *time.Time         `gorm:"type:date" json:"subscription_end_date,omitempty"`
+	StripeCustomerID      *string            `gorm:"type:varchar(255);index" json:"-"`
+	StripeSubscriptionID  *string            `gorm:"type:varchar(255);uniqueIndex" json:"-"`
+	StripePriceID         *string            `gorm:"type:varchar(255)" json:"-"`
 	CreatedAt             time.Time          `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt             time.Time          `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt             gorm.DeletedAt     `gorm:"index" json:"deleted_at,omitempty"`
@@ -204,7 +209,7 @@ func (c *Company) BeforeCreate(tx *gorm.DB) error {
 type Staff struct {
 	ID           uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	CompanyID    uuid.UUID         `gorm:"type:uuid;not null;index" json:"company_id"`
-	CURP         *string           `gorm:"type:varchar(18)" json:"curp,omitempty"` // Made nullable for staff without CURPs
+	CURP         *string           `gorm:"type:varchar(18)" json:"curp,omitempty"`               // Made nullable for staff without CURPs
 	EmployeeID   sql.NullString    `gorm:"type:varchar(50);unique" json:"employee_id,omitempty"` // Auto-generated for staff without CURPs, nullable
 	FullName     string            `gorm:"type:varchar(255);not null" json:"full_name"`
 	Email        string            `gorm:"type:varchar(255)" json:"email,omitempty"`

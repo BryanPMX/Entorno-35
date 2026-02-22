@@ -27,10 +27,15 @@ func setupReportTestDB(t *testing.T) *gorm.DB {
 			rfc TEXT NOT NULL UNIQUE,
 			name TEXT NOT NULL,
 			address TEXT,
+			admin_email TEXT,
+			admin_password_hash TEXT,
 			subscription_status TEXT NOT NULL DEFAULT 'inactive',
 			employee_count INTEGER NOT NULL DEFAULT 0,
 			subscription_start_date TEXT,
 			subscription_end_date TEXT,
+			stripe_customer_id TEXT,
+			stripe_subscription_id TEXT,
+			stripe_price_id TEXT,
 			created_at DATETIME,
 			updated_at DATETIME,
 			deleted_at DATETIME
@@ -239,11 +244,11 @@ func TestReportRepository_GetIndividualReport_GuideII(t *testing.T) {
 	for i, question := range questions {
 		// Simulate varied responses (0-4)
 		selectedValue := i % 5
-		
+
 		// Calculate score with polarity
 		calculatedScore, err := scoring.ApplyPolarity(selectedValue, *question.Polarity)
 		require.NoError(t, err)
-		
+
 		expectedDomainScore += float64(calculatedScore)
 
 		response := &domain.Response{
@@ -275,7 +280,7 @@ func TestReportRepository_GetIndividualReport_GuideII(t *testing.T) {
 	// Verify category scores exist
 	assert.NotEmpty(t, report.CategoryScores, "Category scores should not be empty")
 	assert.Contains(t, report.CategoryScores, category.Name)
-	
+
 	// Verify category max scores are calculated
 	assert.NotEmpty(t, report.CategoryMaxScores, "Category max scores should not be empty")
 	assert.Contains(t, report.CategoryMaxScores, category.Name)
@@ -286,7 +291,7 @@ func TestReportRepository_GetIndividualReport_GuideII(t *testing.T) {
 	assert.NotEmpty(t, report.DomainScores, "Domain scores should not be empty")
 	assert.Contains(t, report.DomainScores, testDomain.Name)
 	assert.Equal(t, expectedDomainScore, report.DomainScores[testDomain.Name])
-	
+
 	// Verify domain max scores are calculated correctly
 	assert.NotEmpty(t, report.DomainMaxScores, "Domain max scores should not be empty")
 	assert.Contains(t, report.DomainMaxScores, testDomain.Name)
@@ -336,7 +341,7 @@ func TestReportRepository_GetIndividualReport_DomainRiskLevelCalculation(t *test
 		if *question.Polarity == domain.QuestionPolarityNegative {
 			selectedValue = 4 // Direct 4 for negative polarity
 		}
-		
+
 		calculatedScore, err := scoring.ApplyPolarity(selectedValue, *question.Polarity)
 		require.NoError(t, err)
 		expectedTotalScore += float64(calculatedScore)
@@ -360,7 +365,7 @@ func TestReportRepository_GetIndividualReport_DomainRiskLevelCalculation(t *test
 	// Verify domain score exists and is high
 	assert.Contains(t, report.DomainScores, testDomain.Name, "Domain scores should contain test domain")
 	assert.Greater(t, report.DomainScores[testDomain.Name], float64(0), "Domain score should be greater than 0")
-	
+
 	// Verify domain max score is calculated
 	expectedMaxScore := float64(len(questions) * scoring.MaxScorePerQuestion)
 	assert.Contains(t, report.DomainMaxScores, testDomain.Name, "Domain max scores should contain test domain")
@@ -369,7 +374,7 @@ func TestReportRepository_GetIndividualReport_DomainRiskLevelCalculation(t *test
 	// Verify risk level is calculated (should be high given all max responses)
 	assert.Contains(t, report.DomainRiskLevels, testDomain.Name, "Domain risk levels should contain test domain")
 	assert.NotEmpty(t, report.DomainRiskLevels[testDomain.Name], "Domain risk level should not be empty")
-	
+
 	// Risk level should be high (alto or muy_alto) given all max risk responses
 	domainRisk := report.DomainRiskLevels[testDomain.Name]
 	assert.Contains(t, []string{"alto", "muy_alto"}, domainRisk, "Domain risk level should be alto or muy_alto for max risk responses")
@@ -381,7 +386,7 @@ func TestReportRepository_GetGeneralReport(t *testing.T) {
 
 	// Setup test data
 	company := createTestCompany(t, db, 100)
-	
+
 	// Create multiple staff members
 	staff1 := createTestStaff(t, db, company.ID)
 	staff2 := &domain.Staff{
@@ -444,7 +449,7 @@ func TestReportRepository_GetGeneralReport(t *testing.T) {
 
 	// Verify risk distribution
 	assert.NotEmpty(t, report.RiskDistribution, "Risk distribution should not be empty")
-	
+
 	// Check for both risk levels in distribution
 	hasAlto := false
 	hasBajo := false
@@ -461,7 +466,7 @@ func TestReportRepository_GetGeneralReport(t *testing.T) {
 
 	// Verify department heatmap
 	assert.NotEmpty(t, report.DepartmentHeatmap, "Department heatmap should not be empty")
-	
+
 	// Check for both departments in heatmap
 	hasProduccion := false
 	hasRH := false
@@ -531,7 +536,7 @@ func TestReportRepository_CalculateDynamicMaxScores(t *testing.T) {
 		var loadedQuestion domain.Question
 		err := db.Preload("Category").Preload("Domain").First(&loadedQuestion, q.ID).Error
 		require.NoError(t, err)
-		
+
 		responses = append(responses, domain.Response{
 			Question:        loadedQuestion,
 			QuestionID:      loadedQuestion.ID,

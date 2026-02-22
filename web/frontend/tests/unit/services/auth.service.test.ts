@@ -67,6 +67,7 @@ describe('AuthService', () => {
       const mockCredentials: LoginRequest = {
         identifier: 'ABC123456789',
         type: 'COMPANY',
+        password: 'secure-password-123',
       };
 
       // Mock successful response
@@ -93,6 +94,7 @@ describe('AuthService', () => {
       const mockCredentials: LoginRequest = {
         identifier: 'ABC123456789',
         type: 'COMPANY',
+        password: 'secure-password-123',
       };
 
       vi.mocked(axiosClient.post).mockResolvedValue({

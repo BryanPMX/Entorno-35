@@ -132,6 +132,7 @@ export interface Assessment {
 export interface LoginRequest {
   identifier: string; // RFC for COMPANY
   type: "COMPANY";
+  password: string;
 }
 
 /**
@@ -139,6 +140,34 @@ export interface LoginRequest {
  */
 export interface AuthResponse {
   token: string; // JWT token
+}
+
+export type SubscriptionPlan = "monthly" | "yearly";
+
+export interface CreateCheckoutSessionRequest {
+  rfc: string;
+  company_name: string;
+  address?: string;
+  admin_email: string;
+  password: string;
+  plan: SubscriptionPlan;
+  employee_count?: number;
+}
+
+export interface CreateCheckoutSessionResponse {
+  session_id: string;
+  checkout_url: string;
+}
+
+export interface VerifyCheckoutSessionResponse {
+  session_id: string;
+  session_status: string;
+  payment_status: string;
+  subscription_status: SubscriptionStatus;
+  active: boolean;
+  company_name: string;
+  login_identifier: string;
+  admin_email?: string;
 }
 
 /**
@@ -171,4 +200,3 @@ export interface ImportResult {
   skipped_count: number;
   errors: string[];
 }
-

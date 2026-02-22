@@ -50,13 +50,13 @@ describe('LoginPage', () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      // Find and click the Sign In button without filling form
-      const signInButton = screen.getByRole('button', { name: /sign in/i });
+      // Find and click the login button without filling form
+      const signInButton = screen.getByRole('button', { name: /iniciar sesión/i });
       await user.click(signInButton);
 
       // Assert: Validation errors appear
       await waitFor(() => {
-        expect(screen.getByText(/rfc is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/el rfc es obligatorio/i)).toBeInTheDocument();
       });
 
       // Assert: authService.login was NOT called
@@ -78,9 +78,11 @@ describe('LoginPage', () => {
       // Fill form (Company is default)
       const identifierInput = screen.getByLabelText(/rfc/i);
       await user.type(identifierInput, 'ABC123456789');
+      const passwordInput = screen.getByLabelText(/contraseña/i);
+      await user.type(passwordInput, 'secure-password-123');
 
       // Submit form
-      const signInButton = screen.getByRole('button', { name: /sign in/i });
+      const signInButton = screen.getByRole('button', { name: /iniciar sesión/i });
       await user.click(signInButton);
 
       // Wait for async operations
@@ -90,6 +92,7 @@ describe('LoginPage', () => {
         expect(vi.mocked(authService.login)).toHaveBeenCalledWith({
           identifier: 'ABC123456789',
           type: 'COMPANY',
+          password: 'secure-password-123',
         });
       });
 
@@ -118,13 +121,15 @@ describe('LoginPage', () => {
       // Fill and submit form
       const identifierInput = screen.getByLabelText(/rfc/i);
       await user.type(identifierInput, 'INVALID123456');
+      const passwordInput = screen.getByLabelText(/contraseña/i);
+      await user.type(passwordInput, 'wrong-password');
 
-      const signInButton = screen.getByRole('button', { name: /sign in/i });
+      const signInButton = screen.getByRole('button', { name: /iniciar sesión/i });
       await user.click(signInButton);
 
       // Wait for error handling
       await waitFor(() => {
-        expect(screen.getByText('Invalid credentials. Please try again.')).toBeInTheDocument();
+        expect(screen.getByText('Credenciales inválidas. Por favor, intente nuevamente.')).toBeInTheDocument();
       });
 
       // Assert: router.push was NOT called

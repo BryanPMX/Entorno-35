@@ -10,26 +10,26 @@ This document consolidates all REST API endpoints for the Entorno35 NOM-035 Comp
 ## Table of Contents
 
 1. [Authentication](#authentication)
-2. [Staff Management](#staff-management)
-3. [Assessments](#assessments)
-4. [Scoring](#scoring)
-5. [Reports](#reports)
+2. [Billing](#billing)
+3. [Staff Management](#staff-management)
+4. [Assessments](#assessments)
+5. [Scoring](#scoring)
+6. [Reports](#reports)
 
 ---
 
 ## Authentication
 
-### POST /api/v1/auth/login
+### POST /auth/login
 
-Authenticates a company or staff member and returns a JWT token.
+Authenticates a company admin and returns a JWT token.
 
 **Request**:
 ```json
 {
-  "identifier": "RFC123456789 or CURP or employee_id",
-  "type": "COMPANY or STAFF",
-  "company_id": "uuid (required for STAFF)",
-  "password": "string (required for STAFF)"
+  "identifier": "RFC123456789",
+  "type": "COMPANY",
+  "password": "string"
 }
 ```
 
@@ -44,6 +44,43 @@ Authenticates a company or staff member and returns a JWT token.
 - `400 Bad Request`: Missing required fields
 - `401 Unauthorized`: Invalid credentials
 - `500 Internal Server Error`: Server error
+
+---
+
+## Billing
+
+### POST /billing/checkout-session
+
+Creates a Stripe checkout session for new paid registrations.
+
+**Request**:
+```json
+{
+  "rfc": "ABC123456789",
+  "company_name": "Mi Empresa SA de CV",
+  "address": "Calle 1, CDMX",
+  "admin_email": "admin@empresa.com",
+  "password": "string (min 8 chars)",
+  "plan": "monthly or yearly",
+  "employee_count": 50
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "session_id": "cs_test_xxx",
+  "checkout_url": "https://checkout.stripe.com/..."
+}
+```
+
+### POST /billing/webhook
+
+Stripe webhook endpoint used to activate/deactivate subscriptions.
+
+### GET /billing/checkout-session/:id/verify
+
+Verifies checkout completion and returns activation status + login identifier.
 
 ---
 
@@ -267,7 +304,7 @@ Retrieves company-wide general report with aggregations.
 
 ## Authentication
 
-All endpoints except `/auth/login` and `/assessments/public/*` require JWT authentication:
+All endpoints except `/auth/login`, `/billing/*`, and `/assessments/public/*` require JWT authentication:
 
 ```
 Authorization: Bearer <jwt_token>

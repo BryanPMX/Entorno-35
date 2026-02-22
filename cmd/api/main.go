@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/entorno35/backend/internal/adapters/http"
@@ -66,6 +67,23 @@ func main() {
 
 	// Initialize services
 	jwtService := jwt.NewService(cfg.JWT.Secret)
+	defaultOrigin := strings.TrimRight(cfg.CORS.Origin, "/")
+	stripeSuccessURL := cfg.Stripe.SuccessURL
+	if stripeSuccessURL == "" {
+		stripeSuccessURL = defaultOrigin + "/register/success?session_id={CHECKOUT_SESSION_ID}"
+	}
+	stripeCancelURL := cfg.Stripe.CancelURL
+	if stripeCancelURL == "" {
+		stripeCancelURL = defaultOrigin + "/register?canceled=1"
+	}
+	stripeService := services.NewStripeService(services.StripeServiceConfig{
+		SecretKey:      cfg.Stripe.SecretKey,
+		WebhookSecret:  cfg.Stripe.WebhookSecret,
+		MonthlyPriceID: cfg.Stripe.MonthlyPriceID,
+		YearlyPriceID:  cfg.Stripe.YearlyPriceID,
+		SuccessURL:     stripeSuccessURL,
+		CancelURL:      stripeCancelURL,
+	})
 
 	// Parse token expiry from config (default: 24h)
 	tokenExpiry := 24 * time.Hour
@@ -97,6 +115,7 @@ func main() {
 	assessmentHandler := http.NewAssessmentHandler(assessmentService)
 	staffHandler := http.NewStaffHandler(staffService)
 	reportHandler := http.NewReportHandler(reportService)
+	billingHandler := http.NewBillingHandler(authRepo, stripeService, stripeSuccessURL, stripeCancelURL)
 
 	// Initialize router with custom middleware (avoid double CORS)
 	router := gin.New()
@@ -130,6 +149,14 @@ func main() {
 	auth := router.Group("/auth")
 	{
 		auth.POST("/login", authHandler.Login)
+	}
+
+	// Billing endpoints (public for checkout + webhook)
+	billing := router.Group("/billing")
+	{
+		billing.POST("/checkout-session", billingHandler.CreateCheckoutSession)
+		billing.POST("/webhook", billingHandler.HandleWebhook)
+		billing.GET("/checkout-session/:id/verify", billingHandler.VerifyCheckoutSession)
 	}
 
 	// Public API endpoints (no authentication required)

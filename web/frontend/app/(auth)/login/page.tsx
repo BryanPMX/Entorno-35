@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 type FeedbackState = {
   type: "error" | "success";
@@ -17,21 +18,23 @@ type FeedbackState = {
 export default function LoginPage() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const normalizedIdentifier = useMemo(() => identifier.trim().toUpperCase(), [identifier]);
 
-  const validateRFC = (value: string): string | null => {
-    if (!value) return "RFC is required";
-    if (value.length < 12) return "RFC must contain at least 12 characters";
+  const validateLogin = (value: string, passwordValue: string): string | null => {
+    if (!value) return "El RFC es obligatorio.";
+    if (value.length < 12) return "El RFC debe contener al menos 12 caracteres.";
+    if (!passwordValue) return "La contraseña es obligatoria.";
     return null;
   };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const validationError = validateRFC(normalizedIdentifier);
+    const validationError = validateLogin(normalizedIdentifier, password);
     if (validationError) {
       setFieldError(validationError);
       setFeedback(null);
@@ -51,20 +54,21 @@ export default function LoginPage() {
       const loginRequest = {
         identifier: normalizedIdentifier,
         type: "COMPANY" as const,
+        password,
       };
 
       const response = await authService.login(loginRequest);
       useAuthStore.getState().login(response);
       setFeedback({
         type: "success",
-        message: "Access validated. Redirecting to dashboard...",
+        message: "Acceso validado. Redirigiendo al panel de control...",
       });
       router.push("/dashboard");
     } catch (error: unknown) {
       void error;
       setFeedback({
         type: "error",
-        message: "Invalid credentials. Please try again.",
+        message: "Credenciales inválidas. Por favor, intente nuevamente.",
       });
     } finally {
       setIsSubmitting(false);
@@ -85,19 +89,19 @@ export default function LoginPage() {
               <div className="space-y-5">
                 <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-16 w-auto object-contain md:h-20" priority />
                 <p className="max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
-                  Centralized NOM-035 access for compliance teams. Securely sign in to manage staff, assessments, and reporting.
+                  Acceso centralizado a NOM-035 para equipos de cumplimiento. Inicie sesión de forma segura para gestionar personal, evaluaciones y reportes.
                 </p>
               </div>
 
               <div className="space-y-3 text-sm">
                 <p className="rounded-lg border border-white/25 bg-background/55 px-4 py-3 text-foreground/95">
-                  Unified dashboards with risk tracking by department and demographic groups.
+                  Paneles unificados con seguimiento de riesgos por departamento y grupo demográfico.
                 </p>
                 <p className="rounded-lg border border-white/25 bg-background/55 px-4 py-3 text-foreground/95">
-                  Secure links for staff assessments with real-time progress visibility.
+                  Enlaces seguros para evaluaciones del personal con visibilidad del avance en tiempo real.
                 </p>
                 <p className="rounded-lg border border-white/25 bg-background/55 px-4 py-3 text-foreground/95">
-                  Export-ready reporting aligned with NOM-035 STPS 2018 requirements.
+                  Reportes listos para exportación, alineados con los requisitos de la NOM-035 STPS 2018.
                 </p>
               </div>
             </div>
@@ -106,8 +110,8 @@ export default function LoginPage() {
           <div className="px-7 py-9 sm:px-10 sm:py-12">
             <div className="space-y-6">
               <header className="space-y-1">
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sign In</h2>
-                <p className="text-sm text-muted-foreground">Use your company RFC to enter the platform.</p>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Iniciar sesión</h2>
+                <p className="text-sm text-muted-foreground">Utilice el RFC de su empresa para ingresar a la plataforma.</p>
               </header>
 
               <form onSubmit={onSubmit} noValidate className="space-y-4">
@@ -138,12 +142,33 @@ export default function LoginPage() {
                   ) : null}
                 </div>
 
+                <div className="space-y-2">
+                  <label htmlFor="password" className="block text-sm font-medium text-foreground">
+                    Contraseña
+                  </label>
+                  <input
+                    id="password"
+                    name="password"
+                    autoComplete="current-password"
+                    type="password"
+                    placeholder="Tu contraseña de administrador"
+                    className="h-11 w-full rounded-lg border border-input bg-background/80 px-3 text-sm shadow-xs outline-none transition focus:border-ring focus:ring-[3px] focus:ring-ring/40"
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      if (fieldError) setFieldError(null);
+                      if (feedback?.type === "error") setFeedback(null);
+                    }}
+                    disabled={isSubmitting}
+                  />
+                </div>
+
                 <button
                   type="submit"
                   className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] px-4 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Signing in..." : "Sign In"}
+                  {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
                 </button>
               </form>
 
@@ -160,7 +185,10 @@ export default function LoginPage() {
               ) : null}
 
               <p className="text-center text-xs text-muted-foreground">
-                NOM-035 STPS 2018 compliance platform
+                Plataforma de cumplimiento NOM-035 STPS 2018.{" "}
+                <Link href="/register" className="font-medium text-foreground hover:underline">
+                  Crear cuenta
+                </Link>
               </p>
             </div>
           </div>

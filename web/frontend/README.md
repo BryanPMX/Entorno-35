@@ -14,6 +14,7 @@ web/frontend/
 │   ├── globals.css             # Global styles and theme
 │   ├── (auth)/                 # Auth routes
 │   │   └── login/page.tsx      # Company login (RFC)
+│   │   └── register/           # Registration + Stripe checkout confirmation
 │   ├── (marketing)/layout.tsx  # Marketing layout wrapper
 │   ├── (public)/assessment/    # Public assessment by token
 │   │   └── [token]/            # Token-based assessment flow
@@ -114,9 +115,14 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 
 ### Auth (`services/auth.service.ts`)
 
-- `authService.login({ identifier, type: 'COMPANY' })` — returns JWT and user info
+- `authService.login({ identifier, type: 'COMPANY', password })` — returns JWT token
 - `authService.isAuthenticated()` — whether a non-expired valid token is present
 - `authService.logout()` — clears token and state
+
+### Billing (`services/billing.service.ts`)
+
+- `billingService.createCheckoutSession(payload)` — creates Stripe checkout session for paid registration
+- `billingService.verifyCheckoutSession(sessionId)` — confirms payment and account activation
 
 ### Staff (`services/staff.service.ts`)
 
@@ -163,7 +169,7 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 ## Development Phases (Completed)
 
 - **Architecture and service layer**: Next.js setup, types, Axios interceptors, TanStack Query, service pattern.
-- **Authentication UI**: Login (company RFC), Zustand auth store, AuthGuard, dashboard layout.
+- **Authentication UI**: Login (company RFC + password), Stripe registration flow, Zustand auth store, AuthGuard, dashboard layout.
 - **Staff management**: Staff table (pagination, sort, filter), CSV upload (drag-and-drop, progress, errors), CRUD dialogs, template download.
 - **Dashboard and analytics**: Metrics, risk distribution chart, department heatmap, assessment wizard, empty states, responsive layout.
 - **Public assessment**: Token-based assessment UI, form navigation, progress, mobile-friendly, completion screen.

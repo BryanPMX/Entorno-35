@@ -6,6 +6,7 @@ import (
 
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/domain"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +27,7 @@ func NewAuthRepository(db *gorm.DB) ports.AuthRepository {
 	return &authRepository{db: db}
 }
 
-// GetCompanyByRFC retrieves a company by RFC and validates subscription status
+// GetCompanyByRFC retrieves a company by RFC.
 func (r *authRepository) GetCompanyByRFC(rfc string) (*domain.Company, error) {
 	var company domain.Company
 
@@ -36,11 +37,6 @@ func (r *authRepository) GetCompanyByRFC(rfc string) (*domain.Company, error) {
 			return nil, ErrCompanyNotFound
 		}
 		return nil, fmt.Errorf("failed to fetch company: %w", result.Error)
-	}
-
-	// Critical: Check subscription status - don't allow login if inactive
-	if company.SubscriptionStatus != domain.SubscriptionStatusActive {
-		return nil, ErrCompanyInactive
 	}
 
 	return &company, nil
@@ -53,6 +49,45 @@ func (r *authRepository) CreateCompany(company *domain.Company) error {
 		return fmt.Errorf("failed to create company: %w", result.Error)
 	}
 	return nil
+}
+
+// UpdateCompany updates an existing company in the database
+func (r *authRepository) UpdateCompany(company *domain.Company) error {
+	result := r.db.Save(company)
+	if result.Error != nil {
+		return fmt.Errorf("failed to update company: %w", result.Error)
+	}
+	return nil
+}
+
+// GetCompanyByID retrieves a company by ID
+func (r *authRepository) GetCompanyByID(id uuid.UUID) (*domain.Company, error) {
+	var company domain.Company
+
+	result := r.db.Where("id = ?", id).First(&company)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrCompanyNotFound
+		}
+		return nil, fmt.Errorf("failed to fetch company by ID: %w", result.Error)
+	}
+
+	return &company, nil
+}
+
+// GetCompanyByStripeSubscriptionID retrieves a company by Stripe subscription ID
+func (r *authRepository) GetCompanyByStripeSubscriptionID(subscriptionID string) (*domain.Company, error) {
+	var company domain.Company
+
+	result := r.db.Where("stripe_subscription_id = ?", subscriptionID).First(&company)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrCompanyNotFound
+		}
+		return nil, fmt.Errorf("failed to fetch company by subscription ID: %w", result.Error)
+	}
+
+	return &company, nil
 }
 
 // GetStaffByCURP retrieves a staff member by CURP and company ID

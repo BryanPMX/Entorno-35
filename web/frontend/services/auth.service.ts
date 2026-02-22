@@ -14,7 +14,7 @@ class AuthService {
    * Login
    * Authenticates a company administrator and returns a JWT token
    *
-   * @param credentials - Login credentials (RFC and type)
+   * @param credentials - Login credentials (RFC, type, and password)
    * @returns Promise resolving to AuthResponse with token
    * @throws AxiosError on authentication failure
    */

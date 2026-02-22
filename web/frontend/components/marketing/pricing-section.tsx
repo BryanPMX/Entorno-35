@@ -20,7 +20,7 @@ const PLAN_FEATURES = [
  * Pricing Section
  *
  * Two subscription options: monthly ($1,000 MXN) and yearly ($6,000 MXN).
- * Stripe integration to be added later.
+ * Both plans route to Stripe-powered registration checkout.
  */
 export function PricingSection() {
   const plans = [
@@ -34,7 +34,7 @@ export function PricingSection() {
       features: PLAN_FEATURES,
       popular: false,
       cta: "Comenzar ahora",
-      ctaHref: "/login",
+      ctaHref: "/register?plan=monthly",
     },
     {
       id: "yearly",
@@ -47,7 +47,7 @@ export function PricingSection() {
       features: PLAN_FEATURES,
       popular: true,
       cta: "Comenzar ahora",
-      ctaHref: "/login",
+      ctaHref: "/register?plan=yearly",
     },
   ];
 
@@ -152,9 +152,9 @@ export function PricingSection() {
           </Card>
         </div>
 
-        {/* Billing note - Stripe later */}
+        {/* Billing note */}
         <p className="text-center text-sm text-muted-foreground mt-8">
-          Pago seguro. La integración con pasarela de pago se activará próximamente.
+          Pago seguro con Stripe. Tu suscripción se activa automáticamente al confirmar el cobro.
         </p>
 
         {/* FAQ */}
