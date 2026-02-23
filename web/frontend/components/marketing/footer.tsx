@@ -21,11 +21,11 @@ export function MarketingFooter() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Image
-                src="/tab-logo.png"
+                src="/logo.png"
                 alt="Entorno 35"
-                width={512}
-                height={512}
-                className="h-10 w-10 rounded-lg object-contain"
+                width={812}
+                height={293}
+                className="h-10 w-auto object-contain"
               />
             </div>
             <p className="text-white/70 mb-4 max-w-md">

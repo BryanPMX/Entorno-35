@@ -16,7 +16,7 @@ export function MarketingNavigation() {
         <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-3">
           {/* Logo */}
           <Link href="/" className="justify-self-start">
-            <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-11 w-auto object-contain md:h-14" priority />
+            <Image src="/logo.png" alt="Entorno 35" width={812} height={293} className="h-12 w-auto object-contain md:h-16" priority />
           </Link>
 
           {/* Navigation Links */}
