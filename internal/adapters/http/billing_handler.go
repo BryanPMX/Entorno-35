@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/entorno35/backend/internal/adapters/postgres"
+	"github.com/entorno35/backend/internal/auth"
 	"github.com/entorno35/backend/internal/core/password"
 	"github.com/entorno35/backend/internal/core/ports"
 	"github.com/entorno35/backend/internal/core/services"
 	"github.com/entorno35/backend/internal/domain"
+	"github.com/entorno35/backend/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -37,10 +39,11 @@ type BillingHandler struct {
 	stripeService    *services.StripeService
 	successURL       string
 	cancelURL        string
+	portalReturnURL  string
 }
 
 // NewBillingHandler creates a billing handler.
-func NewBillingHandler(authRepo ports.AuthRepository, pendingRepo ports.PendingRegistrationRepository, webhookEventRepo ports.StripeWebhookEventRepository, stripeService *services.StripeService, successURL, cancelURL string) *BillingHandler {
+func NewBillingHandler(authRepo ports.AuthRepository, pendingRepo ports.PendingRegistrationRepository, webhookEventRepo ports.StripeWebhookEventRepository, stripeService *services.StripeService, successURL, cancelURL, portalReturnURL string) *BillingHandler {
 	return &BillingHandler{
 		authRepo:         authRepo,
 		pendingRepo:      pendingRepo,
@@ -49,10 +52,16 @@ func NewBillingHandler(authRepo ports.AuthRepository, pendingRepo ports.PendingR
 		stripeService:    stripeService,
 		successURL:       successURL,
 		cancelURL:        cancelURL,
+		portalReturnURL:  portalReturnURL,
 	}
 }
 
 const pendingRegistrationTTL = 24 * time.Hour
+
+// CreateExistingCompanyCheckoutSessionRequest represents authenticated company billing checkout input.
+type CreateExistingCompanyCheckoutSessionRequest struct {
+	Plan string `json:"plan" binding:"required,oneof=monthly yearly"`
+}
 
 // CreateCheckoutSession creates a Stripe checkout session and stores a pending registration only.
 // POST /billing/checkout-session
@@ -151,6 +160,128 @@ func (h *BillingHandler) CreateCheckoutSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"session_id":   session.ID,
 		"checkout_url": session.URL,
+	})
+}
+
+// CreateExistingCompanyCheckoutSession creates a Stripe checkout session for an authenticated company
+// to reactivate billing or start a managed subscription (existing company path).
+// POST /api/v1/billing/checkout-session
+func (h *BillingHandler) CreateExistingCompanyCheckoutSession(c *gin.Context) {
+	if h.stripeService == nil || !h.stripeService.Enabled() {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "billing is not configured"})
+		return
+	}
+
+	authCtx, ok := h.requireCompanyAuth(c)
+	if !ok {
+		return
+	}
+
+	var req CreateExistingCompanyCheckoutSessionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	company, err := h.authRepo.GetCompanyByID(authCtx.CompanyID)
+	if err != nil {
+		if errors.Is(err, postgres.ErrCompanyNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "company not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load company"})
+		return
+	}
+
+	if company.SubscriptionStatus == domain.SubscriptionStatusActive && company.StripeSubscriptionID != nil && *company.StripeSubscriptionID != "" {
+		c.JSON(http.StatusConflict, gin.H{"error": "company already has an active subscription. use billing portal to manage plan changes"})
+		return
+	}
+
+	priceID, err := h.stripeService.PriceIDForPlan(req.Plan)
+	if err != nil {
+		if errors.Is(err, services.ErrInvalidStripePlan) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan"})
+			return
+		}
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "billing plan is not configured"})
+		return
+	}
+
+	stripeReq := services.CreateCheckoutSessionRequest{
+		PriceID:           priceID,
+		SuccessURL:        h.successURL,
+		CancelURL:         h.cancelURL,
+		ClientReferenceID: company.ID.String(),
+		Metadata: map[string]string{
+			"company_id":     company.ID.String(),
+			"company_rfc":    company.RFC,
+			"billing_flow":   "existing_company",
+			"requested_plan": strings.ToLower(req.Plan),
+		},
+	}
+	if company.StripeCustomerID != nil && *company.StripeCustomerID != "" {
+		stripeReq.CustomerID = *company.StripeCustomerID
+	} else if company.AdminEmail != nil && *company.AdminEmail != "" {
+		stripeReq.CustomerEmail = strings.ToLower(strings.TrimSpace(*company.AdminEmail))
+	}
+
+	session, err := h.stripeService.CreateCheckoutSession(stripeReq)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("failed to create checkout session: %v", err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"session_id":   session.ID,
+		"checkout_url": session.URL,
+	})
+}
+
+// CreateCustomerPortalSession creates a Stripe Billing Portal session for an authenticated company.
+// POST /api/v1/billing/customer-portal
+func (h *BillingHandler) CreateCustomerPortalSession(c *gin.Context) {
+	if h.stripeService == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "billing is not configured"})
+		return
+	}
+
+	authCtx, ok := h.requireCompanyAuth(c)
+	if !ok {
+		return
+	}
+
+	company, err := h.authRepo.GetCompanyByID(authCtx.CompanyID)
+	if err != nil {
+		if errors.Is(err, postgres.ErrCompanyNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "company not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load company"})
+		return
+	}
+	if company.StripeCustomerID == nil || *company.StripeCustomerID == "" {
+		c.JSON(http.StatusConflict, gin.H{"error": "billing customer is not configured for this company"})
+		return
+	}
+
+	returnURL := h.portalReturnURL
+	if returnURL == "" {
+		returnURL = h.successURL
+	}
+
+	portalSession, err := h.stripeService.CreateBillingPortalSession(services.CreateBillingPortalSessionRequest{
+		CustomerID: *company.StripeCustomerID,
+		ReturnURL:  returnURL,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("failed to create billing portal session: %v", err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"session_id": portalSession.ID,
+		"url":        portalSession.URL,
 	})
 }
 
@@ -308,6 +439,10 @@ func (h *BillingHandler) activateCompanyFromCheckoutSession(session *services.Ch
 		return nil
 	}
 
+	if companyID, err := companyIDFromSession(session); err == nil {
+		return h.activateExistingCompanyFromCheckoutSession(companyID, session)
+	}
+
 	pendingID, err := pendingRegistrationIDFromSession(session)
 	if err != nil {
 		return err
@@ -340,6 +475,42 @@ func (h *BillingHandler) activateCompanyFromCheckoutSession(session *services.Ch
 	}
 
 	return h.activateCompanyFromPendingSubscription(pending, subscription, session.ID)
+}
+
+func (h *BillingHandler) activateExistingCompanyFromCheckoutSession(companyID uuid.UUID, session *services.CheckoutSession) error {
+	if session == nil {
+		return fmt.Errorf("checkout session is required")
+	}
+	if companyID == uuid.Nil {
+		return fmt.Errorf("company ID is required")
+	}
+	if session.SubscriptionID == "" {
+		return nil
+	}
+
+	company, err := h.authRepo.GetCompanyByID(companyID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch company for existing-company checkout activation: %w", err)
+	}
+
+	subscription, err := h.stripeService.GetSubscription(session.SubscriptionID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch stripe subscription: %w", err)
+	}
+
+	applySubscriptionToCompany(company, subscription)
+	if session.CustomerID != "" {
+		customerID := session.CustomerID
+		company.StripeCustomerID = &customerID
+	}
+	subscriptionID := session.SubscriptionID
+	company.StripeSubscriptionID = &subscriptionID
+
+	if err := h.authRepo.UpdateCompany(company); err != nil {
+		return fmt.Errorf("failed to persist company subscription: %w", err)
+	}
+
+	return nil
 }
 
 func (h *BillingHandler) syncCompanyFromSubscription(subscription *services.Subscription) error {
@@ -495,6 +666,34 @@ func isStripeSubscriptionActive(status string) bool {
 	default:
 		return false
 	}
+}
+
+func (h *BillingHandler) requireCompanyAuth(c *gin.Context) (*auth.Context, bool) {
+	authCtx, ok := middleware.RequireAuth(c)
+	if !ok {
+		return nil, false
+	}
+	if authCtx.IsStaff() || !strings.EqualFold(authCtx.Role, "company") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "company authentication required"})
+		c.Abort()
+		return nil, false
+	}
+	return authCtx, true
+}
+
+func companyIDFromSession(session *services.CheckoutSession) (uuid.UUID, error) {
+	if session == nil {
+		return uuid.Nil, fmt.Errorf("session is required")
+	}
+
+	if companyIDRaw, ok := session.Metadata["company_id"]; ok && companyIDRaw != "" {
+		companyID, err := uuid.Parse(companyIDRaw)
+		if err == nil {
+			return companyID, nil
+		}
+	}
+
+	return uuid.Nil, fmt.Errorf("company ID not found in checkout session")
 }
 
 func pendingRegistrationIDFromSession(session *services.CheckoutSession) (uuid.UUID, error) {

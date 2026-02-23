@@ -57,12 +57,13 @@ type CORSConfig struct {
 
 // StripeConfig holds Stripe billing configuration.
 type StripeConfig struct {
-	SecretKey      string
-	WebhookSecret  string
-	MonthlyPriceID string
-	YearlyPriceID  string
-	SuccessURL     string
-	CancelURL      string
+	SecretKey       string
+	WebhookSecret   string
+	MonthlyPriceID  string
+	YearlyPriceID   string
+	SuccessURL      string
+	CancelURL       string
+	PortalReturnURL string
 }
 
 // CleanupConfig holds background data-retention job settings.
@@ -109,12 +110,13 @@ func Load() *Config {
 			Origin: getEnv("CORS_ORIGIN", "http://localhost:3000"),
 		},
 		Stripe: StripeConfig{
-			SecretKey:      getEnv("STRIPE_SECRET_KEY", ""),
-			WebhookSecret:  getEnv("STRIPE_WEBHOOK_SECRET", ""),
-			MonthlyPriceID: getEnv("STRIPE_PRICE_MONTHLY", ""),
-			YearlyPriceID:  getEnv("STRIPE_PRICE_YEARLY", ""),
-			SuccessURL:     getEnv("STRIPE_SUCCESS_URL", ""),
-			CancelURL:      getEnv("STRIPE_CANCEL_URL", ""),
+			SecretKey:       getEnv("STRIPE_SECRET_KEY", ""),
+			WebhookSecret:   getEnv("STRIPE_WEBHOOK_SECRET", ""),
+			MonthlyPriceID:  getEnv("STRIPE_PRICE_MONTHLY", ""),
+			YearlyPriceID:   getEnv("STRIPE_PRICE_YEARLY", ""),
+			SuccessURL:      getEnv("STRIPE_SUCCESS_URL", ""),
+			CancelURL:       getEnv("STRIPE_CANCEL_URL", ""),
+			PortalReturnURL: getEnv("STRIPE_PORTAL_RETURN_URL", ""),
 		},
 		Cleanup: CleanupConfig{
 			PendingRegistrationEnabled:   getEnvBool("PENDING_REGISTRATION_CLEANUP_ENABLED", true),

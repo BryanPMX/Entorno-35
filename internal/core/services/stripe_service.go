@@ -38,11 +38,24 @@ type StripeServiceConfig struct {
 // CreateCheckoutSessionRequest represents a Stripe checkout creation request.
 type CreateCheckoutSessionRequest struct {
 	PriceID           string
+	CustomerID        string
 	CustomerEmail     string
 	SuccessURL        string
 	CancelURL         string
 	ClientReferenceID string
 	Metadata          map[string]string
+}
+
+// CreateBillingPortalSessionRequest represents a Stripe Billing Portal session creation request.
+type CreateBillingPortalSessionRequest struct {
+	CustomerID string
+	ReturnURL  string
+}
+
+// BillingPortalSession represents a normalized Stripe Billing Portal session.
+type BillingPortalSession struct {
+	ID  string
+	URL string
 }
 
 // CheckoutSession represents a normalized Stripe checkout session.
@@ -149,6 +162,9 @@ func (s *StripeService) CreateCheckoutSession(req CreateCheckoutSessionRequest) 
 	if req.CustomerEmail != "" {
 		values.Set("customer_email", req.CustomerEmail)
 	}
+	if req.CustomerID != "" {
+		values.Set("customer", req.CustomerID)
+	}
 	if req.ClientReferenceID != "" {
 		values.Set("client_reference_id", req.ClientReferenceID)
 	}
@@ -211,6 +227,40 @@ func (s *StripeService) GetSubscription(subscriptionID string) (*Subscription, e
 	}
 
 	return stripeSubscription.normalize(), nil
+}
+
+// CreateBillingPortalSession creates a Stripe Billing Portal session for an existing customer.
+func (s *StripeService) CreateBillingPortalSession(req CreateBillingPortalSessionRequest) (*BillingPortalSession, error) {
+	if s.cfg.SecretKey == "" {
+		return nil, ErrStripeNotConfigured
+	}
+	if strings.TrimSpace(req.CustomerID) == "" {
+		return nil, fmt.Errorf("customer ID is required")
+	}
+
+	values := url.Values{}
+	values.Set("customer", req.CustomerID)
+	if strings.TrimSpace(req.ReturnURL) != "" {
+		values.Set("return_url", req.ReturnURL)
+	}
+
+	body, err := s.doFormRequest(http.MethodPost, "/v1/billing_portal/sessions", values)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		ID  string `json:"id"`
+		URL string `json:"url"`
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to decode stripe billing portal session: %w", err)
+	}
+
+	return &BillingPortalSession{
+		ID:  response.ID,
+		URL: response.URL,
+	}, nil
 }
 
 // ParseWebhookEvent validates the webhook signature and decodes the event payload.

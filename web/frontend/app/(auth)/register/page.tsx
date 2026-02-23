@@ -8,12 +8,38 @@ import { useSearchParams } from "next/navigation";
 type FeedbackState = {
   type: "error" | "info";
   message: string;
+  code?: "duplicate_company";
 } | null;
 
 type PlanType = "monthly" | "yearly";
 
 function isPlan(value: string | null): value is PlanType {
   return value === "monthly" || value === "yearly";
+}
+
+function mapCheckoutErrorToFeedback(error: unknown): FeedbackState {
+  const fallbackMessage = "Unable to start checkout. Please verify your details and try again.";
+  const apiMessage =
+    typeof error === "object" && error && "response" in error
+      ? ((error as { response?: { data?: { error?: string } } }).response?.data?.error ?? fallbackMessage)
+      : fallbackMessage;
+
+  const normalizedMessage = apiMessage.toLowerCase();
+  if (
+    normalizedMessage.includes("company already exists") ||
+    normalizedMessage.includes("company already has an active subscription")
+  ) {
+    return {
+      type: "error",
+      code: "duplicate_company",
+      message: "Esta empresa ya existe. Inicia sesion para reactivar o administrar facturacion.",
+    };
+  }
+
+  return {
+    type: "error",
+    message: apiMessage,
+  };
 }
 
 function RegisterPageContent() {
@@ -89,16 +115,7 @@ function RegisterPageContent() {
 
       window.location.assign(response.checkout_url);
     } catch (error: unknown) {
-      const fallbackMessage = "Unable to start checkout. Please verify your details and try again.";
-      const message =
-        typeof error === "object" && error && "response" in error
-          ? ((error as { response?: { data?: { error?: string } } }).response?.data?.error ?? fallbackMessage)
-          : fallbackMessage;
-
-      setFeedback({
-        type: "error",
-        message,
-      });
+      setFeedback(mapCheckoutErrorToFeedback(error));
       setIsSubmitting(false);
     }
   };
@@ -305,15 +322,31 @@ function RegisterPageContent() {
               </form>
 
               {feedback ? (
-                <p
+                <div
                   className={
                     feedback.type === "info"
-                      ? "rounded-lg border border-blue-300/50 bg-blue-500/10 px-3 py-2 text-xs text-blue-900"
-                      : "rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+                      ? "space-y-2 rounded-lg border border-blue-300/50 bg-blue-500/10 px-3 py-2 text-xs text-blue-900"
+                      : "space-y-2 rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive"
                   }
                 >
-                  {feedback.message}
-                </p>
+                  <p>{feedback.message}</p>
+                  {feedback.code === "duplicate_company" ? (
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href="/login"
+                        className="inline-flex items-center rounded-md border border-current/30 px-2.5 py-1 font-medium hover:bg-black/5"
+                      >
+                        Iniciar sesion
+                      </Link>
+                      <Link
+                        href="/dashboard/billing"
+                        className="inline-flex items-center rounded-md border border-current/30 px-2.5 py-1 font-medium hover:bg-black/5"
+                      >
+                        Administrar facturacion
+                      </Link>
+                    </div>
+                  ) : null}
+                </div>
               ) : null}
 
               <p className="text-center text-xs text-muted-foreground">

@@ -46,6 +46,7 @@ export const translations = {
     dashboard: "Panel de Control",
     staff: "Personal",
     assessments: "Evaluaciones",
+    billing: "Facturacion",
     reports: "Reportes",
     settings: "Configuracion",
     logout: "Cerrar Sesion",
@@ -95,6 +96,22 @@ export const translations = {
     riskByExperienceDesc: "Distribucion de niveles de riesgo segun los años de experiencia laboral",
     riskByMaritalStatus: "Riesgo por Estado Civil",
     riskByMaritalStatusDesc: "Distribucion de niveles de riesgo segun el estado civil del personal",
+  },
+
+  billing: {
+    title: "Facturacion",
+    subtitle: "Administra tu suscripcion, plan y metodos de pago desde Stripe.",
+    portalTitle: "Portal de Facturacion",
+    portalDescription: "Actualiza tarjeta, consulta facturas, cancela o reanuda desde el portal seguro de Stripe.",
+    openPortal: "Abrir Portal de Stripe",
+    reactivationTitle: "Reactivar o Contratar Plan",
+    reactivationDescription: "Si tu suscripcion esta inactiva, inicia checkout para reactivar el acceso.",
+    monthlyAction: "Activar Plan Mensual",
+    yearlyAction: "Activar Plan Anual",
+    checkoutRedirect: "Redirigiendo a Stripe Checkout...",
+    portalRedirect: "Abriendo portal de Stripe...",
+    activePlanHint: "Si tu empresa ya tiene una suscripcion activa, usa el portal para administrar cambios.",
+    supportHint: "Si Stripe indica un conflicto de suscripcion, contacta soporte para revisar el estado actual.",
   },
 
   // Staff Management

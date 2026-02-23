@@ -78,6 +78,10 @@ func main() {
 	if stripeCancelURL == "" {
 		stripeCancelURL = defaultOrigin + "/register?canceled=1"
 	}
+	stripePortalReturnURL := cfg.Stripe.PortalReturnURL
+	if stripePortalReturnURL == "" {
+		stripePortalReturnURL = defaultOrigin
+	}
 	stripeService := services.NewStripeService(services.StripeServiceConfig{
 		SecretKey:      cfg.Stripe.SecretKey,
 		WebhookSecret:  cfg.Stripe.WebhookSecret,
@@ -143,7 +147,7 @@ func main() {
 	assessmentHandler := http.NewAssessmentHandler(assessmentService)
 	staffHandler := http.NewStaffHandler(staffService)
 	reportHandler := http.NewReportHandler(reportService)
-	billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, stripeService, stripeSuccessURL, stripeCancelURL)
+	billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, stripeService, stripeSuccessURL, stripeCancelURL, stripePortalReturnURL)
 
 	var checkoutRateLimitMiddleware gin.HandlerFunc
 	if cfg.RateLimit.CheckoutSessionEnabled {
@@ -252,6 +256,13 @@ func main() {
 			reports.GET("/individual/:assessment_id/pdf", reportHandler.GetIndividualReportPDF)
 			reports.GET("/general", reportHandler.GetGeneralReport)
 			reports.GET("/general/pdf", reportHandler.GetGeneralReportPDF)
+		}
+
+		// Authenticated billing endpoints for existing companies
+		apiBilling := api.Group("/billing")
+		{
+			apiBilling.POST("/checkout-session", checkoutRateLimitMiddleware, billingHandler.CreateExistingCompanyCheckoutSession)
+			apiBilling.POST("/customer-portal", billingHandler.CreateCustomerPortalSession)
 		}
 	}
 

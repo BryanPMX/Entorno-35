@@ -4,7 +4,7 @@ import "@/styles/tw-animate.css";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, LayoutDashboard, Users, FileText } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, FileText, CreditCard } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { AuthGuard } from "@/components/layout/auth-guard";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -48,6 +48,12 @@ export default function DashboardLayout({
       label: translations.nav.assessments,
       icon: FileText,
       isActive: pathname.startsWith("/dashboard/assessments"),
+    },
+    {
+      href: "/dashboard/billing",
+      label: translations.nav.billing,
+      icon: CreditCard,
+      isActive: pathname.startsWith("/dashboard/billing"),
     },
   ];
 

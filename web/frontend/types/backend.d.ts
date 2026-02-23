@@ -159,6 +159,15 @@ export interface CreateCheckoutSessionResponse {
   checkout_url: string;
 }
 
+export interface ExistingCompanyCheckoutSessionRequest {
+  plan: SubscriptionPlan;
+}
+
+export interface CreateCustomerPortalSessionResponse {
+  session_id: string;
+  url: string;
+}
+
 export interface VerifyCheckoutSessionResponse {
   session_id: string;
   session_status: string;
