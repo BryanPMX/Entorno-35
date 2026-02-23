@@ -23,6 +23,11 @@ NOM-035-STPS-2018 is a Mexican federal standard that requires employers to ident
 - CSV staff import with CURP validation
 - Mobile-responsive assessment interface with focus mode layout
 - Professional analytics dashboard with interactive visualizations
+- Paid subscription onboarding with Stripe Checkout (monthly/yearly) and webhook-based activation
+- Existing-company billing management (authenticated reactivation checkout + Stripe Billing Portal)
+- Pending registration lifecycle (pre-payment drafts only, company created after payment)
+- Webhook idempotency tracking and retry-safe processing
+- Public checkout abuse protection (rate limiting) and expired pending-registration cleanup worker
 - Unified NOM-35 visual design system (shared tokens for auth, portal, assessment, and marketing)
 - Centralized NOM-35 risk style registry (single source for labels, colors, and badge classes)
 - Frontend visual regression snapshots for critical surfaces (login, dashboard shell, assessment shell)
@@ -66,7 +71,7 @@ Entorno35/
 │   ├── app/              # Next.js App Router pages
 │   ├── components/       # React components
 │   ├── lib/              # Utilities and configurations (includes NOM-35 risk style registry)
-│   ├── services/         # API service layer
+│   ├── services/         # API service layer (auth, billing, staff, assessments, reports)
 │   └── types/            # TypeScript type definitions
 ├── docs/                 # Technical and operational documentation (see docs/README.md)
 ├── nom035_questions.json # NOM-035 question catalog
@@ -152,6 +157,15 @@ For more control over individual services:
    export STRIPE_WEBHOOK_SECRET=whsec_xxx
    export STRIPE_PRICE_MONTHLY=price_monthly_id
    export STRIPE_PRICE_YEARLY=price_yearly_id
+   export STRIPE_SUCCESS_URL=http://localhost:3000/register/success?session_id={CHECKOUT_SESSION_ID}
+   export STRIPE_CANCEL_URL=http://localhost:3000/register?canceled=1
+   export STRIPE_PORTAL_RETURN_URL=http://localhost:3000/dashboard
+   export PENDING_REGISTRATION_CLEANUP_ENABLED=true
+   export PENDING_REGISTRATION_CLEANUP_INTERVAL=1h
+   export PENDING_REGISTRATION_CLEANUP_RETENTION=168h
+   export CHECKOUT_RATE_LIMIT_ENABLED=true
+   export CHECKOUT_RATE_LIMIT_LIMIT=10
+   export CHECKOUT_RATE_LIMIT_WINDOW=15m
    ```
 
 5. **Seed the database with NOM-035 questions (required once)**  
@@ -183,10 +197,12 @@ For more control over individual services:
 
 After setup, create your first company account through the web interface, then:
 
-1. Import staff data via CSV upload
-2. Create assessment cycles
-3. Generate secure assessment links
-4. Monitor completion and view reports
+1. Create the company account and complete Stripe Checkout (company access activates after payment confirmation)
+2. Log in with company RFC + password
+3. Use `Dashboard > Facturacion` to open Stripe Billing Portal or reactivate billing if needed
+4. Import staff data via CSV upload
+5. Create assessment cycles and generate secure assessment links
+6. Monitor completion and view reports
 
 ### For Staff
 
@@ -220,7 +236,29 @@ npm test            # Run test suite
 
 ### Environment Configuration
 
-Production uses **Portainer stack environment variables** only; no `.env` files on the server. Required backend vars are listed in `docker-compose.prod.yml` (e.g. `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, `REDIS_HOST`, `SMTP_*`, `STRIPE_*`). Set them in Portainer when creating or editing the stack. Never commit `.env` or `.env.stripe` (they are in `.gitignore`).
+Production uses **Portainer stack environment variables** only; no `.env` files on the server. Required backend vars are listed in `docker-compose.prod.yml` (e.g. `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, `REDIS_HOST`, `SMTP_*`, `STRIPE_*`, cleanup and checkout rate-limit vars). Set them in Portainer when creating or editing the stack. Never commit `.env` or `.env.stripe` (they are in `.gitignore`).
+
+## Billing Architecture (Current)
+
+### New company onboarding (public)
+
+1. `POST /billing/checkout-session` validates registration and creates/updates a `pending_company_registrations` draft.
+2. Stripe Checkout collects payment.
+3. `POST /billing/webhook` (idempotent) processes Stripe events.
+4. The real `companies` row is created only after successful payment/subscription activation.
+5. `GET /billing/checkout-session/:id/verify` confirms status for the registration success page.
+
+### Existing company billing management (authenticated)
+
+- `POST /api/v1/billing/checkout-session`: reactivation/new managed checkout for the logged-in company
+- `POST /api/v1/billing/customer-portal`: opens Stripe Billing Portal for the logged-in company
+
+### Operational safeguards
+
+- Webhook idempotency persisted in `stripe_webhook_events`
+- Async activation fallback from subscription webhooks
+- Expired pending registration cleanup worker
+- Checkout rate limiting on public and authenticated checkout creation endpoints
 
 ### Testing
 
@@ -249,8 +287,8 @@ All substantive documentation (API, deployment, scoring, CSV import, SMTP) lives
 
 Key documents:
 
-- **API and integration**: [docs/API_REFERENCE.md](docs/API_REFERENCE.md) – REST endpoints, request/response formats, auth.
-- **Scoring**: [docs/SCORING.md](docs/SCORING.md) – NOM-035 polarity rules, risk thresholds, domain grouping.
+- **API and integration**: [docs/API_REFERENCE.md](docs/API_REFERENCE.md) – REST endpoints, request/response formats, auth, billing.
+- **Scoring**: [docs/Scoring.md](docs/Scoring.md) – NOM-035 polarity rules, risk thresholds, domain grouping.
 - **Deployment**: [docs/CI_CD.md](docs/CI_CD.md) – Vercel, Portainer, Cloudflare, required secrets.
 - **Email**: [docs/SMTP_CONFIGURATION.md](docs/SMTP_CONFIGURATION.md) – SMTP and provider setup.
 

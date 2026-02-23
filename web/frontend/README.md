@@ -1,6 +1,6 @@
 # Entorno35 Frontend
 
-Next.js 16 frontend for the Entorno35 NOM-035 Compliance Platform. Designed to run as a self-hosted application: you build and serve the static assets and point the API URL at your own backend.
+Next.js 16 frontend for the Entorno35 NOM-035 Compliance Platform. It supports both public paid onboarding (Stripe Checkout registration) and authenticated company operations (dashboard, billing management, staff, assessments, reports).
 
 For API reference, deployment (Vercel, Portainer), and platform documentation, see the root [docs/README.md](../../docs/README.md).
 
@@ -13,8 +13,8 @@ web/frontend/
 │   ├── page.tsx                # Marketing home
 │   ├── globals.css             # Global styles and theme
 │   ├── (auth)/                 # Auth routes
-│   │   └── login/page.tsx      # Company login (RFC)
-│   │   └── register/           # Registration + Stripe checkout confirmation
+│   │   └── login/page.tsx      # Company login (RFC + password)
+│   │   └── register/           # Paid registration + Stripe checkout confirmation
 │   ├── (marketing)/layout.tsx  # Marketing layout wrapper
 │   ├── (public)/assessment/    # Public assessment by token
 │   │   └── [token]/            # Token-based assessment flow
@@ -22,6 +22,7 @@ web/frontend/
 │   │   ├── layout.tsx          # Dashboard layout and nav
 │   │   ├── page.tsx            # Dashboard home
 │   │   ├── assessments/        # Assessment list and report
+│   │   ├── billing/            # Billing management (Stripe portal + reactivation checkout)
 │   │   └── staff/page.tsx      # Staff management
 │   └── debug/connection/       # API connection check
 ├── components/
@@ -43,6 +44,7 @@ web/frontend/
 ├── services/                   # API service layer
 │   ├── auth.service.ts
 │   ├── assessment.service.ts
+│   ├── billing.service.ts
 │   ├── staff.service.ts
 │   └── report.service.ts
 ├── types/
@@ -121,8 +123,10 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 
 ### Billing (`services/billing.service.ts`)
 
-- `billingService.createCheckoutSession(payload)` — creates Stripe checkout session for paid registration
-- `billingService.verifyCheckoutSession(sessionId)` — confirms payment and account activation
+- `billingService.createCheckoutSession(payload)` — creates Stripe checkout session for paid company registration (public route)
+- `billingService.verifyCheckoutSession(sessionId)` — confirms payment and account activation after checkout
+- `billingService.createExistingCompanyCheckoutSession({ plan })` — authenticated reactivation/plan checkout for existing company
+- `billingService.createCustomerPortalSession()` — authenticated Stripe Billing Portal session for existing company
 
 ### Staff (`services/staff.service.ts`)
 
@@ -143,7 +147,7 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 
 ## Type Definitions
 
-`types/backend.d.ts` defines domain and API types aligned with the Go backend: `Company`, `Staff`, `Assessment`, `AuthResponse`, `PaginatedResponse<T>`, enums such as `RiskLevel`, `AssessmentStatus`, etc.
+`types/backend.d.ts` defines domain and API types aligned with the Go backend: `Company`, `Staff`, `Assessment`, `AuthResponse`, billing checkout and portal response types, `PaginatedResponse<T>`, enums such as `RiskLevel`, `AssessmentStatus`, etc.
 
 ## Scripts
 
@@ -169,7 +173,7 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 ## Development Phases (Completed)
 
 - **Architecture and service layer**: Next.js setup, types, Axios interceptors, TanStack Query, service pattern.
-- **Authentication UI**: Login (company RFC + password), Stripe registration flow, Zustand auth store, AuthGuard, dashboard layout.
+- **Authentication and billing UI**: Login (company RFC + password), Stripe paid registration flow, duplicate-RFC guidance to sign-in/billing management, Zustand auth store, AuthGuard, dashboard layout, company billing page (`/dashboard/billing`).
 - **Staff management**: Staff table (pagination, sort, filter), CSV upload (drag-and-drop, progress, errors), CRUD dialogs, template download.
 - **Dashboard and analytics**: Metrics, risk distribution chart, department heatmap, assessment wizard, empty states, responsive layout.
 - **Public assessment**: Token-based assessment UI, form navigation, progress, mobile-friendly, completion screen.
@@ -180,9 +184,12 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 - **Risk style consolidation (2026-02-16)**: Centralized risk-level registry for color/label/badge mapping via `lib/nom35-risk.ts`.
 - **Visual regression baseline (2026-02-16)**: Snapshot coverage added for key shells to prevent style drift.
 
-## Current Status (February 16, 2026)
+## Current Status (February 23, 2026)
 
 - Frontend compiles for production and passes all configured tests.
+- Billing management UI is implemented for existing companies:
+  - Stripe Billing Portal launch
+  - Reactivation/new checkout launch for authenticated company accounts
 - Verified commands:
   - `npm run lint`
   - `npm run test -- --run`

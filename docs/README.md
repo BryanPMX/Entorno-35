@@ -17,16 +17,16 @@ This directory contains all substantive technical and operational documentation 
 | docs/ | README.md (this file) | Documentation index |
 | docs/ | CI_CD.md | Deployment (Vercel, Portainer, Cloudflare) |
 | docs/ | API_REFERENCE.md | REST API reference |
-| docs/ | SCORING.md | NOM-035 scoring rules and thresholds |
+| docs/ | Scoring.md | NOM-035 scoring rules and thresholds |
 | docs/ | SMTP_CONFIGURATION.md | Email configuration |
 
 Package READMEs under `cmd/`, `internal/`, `pkg/`, `migrations/`, `tests/`, `web/frontend/` are for code navigation only; they are not part of the docs set above.
 
 ---
 
-## Current Status Snapshot (February 16, 2026)
+## Current Status Snapshot (February 23, 2026)
 
-- Project state is production-ready for the currently implemented feature set.
+- Project state is production-ready for the currently implemented feature set, including paid company onboarding and billing management.
 - Frontend architecture now includes:
   - Shared visual token system in `web/frontend/app/globals.css` for consistent brand surfaces.
   - Centralized NOM-35 risk style registry in `web/frontend/lib/nom35-risk.ts` for charts, reports, and badges.
@@ -40,6 +40,7 @@ For the most current setup and status details:
 
 - Root project status: [README.md](../README.md)
 - Frontend implementation status: [web/frontend/README.md](../web/frontend/README.md)
+- Backend/package architecture and billing adapters: [internal/README.md](../internal/README.md), [internal/adapters/http/README.md](../internal/adapters/http/README.md)
 
 ---
 
@@ -48,8 +49,8 @@ For the most current setup and status details:
 | Document | Description |
 |----------|-------------|
 | [CI_CD.md](CI_CD.md) | Continuous integration and deployment: Vercel (frontend), GitHub Actions, Portainer (backend), Cloudflare. Production branch, required secrets, and step-by-step Portainer and Cloudflare checks. |
-| [API_REFERENCE.md](API_REFERENCE.md) | REST API reference: authentication, staff, assessments, scoring, and reports. Request/response formats, status codes, and query parameters. |
-| [SCORING.md](SCORING.md) | NOM-035 scoring implementation: polarity rules (Guide II and III), risk level thresholds, domain grouping, and verified mapping to the official NOM-035-STPS-2018 document. |
+| [API_REFERENCE.md](API_REFERENCE.md) | REST API reference: authentication, billing (Stripe checkout/webhooks/verification and company billing management), staff, assessments, scoring, and reports. |
+| [Scoring.md](Scoring.md) | NOM-035 scoring implementation: polarity rules (Guide II and III), risk level thresholds, domain grouping, and verified mapping to the official NOM-035-STPS-2018 document. |
 | [SMTP_CONFIGURATION.md](SMTP_CONFIGURATION.md) | Email configuration for assessment invitations: required env vars, Gmail and SendGrid setup, production providers, and troubleshooting. |
 
 ---
@@ -65,7 +66,7 @@ For the most current setup and status details:
 **Integrating with the API**
 
 - Use [API_REFERENCE.md](API_REFERENCE.md) for endpoints, payloads, and auth.
-- Use [SCORING.md](SCORING.md) if you need risk level calculation or domain logic.
+- Use [Scoring.md](Scoring.md) if you need risk level calculation or domain logic.
 
 **Configuring email**
 

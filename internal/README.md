@@ -25,13 +25,13 @@ internal/
 ## Package Overview
 
 ### adapters/
-External adapters implementing ports defined in `core/ports/`. Includes HTTP handlers and database repositories.
+External adapters implementing ports defined in `core/ports/`. Includes HTTP handlers and database repositories, including Stripe billing onboarding/webhook orchestration and billing persistence state.
 
 ### auth/
 Authentication context structures and helper functions for managing authenticated user sessions.
 
 ### config/
-Configuration management for loading environment variables and providing structured access to application settings.
+Configuration management for loading environment variables and providing structured access to application settings, including Stripe billing, cleanup jobs, and rate limiting.
 
 ### core/
 Core business logic including:
@@ -47,8 +47,7 @@ Database connection utilities and migration helpers.
 GORM domain models representing the business entities (Company, Staff, Assessment, Question, etc.).
 
 ### middleware/
-HTTP middleware for authentication, authorization, and multi-tenant isolation.
+HTTP middleware for authentication, authorization, multi-tenant isolation, and public checkout rate limiting.
 
 ### core/services/
-Business logic services that orchestrate repositories and core logic. See `core/README.md` for details.
-
+Business logic services that orchestrate repositories and core logic. Includes Stripe API integration and pending-registration cleanup worker. See `core/README.md` for details.

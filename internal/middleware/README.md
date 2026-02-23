@@ -42,6 +42,26 @@ router.Use(middleware.TenantMiddleware())
 - `RequireCompanyID(c *gin.Context) (uuid.UUID, bool)` - Extract company ID (aborts if missing)
 - `RequireStaffID(c *gin.Context) (uuid.UUID, bool)` - Extract staff ID (aborts if missing)
 
+### CheckoutSessionRateLimitMiddleware
+
+Applies IP-based in-memory fixed-window rate limiting to Stripe checkout session creation endpoints.
+
+**Current usage:**
+
+- `POST /billing/checkout-session` (public registration)
+- `POST /api/v1/billing/checkout-session` (authenticated existing-company billing)
+
+**Behavior:**
+
+- Returns `429 Too Many Requests`
+- Includes `Retry-After` header
+- Configured via env vars:
+  - `CHECKOUT_RATE_LIMIT_ENABLED`
+  - `CHECKOUT_RATE_LIMIT_LIMIT`
+  - `CHECKOUT_RATE_LIMIT_WINDOW`
+
+**Note:** This limiter is process-local (single API instance). For multi-replica deployments, replace with a Redis-backed distributed limiter.
+
 ## Design Principles
 
 - **High Cohesion**: HTTP middleware concerns only

@@ -10,7 +10,7 @@ core/
 ├── password/         # Password hashing service
 ├── ports/            # Port interfaces (hexagonal architecture)
 ├── scoring/          # NOM-035 scoring logic
-└── services/         # Business logic services
+└── services/         # Business logic services (assessment, reporting, Stripe, cleanup)
 ```
 
 ## Design Principles
@@ -41,3 +41,8 @@ NOM-035 scoring logic including:
 ### services/
 Business logic services that orchestrate repositories and core logic. These services implement use cases and coordinate between different layers.
 
+Current notable services include:
+
+- `assessment_service.go` / `staff_service.go` / `report_service.go`
+- `stripe_service.go` (Stripe Checkout, subscription fetch, webhook signature verification, Billing Portal sessions)
+- `pending_registration_cleanup_service.go` (background cleanup for expired unpaid registration drafts)

@@ -12,8 +12,8 @@ HTTP and database adapters following Hexagonal Architecture (Ports & Adapters pa
 
 ```
 internal/adapters/
-├── http/           # HTTP adapters (handlers, request/response DTOs)
-└── postgres/       # PostgreSQL adapters (repository implementations)
+├── http/           # HTTP adapters (handlers, request/response DTOs, billing endpoints)
+└── postgres/       # PostgreSQL adapters (repository implementations, billing state/idempotency)
 ```
 
 ## Components
@@ -23,6 +23,9 @@ internal/adapters/
 - **AuthHandler**: Handles authentication HTTP requests
   - Login endpoint
   - Request/Response DTOs
+- **BillingHandler**: Handles Stripe billing flows
+  - Public registration checkout/webhook/verification
+  - Authenticated existing-company checkout and customer portal
 
 ### Postgres Adapters (`internal/adapters/postgres`)
 
@@ -30,6 +33,8 @@ internal/adapters/
   - Company lookup by RFC
   - Staff lookup by CURP
   - Subscription status validation
+- **PendingRegistrationRepository**: Pre-payment registration drafts and cleanup operations
+- **StripeWebhookEventRepository**: Webhook idempotency persistence
 
 ## Usage
 
@@ -39,14 +44,15 @@ Adapters are initialized in `cmd/api/main.go` and wired to business logic servic
 // Initialize repository (adapter)
 authRepo := postgres.NewAuthRepository(db)
 
-// Initialize handler (adapter)
+// Initialize handlers (adapters)
 authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
+billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, stripeService, successURL, cancelURL, portalReturnURL)
 
 // Register routes
 router.POST("/auth/login", authHandler.Login)
+router.POST("/billing/checkout-session", billingHandler.CreateCheckoutSession)
 ```
 
 ## Error Handling
 
-Repository errors are defined in the adapter package and re-exported through the ports package to maintain low coupling.
-
+Repository errors are defined in adapter packages (for example `internal/adapters/postgres`) and are handled explicitly by callers where semantic branching is required.

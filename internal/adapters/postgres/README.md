@@ -14,6 +14,23 @@ Implements the Repository Pattern to abstract data persistence concerns from bus
 - **assessment_repo.go**: Assessment lifecycle and response management
 - **response_repo.go**: Assessment response persistence
 - **report_repo.go**: Report generation with dynamic scoring calculations
+- **pending_registration_repo.go**: Pre-payment registration drafts (`pending_company_registrations`)
+- **stripe_webhook_event_repo.go**: Stripe webhook idempotency and retry tracking (`stripe_webhook_events`)
+
+## Billing Persistence Responsibilities
+
+The billing implementation now uses PostgreSQL adapters for production-safe state handling:
+
+- `pending_registration_repo.go`
+  - Upserts/reuses incomplete pending registrations by RFC
+  - Links pending rows to Stripe checkout/subscription/customer identifiers
+  - Resolves pending registrations by Stripe subscription ID (async activation fallback)
+  - Deletes expired incomplete drafts for cleanup worker
+
+- `stripe_webhook_event_repo.go`
+  - Stores Stripe `event.id`
+  - Ensures idempotent webhook processing with retry-safe updates
+  - Tracks status (`processing`, `processed`, `failed`) and attempt counts
 
 ## Testing Strategy
 
@@ -88,6 +105,14 @@ var (
 ## Database Migrations
 
 Schema migrations are managed separately in `/migrations` directory. Repositories assume the schema is already migrated.
+
+Important billing migrations:
+
+- `004_add_company_billing_and_admin_fields.*.sql`
+- `005_add_pending_company_registrations.*.sql`
+- `006_add_stripe_webhook_events.*.sql`
+
+Note: GORM `AutoMigrate` may create tables and basic indexes, but SQL migrations are still required for SQL-only constraints/triggers (for example the partial unique index on open pending registrations and `updated_at` triggers).
 
 ## GORM Configuration
 
