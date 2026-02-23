@@ -145,6 +145,27 @@ func main() {
 	reportHandler := http.NewReportHandler(reportService)
 	billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, stripeService, stripeSuccessURL, stripeCancelURL)
 
+	var checkoutRateLimitMiddleware gin.HandlerFunc
+	if cfg.RateLimit.CheckoutSessionEnabled {
+		checkoutWindow, err := time.ParseDuration(cfg.RateLimit.CheckoutSessionWindow)
+		if err != nil {
+			log.Fatalf("Invalid CHECKOUT_RATE_LIMIT_WINDOW '%s': %v", cfg.RateLimit.CheckoutSessionWindow, err)
+		}
+		if cfg.RateLimit.CheckoutSessionLimit <= 0 {
+			log.Fatalf("CHECKOUT_RATE_LIMIT_LIMIT must be > 0")
+		}
+		if checkoutWindow <= 0 {
+			log.Fatalf("CHECKOUT_RATE_LIMIT_WINDOW must be > 0")
+		}
+
+		checkoutLimiter := middleware.NewFixedWindowRateLimiter(cfg.RateLimit.CheckoutSessionLimit, checkoutWindow)
+		checkoutRateLimitMiddleware = middleware.CheckoutSessionRateLimitMiddleware(checkoutLimiter)
+		log.Printf("Checkout rate limiting enabled (limit=%d, window=%s)", cfg.RateLimit.CheckoutSessionLimit, checkoutWindow)
+	} else {
+		checkoutRateLimitMiddleware = func(c *gin.Context) { c.Next() }
+		log.Println("Checkout rate limiting disabled")
+	}
+
 	// Initialize router with custom middleware (avoid double CORS)
 	router := gin.New()
 
@@ -182,7 +203,7 @@ func main() {
 	// Billing endpoints (public for checkout + webhook)
 	billing := router.Group("/billing")
 	{
-		billing.POST("/checkout-session", billingHandler.CreateCheckoutSession)
+		billing.POST("/checkout-session", checkoutRateLimitMiddleware, billingHandler.CreateCheckoutSession)
 		billing.POST("/webhook", billingHandler.HandleWebhook)
 		billing.GET("/checkout-session/:id/verify", billingHandler.VerifyCheckoutSession)
 	}

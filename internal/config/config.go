@@ -9,13 +9,14 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	App      AppConfig
-	Database DatabaseConfig
-	Redis    RedisConfig
-	JWT      JWTConfig
-	CORS     CORSConfig
-	Stripe   StripeConfig
-	Cleanup  CleanupConfig
+	App       AppConfig
+	Database  DatabaseConfig
+	Redis     RedisConfig
+	JWT       JWTConfig
+	CORS      CORSConfig
+	Stripe    StripeConfig
+	Cleanup   CleanupConfig
+	RateLimit RateLimitConfig
 }
 
 // AppConfig holds application-level configuration
@@ -71,6 +72,13 @@ type CleanupConfig struct {
 	PendingRegistrationRetention string
 }
 
+// RateLimitConfig holds public endpoint abuse-protection settings.
+type RateLimitConfig struct {
+	CheckoutSessionEnabled bool
+	CheckoutSessionLimit   int
+	CheckoutSessionWindow  string
+}
+
 // Load loads configuration from environment variables
 func Load() *Config {
 	return &Config{
@@ -112,6 +120,11 @@ func Load() *Config {
 			PendingRegistrationEnabled:   getEnvBool("PENDING_REGISTRATION_CLEANUP_ENABLED", true),
 			PendingRegistrationInterval:  getEnv("PENDING_REGISTRATION_CLEANUP_INTERVAL", "1h"),
 			PendingRegistrationRetention: getEnv("PENDING_REGISTRATION_CLEANUP_RETENTION", "168h"),
+		},
+		RateLimit: RateLimitConfig{
+			CheckoutSessionEnabled: getEnvBool("CHECKOUT_RATE_LIMIT_ENABLED", true),
+			CheckoutSessionLimit:   getEnvInt("CHECKOUT_RATE_LIMIT_LIMIT", 10),
+			CheckoutSessionWindow:  getEnv("CHECKOUT_RATE_LIMIT_WINDOW", "15m"),
 		},
 	}
 }
@@ -175,6 +188,18 @@ func getEnvBool(key string, defaultValue bool) bool {
 		return defaultValue
 	}
 	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return defaultValue
+	}
+	return parsed
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	parsed, err := strconv.Atoi(value)
 	if err != nil {
 		return defaultValue
 	}
