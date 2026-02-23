@@ -113,6 +113,30 @@ func main() {
 	staffService := services.NewStaffService(staffRepo)
 	reportService := services.NewReportService(reportRepo)
 
+	if cfg.Cleanup.PendingRegistrationEnabled {
+		cleanupInterval, err := time.ParseDuration(cfg.Cleanup.PendingRegistrationInterval)
+		if err != nil {
+			log.Fatalf("Invalid PENDING_REGISTRATION_CLEANUP_INTERVAL '%s': %v", cfg.Cleanup.PendingRegistrationInterval, err)
+		}
+		cleanupRetention, err := time.ParseDuration(cfg.Cleanup.PendingRegistrationRetention)
+		if err != nil {
+			log.Fatalf("Invalid PENDING_REGISTRATION_CLEANUP_RETENTION '%s': %v", cfg.Cleanup.PendingRegistrationRetention, err)
+		}
+		if cleanupInterval <= 0 {
+			log.Fatalf("PENDING_REGISTRATION_CLEANUP_INTERVAL must be > 0")
+		}
+		if cleanupRetention < 0 {
+			log.Fatalf("PENDING_REGISTRATION_CLEANUP_RETENTION must be >= 0")
+		}
+
+		cleanupService := services.NewPendingRegistrationCleanupService(pendingRegistrationRepo, cleanupInterval, cleanupRetention)
+		stopCleanup := cleanupService.Start()
+		defer stopCleanup()
+		log.Printf("Pending registration cleanup enabled (interval=%s, retention=%s)", cleanupInterval, cleanupRetention)
+	} else {
+		log.Println("Pending registration cleanup disabled")
+	}
+
 	// Initialize handlers
 	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
 	scoringHandler := http.NewScoringHandler(scoringService)

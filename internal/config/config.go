@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 )
 
 // Config holds all configuration for the application
@@ -14,6 +15,7 @@ type Config struct {
 	JWT      JWTConfig
 	CORS     CORSConfig
 	Stripe   StripeConfig
+	Cleanup  CleanupConfig
 }
 
 // AppConfig holds application-level configuration
@@ -62,6 +64,13 @@ type StripeConfig struct {
 	CancelURL      string
 }
 
+// CleanupConfig holds background data-retention job settings.
+type CleanupConfig struct {
+	PendingRegistrationEnabled   bool
+	PendingRegistrationInterval  string
+	PendingRegistrationRetention string
+}
+
 // Load loads configuration from environment variables
 func Load() *Config {
 	return &Config{
@@ -98,6 +107,11 @@ func Load() *Config {
 			YearlyPriceID:  getEnv("STRIPE_PRICE_YEARLY", ""),
 			SuccessURL:     getEnv("STRIPE_SUCCESS_URL", ""),
 			CancelURL:      getEnv("STRIPE_CANCEL_URL", ""),
+		},
+		Cleanup: CleanupConfig{
+			PendingRegistrationEnabled:   getEnvBool("PENDING_REGISTRATION_CLEANUP_ENABLED", true),
+			PendingRegistrationInterval:  getEnv("PENDING_REGISTRATION_CLEANUP_INTERVAL", "1h"),
+			PendingRegistrationRetention: getEnv("PENDING_REGISTRATION_CLEANUP_RETENTION", "168h"),
 		},
 	}
 }
@@ -153,4 +167,16 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func getEnvBool(key string, defaultValue bool) bool {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return defaultValue
+	}
+	return parsed
 }

@@ -63,6 +63,16 @@ func (r *pendingRegistrationRepository) GetByStripeSubscriptionID(subscriptionID
 	return &registration, nil
 }
 
+func (r *pendingRegistrationRepository) DeleteExpiredIncompleteBefore(cutoff time.Time) (int64, error) {
+	result := r.db.Unscoped().
+		Where("completed_at IS NULL AND expires_at < ?", cutoff.UTC()).
+		Delete(&domain.PendingCompanyRegistration{})
+	if result.Error != nil {
+		return 0, fmt.Errorf("failed to delete expired incomplete pending registrations: %w", result.Error)
+	}
+	return result.RowsAffected, nil
+}
+
 func (r *pendingRegistrationRepository) UpsertPending(registration *domain.PendingCompanyRegistration) error {
 	if registration == nil {
 		return fmt.Errorf("pending registration is required")
