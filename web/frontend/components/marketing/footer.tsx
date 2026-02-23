@@ -19,13 +19,13 @@ export function MarketingFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="mb-4 flex h-14 items-center overflow-hidden md:h-16">
               <Image
                 src="/footer-logo.png"
                 alt="Entorno 35"
                 width={1536}
                 height={1024}
-                className="h-16 w-auto object-contain md:h-20"
+                className="h-24 w-auto max-w-none object-contain md:h-28"
               />
             </div>
             <p className="text-white/70 mb-4 max-w-md">
