@@ -21,10 +21,10 @@ export function MarketingFooter() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Image
-                src="/logo.png"
+                src="/footer-logo.png"
                 alt="Entorno 35"
-                width={812}
-                height={293}
+                width={1536}
+                height={1024}
                 className="h-10 w-auto object-contain"
               />
             </div>
