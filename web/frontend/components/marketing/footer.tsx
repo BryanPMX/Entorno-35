@@ -25,7 +25,7 @@ export function MarketingFooter() {
                 alt="Entorno 35"
                 width={1536}
                 height={1024}
-                className="h-10 w-auto object-contain"
+                className="h-16 w-auto object-contain md:h-20"
               />
             </div>
             <p className="text-white/70 mb-4 max-w-md">
