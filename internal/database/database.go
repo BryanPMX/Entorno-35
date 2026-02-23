@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,8 +17,13 @@ func Connect(dsn string) (*gorm.DB, error) {
 	var err error
 
 	// Configure GORM logger based on environment
+	logMode := logger.Info
+	if os.Getenv("ENV") == "production" {
+		// Avoid logging SQL statements with PII/secrets in production.
+		logMode = logger.Warn
+	}
 	config := &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logMode),
 	}
 
 	DB, err = gorm.Open(postgres.Open(dsn), config)
@@ -66,4 +72,3 @@ func Migrate(models ...interface{}) error {
 
 	return DB.AutoMigrate(models...)
 }
-

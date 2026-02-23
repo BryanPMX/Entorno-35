@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/entorno35/backend/internal/adapters/postgres"
 	"github.com/entorno35/backend/internal/core/password"
@@ -29,28 +30,34 @@ type CreateCheckoutSessionRequest struct {
 
 // BillingHandler handles Stripe billing flows.
 type BillingHandler struct {
-	authRepo       ports.AuthRepository
-	passwordHasher password.Hasher
-	stripeService  *services.StripeService
-	successURL     string
-	cancelURL      string
+	authRepo         ports.AuthRepository
+	pendingRepo      ports.PendingRegistrationRepository
+	webhookEventRepo ports.StripeWebhookEventRepository
+	passwordHasher   password.Hasher
+	stripeService    *services.StripeService
+	successURL       string
+	cancelURL        string
 }
 
 // NewBillingHandler creates a billing handler.
-func NewBillingHandler(authRepo ports.AuthRepository, stripeService *services.StripeService, successURL, cancelURL string) *BillingHandler {
+func NewBillingHandler(authRepo ports.AuthRepository, pendingRepo ports.PendingRegistrationRepository, webhookEventRepo ports.StripeWebhookEventRepository, stripeService *services.StripeService, successURL, cancelURL string) *BillingHandler {
 	return &BillingHandler{
-		authRepo:       authRepo,
-		passwordHasher: password.NewDefaultHasher(),
-		stripeService:  stripeService,
-		successURL:     successURL,
-		cancelURL:      cancelURL,
+		authRepo:         authRepo,
+		pendingRepo:      pendingRepo,
+		webhookEventRepo: webhookEventRepo,
+		passwordHasher:   password.NewDefaultHasher(),
+		stripeService:    stripeService,
+		successURL:       successURL,
+		cancelURL:        cancelURL,
 	}
 }
 
-// CreateCheckoutSession creates a Stripe checkout session and persists inactive registration credentials.
+const pendingRegistrationTTL = 24 * time.Hour
+
+// CreateCheckoutSession creates a Stripe checkout session and stores a pending registration only.
 // POST /billing/checkout-session
 func (h *BillingHandler) CreateCheckoutSession(c *gin.Context) {
-	if h.stripeService == nil || !h.stripeService.Enabled() {
+	if h.stripeService == nil || h.pendingRepo == nil || !h.stripeService.Enabled() {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "billing is not configured"})
 		return
 	}
@@ -84,59 +91,38 @@ func (h *BillingHandler) CreateCheckoutSession(c *gin.Context) {
 		return
 	}
 
-	company, err := h.authRepo.GetCompanyByRFC(normalizedRFC)
+	existingCompany, err := h.authRepo.GetCompanyByRFC(normalizedRFC)
 	if err != nil && !errors.Is(err, postgres.ErrCompanyNotFound) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to validate company"})
 		return
 	}
-
-	adminEmail := normalizedEmail
-	adminPasswordHash := hashedPassword
-
-	if errors.Is(err, postgres.ErrCompanyNotFound) {
-		employeeCount := req.EmployeeCount
-		if employeeCount < 0 {
-			employeeCount = 0
-		}
-		company = &domain.Company{
-			ID:                 uuid.New(),
-			RFC:                normalizedRFC,
-			Name:               strings.TrimSpace(req.CompanyName),
-			Address:            strings.TrimSpace(req.Address),
-			AdminEmail:         &adminEmail,
-			AdminPasswordHash:  &adminPasswordHash,
-			SubscriptionStatus: domain.SubscriptionStatusInactive,
-			EmployeeCount:      employeeCount,
-		}
-
-		if createErr := h.authRepo.CreateCompany(company); createErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to register company"})
-			return
-		}
-	} else {
-		if company.SubscriptionStatus == domain.SubscriptionStatusActive {
+	if err == nil && existingCompany != nil {
+		if existingCompany.SubscriptionStatus == domain.SubscriptionStatusActive {
 			c.JSON(http.StatusConflict, gin.H{"error": "company already has an active subscription"})
 			return
 		}
+		c.JSON(http.StatusConflict, gin.H{"error": "company already exists. contact support to reactivate or update billing"})
+		return
+	}
 
-		company.Name = strings.TrimSpace(req.CompanyName)
-		company.Address = strings.TrimSpace(req.Address)
-		company.AdminEmail = &adminEmail
-		company.AdminPasswordHash = &adminPasswordHash
-		company.SubscriptionStatus = domain.SubscriptionStatusInactive
-		company.SubscriptionStartDate = nil
-		company.SubscriptionEndDate = nil
-		company.StripeCustomerID = nil
-		company.StripeSubscriptionID = nil
-		company.StripePriceID = nil
-		if req.EmployeeCount >= 0 {
-			company.EmployeeCount = req.EmployeeCount
-		}
-
-		if updateErr := h.authRepo.UpdateCompany(company); updateErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update registration"})
-			return
-		}
+	employeeCount := req.EmployeeCount
+	if employeeCount < 0 {
+		employeeCount = 0
+	}
+	pending := &domain.PendingCompanyRegistration{
+		ID:                uuid.New(),
+		RFC:               normalizedRFC,
+		CompanyName:       strings.TrimSpace(req.CompanyName),
+		Address:           strings.TrimSpace(req.Address),
+		AdminEmail:        normalizedEmail,
+		AdminPasswordHash: hashedPassword,
+		EmployeeCount:     employeeCount,
+		Plan:              strings.ToLower(req.Plan),
+		ExpiresAt:         time.Now().UTC().Add(pendingRegistrationTTL),
+	}
+	if upsertErr := h.pendingRepo.UpsertPending(pending); upsertErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to store registration draft"})
+		return
 	}
 
 	session, err := h.stripeService.CreateCheckoutSession(services.CreateCheckoutSessionRequest{
@@ -144,15 +130,21 @@ func (h *BillingHandler) CreateCheckoutSession(c *gin.Context) {
 		CustomerEmail:     normalizedEmail,
 		SuccessURL:        h.successURL,
 		CancelURL:         h.cancelURL,
-		ClientReferenceID: company.ID.String(),
+		ClientReferenceID: pending.ID.String(),
 		Metadata: map[string]string{
-			"company_id":  company.ID.String(),
-			"company_rfc": normalizedRFC,
-			"plan":        strings.ToLower(req.Plan),
+			"pending_registration_id": pending.ID.String(),
+			"company_rfc":             normalizedRFC,
+			"plan":                    strings.ToLower(req.Plan),
 		},
 	})
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("failed to create checkout session: %v", err)})
+		return
+	}
+
+	pending.StripeCheckoutSessionID = &session.ID
+	if updateErr := h.pendingRepo.Update(pending); updateErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to finalize registration draft"})
 		return
 	}
 
@@ -165,7 +157,7 @@ func (h *BillingHandler) CreateCheckoutSession(c *gin.Context) {
 // HandleWebhook processes Stripe webhook events.
 // POST /billing/webhook
 func (h *BillingHandler) HandleWebhook(c *gin.Context) {
-	if h.stripeService == nil {
+	if h.stripeService == nil || h.pendingRepo == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "billing is not configured"})
 		return
 	}
@@ -182,25 +174,52 @@ func (h *BillingHandler) HandleWebhook(c *gin.Context) {
 		return
 	}
 
+	if h.webhookEventRepo != nil {
+		shouldProcess, beginErr := h.webhookEventRepo.TryBegin(event.ID, event.Type)
+		if beginErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to initialize webhook processing"})
+			return
+		}
+		if !shouldProcess {
+			c.JSON(http.StatusOK, gin.H{"received": true, "duplicate": true})
+			return
+		}
+	}
+
+	var handleErr error
+	responseStatus := http.StatusInternalServerError
 	switch event.Type {
 	case "checkout.session.completed":
 		session, parseErr := services.ParseCheckoutSessionObject(event.Data.Object)
 		if parseErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": parseErr.Error()})
-			return
+			handleErr = parseErr
+			responseStatus = http.StatusBadRequest
+			break
 		}
-		if handleErr := h.activateCompanyFromCheckoutSession(session); handleErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": handleErr.Error()})
-			return
-		}
+		handleErr = h.activateCompanyFromCheckoutSession(session)
 	case "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted":
 		subscription, parseErr := services.ParseSubscriptionObject(event.Data.Object)
 		if parseErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": parseErr.Error()})
-			return
+			handleErr = parseErr
+			responseStatus = http.StatusBadRequest
+			break
 		}
-		if handleErr := h.syncCompanyFromSubscription(subscription); handleErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": handleErr.Error()})
+		handleErr = h.syncCompanyFromSubscription(subscription)
+	default:
+		handleErr = nil
+	}
+
+	if handleErr != nil {
+		if h.webhookEventRepo != nil {
+			_ = h.webhookEventRepo.MarkFailed(event.ID, handleErr.Error())
+		}
+		c.JSON(responseStatus, gin.H{"error": handleErr.Error()})
+		return
+	}
+
+	if h.webhookEventRepo != nil {
+		if err := h.webhookEventRepo.MarkProcessed(event.ID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to finalize webhook processing"})
 			return
 		}
 	}
@@ -211,7 +230,7 @@ func (h *BillingHandler) HandleWebhook(c *gin.Context) {
 // VerifyCheckoutSession checks Stripe session state and activates subscription if payment succeeded.
 // GET /billing/checkout-session/:id/verify
 func (h *BillingHandler) VerifyCheckoutSession(c *gin.Context) {
-	if h.stripeService == nil || !h.stripeService.Enabled() {
+	if h.stripeService == nil || h.pendingRepo == nil || !h.stripeService.Enabled() {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "billing is not configured"})
 		return
 	}
@@ -235,15 +254,33 @@ func (h *BillingHandler) VerifyCheckoutSession(c *gin.Context) {
 		}
 	}
 
-	companyID, err := companyIDFromSession(session)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	company, err := h.authRepo.GetCompanyByID(companyID)
+	company, err := h.resolveCompanyForSession(session)
 	if err != nil {
 		if errors.Is(err, postgres.ErrCompanyNotFound) {
+			pendingID, idErr := pendingRegistrationIDFromSession(session)
+			if idErr != nil {
+				c.JSON(http.StatusNotFound, gin.H{"error": "company not found"})
+				return
+			}
+			pending, pendingErr := h.pendingRepo.GetByID(pendingID)
+			if pendingErr != nil {
+				c.JSON(http.StatusNotFound, gin.H{"error": "company not found"})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"session_id":          session.ID,
+				"session_status":      session.Status,
+				"payment_status":      session.PaymentStatus,
+				"subscription_status": domain.SubscriptionStatusInactive,
+				"active":              false,
+				"company_name":        pending.CompanyName,
+				"login_identifier":    pending.RFC,
+				"admin_email":         pending.AdminEmail,
+			})
+			return
+		}
+		if errors.Is(err, postgres.ErrPendingRegistrationNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "company not found"})
 			return
 		}
@@ -271,14 +308,14 @@ func (h *BillingHandler) activateCompanyFromCheckoutSession(session *services.Ch
 		return nil
 	}
 
-	companyID, err := companyIDFromSession(session)
+	pendingID, err := pendingRegistrationIDFromSession(session)
 	if err != nil {
 		return err
 	}
 
-	company, err := h.authRepo.GetCompanyByID(companyID)
+	pending, err := h.pendingRepo.GetByID(pendingID)
 	if err != nil {
-		return fmt.Errorf("failed to fetch company for activation: %w", err)
+		return fmt.Errorf("failed to fetch pending registration for activation: %w", err)
 	}
 
 	subscription, err := h.stripeService.GetSubscription(session.SubscriptionID)
@@ -286,19 +323,23 @@ func (h *BillingHandler) activateCompanyFromCheckoutSession(session *services.Ch
 		return fmt.Errorf("failed to fetch stripe subscription: %w", err)
 	}
 
-	applySubscriptionToCompany(company, subscription)
-	if session.CustomerID != "" {
-		customerID := session.CustomerID
-		company.StripeCustomerID = &customerID
+	if !isStripeSubscriptionActive(subscription.Status) && !strings.EqualFold(session.PaymentStatus, "paid") {
+		pending.StripeSubscriptionID = &subscription.ID
+		if session.CustomerID != "" {
+			customerID := session.CustomerID
+			pending.StripeCustomerID = &customerID
+		}
+		if pending.StripeCheckoutSessionID == nil || *pending.StripeCheckoutSessionID == "" {
+			sessionID := session.ID
+			pending.StripeCheckoutSessionID = &sessionID
+		}
+		if err := h.pendingRepo.Update(pending); err != nil {
+			return fmt.Errorf("failed to persist pending subscription linkage: %w", err)
+		}
+		return nil
 	}
-	subscriptionID := session.SubscriptionID
-	company.StripeSubscriptionID = &subscriptionID
 
-	if err := h.authRepo.UpdateCompany(company); err != nil {
-		return fmt.Errorf("failed to persist company subscription: %w", err)
-	}
-
-	return nil
+	return h.activateCompanyFromPendingSubscription(pending, subscription, session.ID)
 }
 
 func (h *BillingHandler) syncCompanyFromSubscription(subscription *services.Subscription) error {
@@ -309,7 +350,7 @@ func (h *BillingHandler) syncCompanyFromSubscription(subscription *services.Subs
 	company, err := h.authRepo.GetCompanyByStripeSubscriptionID(subscription.ID)
 	if err != nil {
 		if errors.Is(err, postgres.ErrCompanyNotFound) {
-			return nil
+			return h.syncPendingRegistrationFromSubscription(subscription)
 		}
 		return fmt.Errorf("failed to fetch company by subscription ID: %w", err)
 	}
@@ -317,6 +358,103 @@ func (h *BillingHandler) syncCompanyFromSubscription(subscription *services.Subs
 	applySubscriptionToCompany(company, subscription)
 	if err := h.authRepo.UpdateCompany(company); err != nil {
 		return fmt.Errorf("failed to sync company subscription: %w", err)
+	}
+
+	return nil
+}
+
+func (h *BillingHandler) syncPendingRegistrationFromSubscription(subscription *services.Subscription) error {
+	if h.pendingRepo == nil || subscription == nil || subscription.ID == "" {
+		return nil
+	}
+
+	pending, err := h.pendingRepo.GetByStripeSubscriptionID(subscription.ID)
+	if err != nil {
+		if errors.Is(err, postgres.ErrPendingRegistrationNotFound) {
+			return nil
+		}
+		return fmt.Errorf("failed to fetch pending registration by subscription ID: %w", err)
+	}
+
+	if !isStripeSubscriptionActive(subscription.Status) {
+		if subscription.CustomerID != "" {
+			customerID := subscription.CustomerID
+			pending.StripeCustomerID = &customerID
+		}
+		pending.StripeSubscriptionID = &subscription.ID
+		if err := h.pendingRepo.Update(pending); err != nil {
+			return fmt.Errorf("failed to sync pending registration subscription linkage: %w", err)
+		}
+		return nil
+	}
+
+	return h.activateCompanyFromPendingSubscription(pending, subscription, "")
+}
+
+func (h *BillingHandler) activateCompanyFromPendingSubscription(pending *domain.PendingCompanyRegistration, subscription *services.Subscription, checkoutSessionID string) error {
+	if pending == nil {
+		return fmt.Errorf("pending registration is required")
+	}
+	if subscription == nil {
+		return fmt.Errorf("subscription is required")
+	}
+
+	var err error
+	var company *domain.Company
+	if pending.CompanyID != nil {
+		company, err = h.authRepo.GetCompanyByID(*pending.CompanyID)
+		if err != nil && !errors.Is(err, postgres.ErrCompanyNotFound) {
+			return fmt.Errorf("failed to fetch completed company from pending registration: %w", err)
+		}
+	}
+
+	if company == nil {
+		company, err = h.authRepo.GetCompanyByRFC(pending.RFC)
+		if err != nil && !errors.Is(err, postgres.ErrCompanyNotFound) {
+			return fmt.Errorf("failed to look up company by RFC during activation: %w", err)
+		}
+	}
+
+	if company == nil {
+		adminEmail := pending.AdminEmail
+		adminPasswordHash := pending.AdminPasswordHash
+		company = &domain.Company{
+			ID:                 uuid.New(),
+			RFC:                pending.RFC,
+			Name:               pending.CompanyName,
+			Address:            pending.Address,
+			AdminEmail:         &adminEmail,
+			AdminPasswordHash:  &adminPasswordHash,
+			SubscriptionStatus: domain.SubscriptionStatusInactive,
+			EmployeeCount:      pending.EmployeeCount,
+		}
+		if err := h.authRepo.CreateCompany(company); err != nil {
+			return fmt.Errorf("failed to create company after payment: %w", err)
+		}
+	}
+
+	applySubscriptionToCompany(company, subscription)
+	if err := h.authRepo.UpdateCompany(company); err != nil {
+		return fmt.Errorf("failed to persist company subscription: %w", err)
+	}
+
+	now := time.Now().UTC()
+	pending.CompletedAt = &now
+	pending.ExpiresAt = now.Add(pendingRegistrationTTL)
+	pendingCompanyID := company.ID
+	pending.CompanyID = &pendingCompanyID
+	subscriptionID := subscription.ID
+	pending.StripeSubscriptionID = &subscriptionID
+	if subscription.CustomerID != "" {
+		customerID := subscription.CustomerID
+		pending.StripeCustomerID = &customerID
+	}
+	if checkoutSessionID != "" {
+		sessionID := checkoutSessionID
+		pending.StripeCheckoutSessionID = &sessionID
+	}
+	if err := h.pendingRepo.Update(pending); err != nil {
+		return fmt.Errorf("failed to complete pending registration: %w", err)
 	}
 
 	return nil
@@ -359,24 +497,48 @@ func isStripeSubscriptionActive(status string) bool {
 	}
 }
 
-func companyIDFromSession(session *services.CheckoutSession) (uuid.UUID, error) {
+func pendingRegistrationIDFromSession(session *services.CheckoutSession) (uuid.UUID, error) {
 	if session == nil {
 		return uuid.Nil, fmt.Errorf("session is required")
 	}
 
-	if companyIDRaw, ok := session.Metadata["company_id"]; ok && companyIDRaw != "" {
-		companyID, err := uuid.Parse(companyIDRaw)
+	if pendingIDRaw, ok := session.Metadata["pending_registration_id"]; ok && pendingIDRaw != "" {
+		pendingID, err := uuid.Parse(pendingIDRaw)
 		if err == nil {
-			return companyID, nil
+			return pendingID, nil
 		}
 	}
 
 	if session.ClientReferenceID != "" {
-		companyID, err := uuid.Parse(session.ClientReferenceID)
+		pendingID, err := uuid.Parse(session.ClientReferenceID)
 		if err == nil {
-			return companyID, nil
+			return pendingID, nil
 		}
 	}
 
-	return uuid.Nil, fmt.Errorf("company ID not found in checkout session")
+	return uuid.Nil, fmt.Errorf("pending registration ID not found in checkout session")
+}
+
+func (h *BillingHandler) resolveCompanyForSession(session *services.CheckoutSession) (*domain.Company, error) {
+	pendingID, err := pendingRegistrationIDFromSession(session)
+	if err != nil {
+		return nil, err
+	}
+
+	pending, err := h.pendingRepo.GetByID(pendingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if pending.CompanyID != nil {
+		company, companyErr := h.authRepo.GetCompanyByID(*pending.CompanyID)
+		if companyErr == nil {
+			return company, nil
+		}
+		if !errors.Is(companyErr, postgres.ErrCompanyNotFound) {
+			return nil, companyErr
+		}
+	}
+
+	return h.authRepo.GetCompanyByRFC(pending.RFC)
 }

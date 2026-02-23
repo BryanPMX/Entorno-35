@@ -205,6 +205,70 @@ func (c *Company) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+// PendingCompanyRegistration stores pre-payment registration details until Stripe confirms checkout.
+type PendingCompanyRegistration struct {
+	ID                      uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	RFC                     string         `gorm:"type:varchar(13);index;not null" json:"rfc"`
+	CompanyName             string         `gorm:"type:varchar(255);not null" json:"company_name"`
+	Address                 string         `gorm:"type:text" json:"address"`
+	AdminEmail              string         `gorm:"type:varchar(255);not null" json:"admin_email"`
+	AdminPasswordHash       string         `gorm:"type:varchar(255);not null" json:"-"`
+	EmployeeCount           int            `gorm:"not null;default:0" json:"employee_count"`
+	Plan                    string         `gorm:"type:varchar(20);not null" json:"plan"`
+	StripeCheckoutSessionID *string        `gorm:"type:varchar(255);index" json:"stripe_checkout_session_id,omitempty"`
+	StripeCustomerID        *string        `gorm:"type:varchar(255)" json:"stripe_customer_id,omitempty"`
+	StripeSubscriptionID    *string        `gorm:"type:varchar(255)" json:"stripe_subscription_id,omitempty"`
+	CompanyID               *uuid.UUID     `gorm:"type:uuid;index" json:"company_id,omitempty"`
+	ExpiresAt               time.Time      `gorm:"index;not null" json:"expires_at"`
+	CompletedAt             *time.Time     `gorm:"index" json:"completed_at,omitempty"`
+	CreatedAt               time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt               time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt               gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+func (PendingCompanyRegistration) TableName() string {
+	return "pending_company_registrations"
+}
+
+func (p *PendingCompanyRegistration) BeforeCreate(tx *gorm.DB) error {
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
+	}
+	return nil
+}
+
+// Stripe webhook event processing states.
+const (
+	StripeWebhookEventStatusProcessing = "processing"
+	StripeWebhookEventStatusProcessed  = "processed"
+	StripeWebhookEventStatusFailed     = "failed"
+)
+
+// StripeWebhookEvent stores webhook processing state for idempotency and retries.
+type StripeWebhookEvent struct {
+	ID            uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	StripeEventID string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"stripe_event_id"`
+	EventType     string         `gorm:"type:varchar(100);not null" json:"event_type"`
+	Status        string         `gorm:"type:varchar(20);not null;index" json:"status"`
+	AttemptCount  int            `gorm:"not null;default:1" json:"attempt_count"`
+	LastError     *string        `gorm:"type:text" json:"last_error,omitempty"`
+	ProcessedAt   *time.Time     `gorm:"index" json:"processed_at,omitempty"`
+	CreatedAt     time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt     time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+func (StripeWebhookEvent) TableName() string {
+	return "stripe_webhook_events"
+}
+
+func (e *StripeWebhookEvent) BeforeCreate(tx *gorm.DB) error {
+	if e.ID == uuid.Nil {
+		e.ID = uuid.New()
+	}
+	return nil
+}
+
 // Staff represents a staff member (user) belonging to a company
 type Staff struct {
 	ID           uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`

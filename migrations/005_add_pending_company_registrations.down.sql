@@ -1,0 +1,9 @@
+DROP TRIGGER IF EXISTS update_pending_company_registrations_updated_at ON pending_company_registrations;
+DROP INDEX IF EXISTS uq_pending_company_registrations_open_rfc;
+DROP INDEX IF EXISTS idx_pending_company_registrations_deleted_at;
+DROP INDEX IF EXISTS idx_pending_company_registrations_completed_at;
+DROP INDEX IF EXISTS idx_pending_company_registrations_expires_at;
+DROP INDEX IF EXISTS idx_pending_company_registrations_company_id;
+DROP INDEX IF EXISTS idx_pending_company_registrations_session_id;
+DROP INDEX IF EXISTS idx_pending_company_registrations_rfc;
+DROP TABLE IF EXISTS pending_company_registrations;

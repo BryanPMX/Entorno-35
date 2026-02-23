@@ -52,6 +52,8 @@ func main() {
 	log.Println("Running database migrations...")
 	if err := database.Migrate(
 		&domain.Company{},
+		&domain.PendingCompanyRegistration{},
+		&domain.StripeWebhookEvent{},
 		&domain.Staff{},
 		&domain.Category{},
 		&domain.Domain{},
@@ -97,6 +99,8 @@ func main() {
 
 	// Initialize repositories
 	authRepo := postgres.NewAuthRepository(db)
+	pendingRegistrationRepo := postgres.NewPendingRegistrationRepository(db)
+	stripeWebhookEventRepo := postgres.NewStripeWebhookEventRepository(db)
 	assessmentRepo := postgres.NewAssessmentRepository(db)
 	companyRepo := postgres.NewCompanyRepository(db)
 	staffRepo := postgres.NewStaffRepository(db)
@@ -115,7 +119,7 @@ func main() {
 	assessmentHandler := http.NewAssessmentHandler(assessmentService)
 	staffHandler := http.NewStaffHandler(staffService)
 	reportHandler := http.NewReportHandler(reportService)
-	billingHandler := http.NewBillingHandler(authRepo, stripeService, stripeSuccessURL, stripeCancelURL)
+	billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, stripeService, stripeSuccessURL, stripeCancelURL)
 
 	// Initialize router with custom middleware (avoid double CORS)
 	router := gin.New()
