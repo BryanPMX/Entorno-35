@@ -160,6 +160,8 @@ For more control over individual services:
    export STRIPE_SUCCESS_URL=http://localhost:3000/register/success?session_id={CHECKOUT_SESSION_ID}
    export STRIPE_CANCEL_URL=http://localhost:3000/register?canceled=1
    export STRIPE_PORTAL_RETURN_URL=http://localhost:3000/dashboard
+   export BILLING_ADMIN_EMAIL=admin@entorno35.com
+   export BILLING_ADMIN_PASSWORD_HASH='$2a$10$replace_with_bcrypt_hash'
    export PENDING_REGISTRATION_CLEANUP_ENABLED=true
    export PENDING_REGISTRATION_CLEANUP_INTERVAL=1h
    export PENDING_REGISTRATION_CLEANUP_RETENTION=168h
@@ -236,7 +238,7 @@ npm test            # Run test suite
 
 ### Environment Configuration
 
-Production uses **Portainer stack environment variables** only; no `.env` files on the server. Required backend vars are listed in `docker-compose.prod.yml` (e.g. `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, `REDIS_HOST`, `SMTP_*`, `STRIPE_*`, cleanup and checkout rate-limit vars). Set them in Portainer when creating or editing the stack. Never commit `.env` or `.env.stripe` (they are in `.gitignore`).
+Production uses **Portainer stack environment variables** only; no `.env` files on the server. Required backend vars are listed in `docker-compose.prod.yml` (e.g. `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGIN`, `REDIS_HOST`, `SMTP_*`, `STRIPE_*`, `BILLING_ADMIN_*`, cleanup and checkout rate-limit vars). Set them in Portainer when creating or editing the stack. Never commit `.env` or `.env.stripe` (they are in `.gitignore`).
 
 ## Billing Architecture (Current)
 
@@ -252,6 +254,17 @@ Production uses **Portainer stack environment variables** only; no `.env` files 
 
 - `POST /api/v1/billing/checkout-session`: reactivation/new managed checkout for the logged-in company
 - `POST /api/v1/billing/customer-portal`: opens Stripe Billing Portal for the logged-in company
+- `POST /api/v1/billing/refund-request`: opens a manual refund review ticket for the logged-in company
+- `GET /api/v1/billing/refund-requests`: lists company refund requests and decision history
+
+### Internal billing admin console
+
+- `POST /auth/admin/login`: authenticates billing admin users via `BILLING_ADMIN_*` env vars
+- `GET /api/v1/admin/billing/refund-requests`: list/filter refund requests
+- `PATCH /api/v1/admin/billing/refund-requests/:id`: approve/reject/mark refunded with review notes
+- Frontend routes:
+  - `/admin/login`
+  - `/admin/refunds`
 
 ### Operational safeguards
 

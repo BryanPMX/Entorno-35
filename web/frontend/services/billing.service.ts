@@ -3,6 +3,10 @@ import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   CreateCustomerPortalSessionResponse,
+  PaginatedResponse,
+  CreateRefundRequestRequest,
+  CreateRefundRequestResponse,
+  RefundRequestRecord,
   ExistingCompanyCheckoutSessionRequest,
   VerifyCheckoutSessionResponse,
 } from "@/types/backend";
@@ -27,6 +31,20 @@ class BillingService {
 
   async createCustomerPortalSession(): Promise<CreateCustomerPortalSessionResponse> {
     const response = await axiosClient.post<CreateCustomerPortalSessionResponse>("/api/v1/billing/customer-portal", {});
+    return response.data;
+  }
+
+  async createRefundRequest(payload: CreateRefundRequestRequest): Promise<CreateRefundRequestResponse> {
+    const response = await axiosClient.post<CreateRefundRequestResponse>("/api/v1/billing/refund-request", payload);
+    return response.data;
+  }
+
+  async getRefundRequests(limit = 20, offset = 0): Promise<PaginatedResponse<RefundRequestRecord>> {
+    const params = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    const response = await axiosClient.get<PaginatedResponse<RefundRequestRecord>>(`/api/v1/billing/refund-requests?${params.toString()}`);
     return response.data;
   }
 }

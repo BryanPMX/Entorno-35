@@ -3,7 +3,7 @@
 This document consolidates all REST API endpoints for the Entorno35 NOM-035 Compliance Platform: authentication, staff, assessments, scoring, and reports. Use it for integration, testing, or client implementation.
 
 **Version**: 1.0  
-**Last updated**: 2026-01-31
+**Last updated**: 2026-03-11
 
 ---
 
@@ -45,6 +45,30 @@ Authenticates a company admin and returns a JWT token.
 - `401 Unauthorized`: Invalid credentials
 - `500 Internal Server Error`: Server error
 
+### POST /auth/admin/login
+
+Authenticates internal billing admins and returns a JWT token with `role=admin`.
+
+**Request**:
+```json
+{
+  "email": "admin@entorno35.com",
+  "password": "string"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "token": "jwt_token_string"
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Missing/invalid fields
+- `401 Unauthorized`: Invalid credentials
+- `503 Service Unavailable`: Admin auth not configured
+
 ---
 
 ## Billing
@@ -81,6 +105,47 @@ Stripe webhook endpoint used to activate/deactivate subscriptions.
 ### GET /billing/checkout-session/:id/verify
 
 Verifies checkout completion and returns activation status + login identifier.
+
+### POST /api/v1/billing/refund-request
+
+Creates a refund request for the authenticated company.
+
+**Request**:
+```json
+{
+  "reason": "Texto explicando el motivo del reembolso (20-2000 caracteres)"
+}
+```
+
+### GET /api/v1/billing/refund-requests
+
+Lists refund requests for the authenticated company.
+
+**Query Parameters**:
+- `limit` (integer): Items per page (default: 50, max: 100)
+- `offset` (integer): Pagination offset (default: 0)
+
+### GET /api/v1/admin/billing/refund-requests
+
+Lists refund requests for internal billing admins (requires admin JWT).
+
+**Query Parameters**:
+- `status` (string, optional): `requested|approved|rejected|refunded`
+- `limit` (integer): Items per page (default: 50, max: 100)
+- `offset` (integer): Pagination offset (default: 0)
+
+### PATCH /api/v1/admin/billing/refund-requests/:id
+
+Updates refund request decision (admin only).
+
+**Request**:
+```json
+{
+  "status": "approved|rejected|refunded",
+  "resolution_note": "string (required for rejected/refunded)",
+  "stripe_refund_id": "re_xxx (required when status=refunded)"
+}
+```
 
 ---
 
@@ -304,7 +369,7 @@ Retrieves company-wide general report with aggregations.
 
 ## Authentication
 
-All endpoints except `/auth/login`, `/billing/*`, and `/assessments/public/*` require JWT authentication:
+All endpoints except `/auth/login`, `/auth/admin/login`, `/billing/*`, and `/assessments/public/*` require JWT authentication:
 
 ```
 Authorization: Bearer <jwt_token>
@@ -312,7 +377,10 @@ Authorization: Bearer <jwt_token>
 
 ## Rate Limiting
 
-No rate limiting currently implemented. Consider adding for production.
+Checkout session creation endpoints use configurable fixed-window rate limiting:
+
+- `POST /billing/checkout-session`
+- `POST /api/v1/billing/checkout-session`
 
 ## Changelog
 

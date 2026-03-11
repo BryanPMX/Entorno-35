@@ -62,6 +62,18 @@ Interface for webhook idempotency state:
 
 **Implementation**: `internal/adapters/postgres/stripe_webhook_event_repo.go`
 
+### RefundRequestRepository
+
+Interface for authenticated company refund ticket persistence:
+
+- create refund request
+- fetch latest open request by company
+- list by company
+- admin list/filter
+- fetch by ID and update decision status
+
+**Implementation**: `internal/adapters/postgres/refund_request_repo.go`
+
 ## Error Handling Note
 
 This package defines interfaces only. Concrete repository error types are currently declared in adapter packages (for example `internal/adapters/postgres`) and handled explicitly where needed.

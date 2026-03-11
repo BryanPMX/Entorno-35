@@ -45,11 +45,12 @@ Adapters are initialized in `cmd/api/main.go` and wired to business logic servic
 authRepo := postgres.NewAuthRepository(db)
 
 // Initialize handlers (adapters)
-authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
-billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, stripeService, successURL, cancelURL, portalReturnURL)
+authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry, cfg.Admin.BillingEmail, cfg.Admin.BillingPasswordHash)
+billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, refundRequestRepo, stripeService, successURL, cancelURL, portalReturnURL)
 
 // Register routes
 router.POST("/auth/login", authHandler.Login)
+router.POST("/auth/admin/login", authHandler.AdminLogin)
 router.POST("/billing/checkout-session", billingHandler.CreateCheckoutSession)
 ```
 

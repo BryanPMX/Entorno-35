@@ -168,6 +168,49 @@ export interface CreateCustomerPortalSessionResponse {
   url: string;
 }
 
+export interface CreateRefundRequestRequest {
+  reason: string;
+}
+
+export interface CreateRefundRequestResponse {
+  request_id: string;
+  status: string;
+  created_at: string;
+}
+
+export type RefundRequestStatus = "requested" | "approved" | "rejected" | "refunded";
+
+export interface RefundRequestRecord {
+  id: string;
+  company_id: string;
+  company_rfc?: string;
+  company_name?: string;
+  requested_by_email?: string;
+  reason: string;
+  status: RefundRequestStatus;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  reviewed_by_email?: string;
+  reviewed_at?: string;
+  resolution_note?: string;
+  stripe_refund_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ResolveRefundRequestPayload {
+  status: Extract<RefundRequestStatus, "approved" | "rejected" | "refunded">;
+  resolution_note?: string;
+  stripe_refund_id?: string;
+}
+
+export type AdminRefundRequestListResponse = PaginatedResponse<RefundRequestRecord>;
+
+export interface AdminLoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface VerifyCheckoutSessionResponse {
   session_id: string;
   session_status: string;

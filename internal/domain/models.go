@@ -269,6 +269,43 @@ func (e *StripeWebhookEvent) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+// Billing refund request states.
+const (
+	BillingRefundRequestStatusRequested = "requested"
+	BillingRefundRequestStatusApproved  = "approved"
+	BillingRefundRequestStatusRejected  = "rejected"
+	BillingRefundRequestStatusRefunded  = "refunded"
+)
+
+// BillingRefundRequest stores authenticated refund request tickets for manual review.
+type BillingRefundRequest struct {
+	ID                   uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	CompanyID            uuid.UUID      `gorm:"type:uuid;not null;index" json:"company_id"`
+	StripeCustomerID     *string        `gorm:"type:varchar(255);index" json:"stripe_customer_id,omitempty"`
+	StripeSubscriptionID *string        `gorm:"type:varchar(255);index" json:"stripe_subscription_id,omitempty"`
+	RequestedByEmail     *string        `gorm:"type:varchar(255)" json:"requested_by_email,omitempty"`
+	Reason               string         `gorm:"type:text;not null" json:"reason"`
+	Status               string         `gorm:"type:varchar(20);not null;default:'requested';index" json:"status"`
+	ReviewedByEmail      *string        `gorm:"type:varchar(255)" json:"reviewed_by_email,omitempty"`
+	ReviewedAt           *time.Time     `gorm:"index" json:"reviewed_at,omitempty"`
+	ResolutionNote       *string        `gorm:"type:text" json:"resolution_note,omitempty"`
+	StripeRefundID       *string        `gorm:"type:varchar(255);index" json:"stripe_refund_id,omitempty"`
+	CreatedAt            time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt            time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt            gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+func (BillingRefundRequest) TableName() string {
+	return "billing_refund_requests"
+}
+
+func (r *BillingRefundRequest) BeforeCreate(tx *gorm.DB) error {
+	if r.ID == uuid.Nil {
+		r.ID = uuid.New()
+	}
+	return nil
+}
+
 // Staff represents a staff member (user) belonging to a company
 type Staff struct {
 	ID           uuid.UUID         `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`

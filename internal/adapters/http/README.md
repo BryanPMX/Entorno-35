@@ -60,7 +60,14 @@ Most handlers require authentication via middleware. Handlers extract company co
 - **Authenticated existing-company billing flow**
   - `POST /api/v1/billing/checkout-session` (reactivation/new plan checkout for existing company)
   - `POST /api/v1/billing/customer-portal` (Stripe Billing Portal)
+  - `POST /api/v1/billing/refund-request` (authenticated refund ticket submission)
+  - `GET /api/v1/billing/refund-requests` (authenticated company refund request history)
   - Derives company identity from JWT auth context only (never from request payload)
+
+- **Internal billing-admin refund management**
+  - `POST /auth/admin/login` (admin auth via configured credentials)
+  - `GET /api/v1/admin/billing/refund-requests` (list/filter all refund requests)
+  - `PATCH /api/v1/admin/billing/refund-requests/:id` (approve/reject/mark refunded)
 
 ## Operational Hardening Implemented in HTTP Layer
 

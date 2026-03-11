@@ -1,6 +1,6 @@
 # Entorno35 Frontend
 
-Next.js 16 frontend for the Entorno35 NOM-035 Compliance Platform. It supports both public paid onboarding (Stripe Checkout registration) and authenticated company operations (dashboard, billing management, staff, assessments, reports).
+Next.js 16 frontend for the Entorno35 NOM-035 Compliance Platform. It supports public paid onboarding (Stripe Checkout registration), authenticated company operations (dashboard, billing management, staff, assessments, reports), and an internal billing-admin refund console.
 
 For API reference, deployment (Vercel, Portainer), and platform documentation, see the root [docs/README.md](../../docs/README.md).
 
@@ -24,27 +24,34 @@ web/frontend/
 │   │   ├── assessments/        # Assessment list and report
 │   │   ├── billing/            # Billing management (Stripe portal + reactivation checkout)
 │   │   └── staff/page.tsx      # Staff management
+│   ├── admin/                  # Internal billing-admin routes
+│   │   ├── (auth)/login/       # Admin login
+│   │   └── (protected)/refunds # Refund management console
 │   └── debug/connection/       # API connection check
 ├── components/
 │   ├── assessments/           # Assessment wizard, table, delete dialog
 │   ├── dashboard/              # Charts, metric cards, heatmaps
 │   ├── layout/auth-guard.tsx   # Route protection
+│   ├── layout/admin-auth-guard.tsx
 │   ├── marketing/              # Hero, features, compliance, pricing, nav, footer
 │   ├── providers/query-provider.tsx
 │   ├── staff/                  # Staff table, CSV upload, CRUD dialogs
 │   └── ui/                     # Shadcn UI primitives (button, card, dialog, etc.)
 ├── lib/
 │   ├── axios.ts                # Axios client and interceptors
+│   ├── admin-axios.ts          # Admin API client and auth interceptor
 │   ├── jwt.ts                  # JWT decode/session helpers (library-based decode + exp checks)
 │   ├── nom35-risk.ts           # Shared NOM-35 risk labels/colors/badge classes
 │   ├── query-client.ts         # TanStack Query config
 │   ├── store/auth-store.ts     # Zustand auth state
+│   ├── store/admin-auth-store.ts
 │   ├── utils.ts                # cn() and helpers
 │   └── translations.ts
 ├── services/                   # API service layer
 │   ├── auth.service.ts
 │   ├── assessment.service.ts
 │   ├── billing.service.ts
+│   ├── admin-refund.service.ts
 │   ├── staff.service.ts
 │   └── report.service.ts
 ├── types/
@@ -127,6 +134,14 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 - `billingService.verifyCheckoutSession(sessionId)` — confirms payment and account activation after checkout
 - `billingService.createExistingCompanyCheckoutSession({ plan })` — authenticated reactivation/plan checkout for existing company
 - `billingService.createCustomerPortalSession()` — authenticated Stripe Billing Portal session for existing company
+- `billingService.createRefundRequest({ reason })` — authenticated refund ticket submission for billing support review
+- `billingService.getRefundRequests({ limit, offset })` — list refund-request history for the authenticated company
+
+### Admin Billing (`services/admin-refund.service.ts`)
+
+- `adminRefundService.login({ email, password })` — returns JWT token for internal billing admins
+- `adminRefundService.listRefundRequests({ status, limit, offset })` — list/filter all refund requests
+- `adminRefundService.resolveRefundRequest(id, payload)` — approve/reject/mark refunded
 
 ### Staff (`services/staff.service.ts`)
 
@@ -190,6 +205,10 @@ For self-hosted deployment, build on your server or in CI and serve the output (
 - Billing management UI is implemented for existing companies:
   - Stripe Billing Portal launch
   - Reactivation/new checkout launch for authenticated company accounts
+  - Authenticated refund request form with duplicate-open-request protection messaging
+- Internal billing-admin UI is implemented:
+  - `/admin/login` for admin authentication
+  - `/admin/refunds` for operational refund management and decision tracking
 - Verified commands:
   - `npm run lint`
   - `npm run test -- --run`

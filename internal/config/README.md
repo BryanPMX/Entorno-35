@@ -35,6 +35,9 @@ Billing and operational settings used by the current subscription implementation
   - `STRIPE_SUCCESS_URL`
   - `STRIPE_CANCEL_URL`
   - `STRIPE_PORTAL_RETURN_URL`
+- Internal billing admin authentication:
+  - `BILLING_ADMIN_EMAIL`
+  - `BILLING_ADMIN_PASSWORD_HASH` (bcrypt hash)
 - Pending registration cleanup worker:
   - `PENDING_REGISTRATION_CLEANUP_ENABLED`
   - `PENDING_REGISTRATION_CLEANUP_INTERVAL`

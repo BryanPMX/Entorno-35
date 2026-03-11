@@ -80,7 +80,7 @@ function RegisterSuccessPageContent() {
               </p>
             ) : (
               <p className="rounded-lg border border-amber-300/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-900">
-                Payment received but activation is still pending. Retry verification in a moment.
+                Checkout completed but your subscription is still pending activation. Retry verification in a moment.
               </p>
             )}
 

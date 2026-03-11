@@ -54,6 +54,7 @@ func main() {
 		&domain.Company{},
 		&domain.PendingCompanyRegistration{},
 		&domain.StripeWebhookEvent{},
+		&domain.BillingRefundRequest{},
 		&domain.Staff{},
 		&domain.Category{},
 		&domain.Domain{},
@@ -105,6 +106,7 @@ func main() {
 	authRepo := postgres.NewAuthRepository(db)
 	pendingRegistrationRepo := postgres.NewPendingRegistrationRepository(db)
 	stripeWebhookEventRepo := postgres.NewStripeWebhookEventRepository(db)
+	refundRequestRepo := postgres.NewRefundRequestRepository(db)
 	assessmentRepo := postgres.NewAssessmentRepository(db)
 	companyRepo := postgres.NewCompanyRepository(db)
 	staffRepo := postgres.NewStaffRepository(db)
@@ -142,12 +144,27 @@ func main() {
 	}
 
 	// Initialize handlers
-	authHandler := http.NewAuthHandler(jwtService, authRepo, tokenExpiry)
+	authHandler := http.NewAuthHandler(
+		jwtService,
+		authRepo,
+		tokenExpiry,
+		cfg.Admin.BillingEmail,
+		cfg.Admin.BillingPasswordHash,
+	)
 	scoringHandler := http.NewScoringHandler(scoringService)
 	assessmentHandler := http.NewAssessmentHandler(assessmentService)
 	staffHandler := http.NewStaffHandler(staffService)
 	reportHandler := http.NewReportHandler(reportService)
-	billingHandler := http.NewBillingHandler(authRepo, pendingRegistrationRepo, stripeWebhookEventRepo, stripeService, stripeSuccessURL, stripeCancelURL, stripePortalReturnURL)
+	billingHandler := http.NewBillingHandler(
+		authRepo,
+		pendingRegistrationRepo,
+		stripeWebhookEventRepo,
+		refundRequestRepo,
+		stripeService,
+		stripeSuccessURL,
+		stripeCancelURL,
+		stripePortalReturnURL,
+	)
 
 	var checkoutRateLimitMiddleware gin.HandlerFunc
 	if cfg.RateLimit.CheckoutSessionEnabled {
@@ -202,6 +219,7 @@ func main() {
 	auth := router.Group("/auth")
 	{
 		auth.POST("/login", authHandler.Login)
+		auth.POST("/admin/login", authHandler.AdminLogin)
 	}
 
 	// Billing endpoints (public for checkout + webhook)
@@ -263,6 +281,19 @@ func main() {
 		{
 			apiBilling.POST("/checkout-session", checkoutRateLimitMiddleware, billingHandler.CreateExistingCompanyCheckoutSession)
 			apiBilling.POST("/customer-portal", billingHandler.CreateCustomerPortalSession)
+			apiBilling.POST("/refund-request", billingHandler.CreateRefundRequest)
+			apiBilling.GET("/refund-requests", billingHandler.ListCompanyRefundRequests)
+		}
+	}
+
+	// Internal admin endpoints (separate from tenant-scoped API group).
+	adminAPI := router.Group("/api/v1/admin")
+	adminAPI.Use(middleware.AuthMiddleware(jwtService))
+	{
+		adminBilling := adminAPI.Group("/billing")
+		{
+			adminBilling.GET("/refund-requests", billingHandler.ListRefundRequestsForAdmin)
+			adminBilling.PATCH("/refund-requests/:id", billingHandler.ResolveRefundRequestForAdmin)
 		}
 	}
 

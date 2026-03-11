@@ -15,6 +15,7 @@ type Config struct {
 	JWT       JWTConfig
 	CORS      CORSConfig
 	Stripe    StripeConfig
+	Admin     AdminConfig
 	Cleanup   CleanupConfig
 	RateLimit RateLimitConfig
 }
@@ -64,6 +65,12 @@ type StripeConfig struct {
 	SuccessURL      string
 	CancelURL       string
 	PortalReturnURL string
+}
+
+// AdminConfig holds internal administrator authentication for refund operations.
+type AdminConfig struct {
+	BillingEmail        string
+	BillingPasswordHash string
 }
 
 // CleanupConfig holds background data-retention job settings.
@@ -117,6 +124,10 @@ func Load() *Config {
 			SuccessURL:      getEnv("STRIPE_SUCCESS_URL", ""),
 			CancelURL:       getEnv("STRIPE_CANCEL_URL", ""),
 			PortalReturnURL: getEnv("STRIPE_PORTAL_RETURN_URL", ""),
+		},
+		Admin: AdminConfig{
+			BillingEmail:        getEnv("BILLING_ADMIN_EMAIL", ""),
+			BillingPasswordHash: getEnv("BILLING_ADMIN_PASSWORD_HASH", ""),
 		},
 		Cleanup: CleanupConfig{
 			PendingRegistrationEnabled:   getEnvBool("PENDING_REGISTRATION_CLEANUP_ENABLED", true),

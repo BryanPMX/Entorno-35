@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ type BillingHandler struct {
 	authRepo         ports.AuthRepository
 	pendingRepo      ports.PendingRegistrationRepository
 	webhookEventRepo ports.StripeWebhookEventRepository
+	refundRepo       ports.RefundRequestRepository
 	passwordHasher   password.Hasher
 	stripeService    *services.StripeService
 	successURL       string
@@ -43,11 +45,21 @@ type BillingHandler struct {
 }
 
 // NewBillingHandler creates a billing handler.
-func NewBillingHandler(authRepo ports.AuthRepository, pendingRepo ports.PendingRegistrationRepository, webhookEventRepo ports.StripeWebhookEventRepository, stripeService *services.StripeService, successURL, cancelURL, portalReturnURL string) *BillingHandler {
+func NewBillingHandler(
+	authRepo ports.AuthRepository,
+	pendingRepo ports.PendingRegistrationRepository,
+	webhookEventRepo ports.StripeWebhookEventRepository,
+	refundRepo ports.RefundRequestRepository,
+	stripeService *services.StripeService,
+	successURL,
+	cancelURL,
+	portalReturnURL string,
+) *BillingHandler {
 	return &BillingHandler{
 		authRepo:         authRepo,
 		pendingRepo:      pendingRepo,
 		webhookEventRepo: webhookEventRepo,
+		refundRepo:       refundRepo,
 		passwordHasher:   password.NewDefaultHasher(),
 		stripeService:    stripeService,
 		successURL:       successURL,
@@ -61,6 +73,36 @@ const pendingRegistrationTTL = 24 * time.Hour
 // CreateExistingCompanyCheckoutSessionRequest represents authenticated company billing checkout input.
 type CreateExistingCompanyCheckoutSessionRequest struct {
 	Plan string `json:"plan" binding:"required,oneof=monthly yearly"`
+}
+
+// CreateRefundRequestRequest represents an authenticated refund request.
+type CreateRefundRequestRequest struct {
+	Reason string `json:"reason" binding:"required,min=20,max=2000"`
+}
+
+// ResolveRefundRequestRequest represents an admin resolution payload.
+type ResolveRefundRequestRequest struct {
+	Status         string `json:"status" binding:"required,oneof=approved rejected refunded"`
+	ResolutionNote string `json:"resolution_note" binding:"max=2000"`
+	StripeRefundID string `json:"stripe_refund_id" binding:"max=255"`
+}
+
+type refundRequestResponse struct {
+	ID                   uuid.UUID  `json:"id"`
+	CompanyID            uuid.UUID  `json:"company_id"`
+	CompanyRFC           string     `json:"company_rfc,omitempty"`
+	CompanyName          string     `json:"company_name,omitempty"`
+	RequestedByEmail     *string    `json:"requested_by_email,omitempty"`
+	Reason               string     `json:"reason"`
+	Status               string     `json:"status"`
+	StripeCustomerID     *string    `json:"stripe_customer_id,omitempty"`
+	StripeSubscriptionID *string    `json:"stripe_subscription_id,omitempty"`
+	ReviewedByEmail      *string    `json:"reviewed_by_email,omitempty"`
+	ReviewedAt           *time.Time `json:"reviewed_at,omitempty"`
+	ResolutionNote       *string    `json:"resolution_note,omitempty"`
+	StripeRefundID       *string    `json:"stripe_refund_id,omitempty"`
+	CreatedAt            time.Time  `json:"created_at"`
+	UpdatedAt            time.Time  `json:"updated_at"`
 }
 
 // CreateCheckoutSession creates a Stripe checkout session and stores a pending registration only.
@@ -283,6 +325,263 @@ func (h *BillingHandler) CreateCustomerPortalSession(c *gin.Context) {
 		"session_id": portalSession.ID,
 		"url":        portalSession.URL,
 	})
+}
+
+// CreateRefundRequest creates an authenticated billing refund request ticket.
+// POST /api/v1/billing/refund-request
+func (h *BillingHandler) CreateRefundRequest(c *gin.Context) {
+	if h.refundRepo == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "refund requests are not configured"})
+		return
+	}
+
+	authCtx, ok := h.requireCompanyAuth(c)
+	if !ok {
+		return
+	}
+
+	var req CreateRefundRequestRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	reason := strings.TrimSpace(req.Reason)
+	if len(reason) < 20 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "refund reason must contain at least 20 characters"})
+		return
+	}
+
+	company, err := h.authRepo.GetCompanyByID(authCtx.CompanyID)
+	if err != nil {
+		if errors.Is(err, postgres.ErrCompanyNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "company not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load company"})
+		return
+	}
+
+	if (company.StripeCustomerID == nil || *company.StripeCustomerID == "") &&
+		(company.StripeSubscriptionID == nil || *company.StripeSubscriptionID == "") {
+		c.JSON(http.StatusConflict, gin.H{"error": "no Stripe billing profile found for this company"})
+		return
+	}
+
+	openRequest, openErr := h.refundRepo.GetLatestOpenByCompanyID(company.ID)
+	if openErr != nil && !errors.Is(openErr, postgres.ErrBillingRefundRequestNotFound) {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to validate existing refund requests"})
+		return
+	}
+	if openErr == nil && openRequest != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error":             "an open refund request already exists for this company",
+			"open_request_id":   openRequest.ID,
+			"open_request_date": openRequest.CreatedAt,
+		})
+		return
+	}
+
+	refundRequest := &domain.BillingRefundRequest{
+		ID:        uuid.New(),
+		CompanyID: company.ID,
+		Reason:    reason,
+		Status:    domain.BillingRefundRequestStatusRequested,
+	}
+	if company.AdminEmail != nil && *company.AdminEmail != "" {
+		email := strings.TrimSpace(*company.AdminEmail)
+		refundRequest.RequestedByEmail = &email
+	}
+	if company.StripeCustomerID != nil && *company.StripeCustomerID != "" {
+		customerID := strings.TrimSpace(*company.StripeCustomerID)
+		refundRequest.StripeCustomerID = &customerID
+	}
+	if company.StripeSubscriptionID != nil && *company.StripeSubscriptionID != "" {
+		subscriptionID := strings.TrimSpace(*company.StripeSubscriptionID)
+		refundRequest.StripeSubscriptionID = &subscriptionID
+	}
+
+	if err := h.refundRepo.Create(refundRequest); err != nil {
+		if errors.Is(err, postgres.ErrBillingRefundRequestAlreadyOpen) {
+			c.JSON(http.StatusConflict, gin.H{"error": "an open refund request already exists for this company"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create refund request"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"request_id": refundRequest.ID,
+		"status":     refundRequest.Status,
+		"created_at": refundRequest.CreatedAt,
+	})
+}
+
+// ListCompanyRefundRequests lists refund requests for the authenticated company.
+// GET /api/v1/billing/refund-requests
+func (h *BillingHandler) ListCompanyRefundRequests(c *gin.Context) {
+	if h.refundRepo == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "refund requests are not configured"})
+		return
+	}
+
+	authCtx, ok := h.requireCompanyAuth(c)
+	if !ok {
+		return
+	}
+
+	limit, offset := parseListPagination(c.Query("limit"), c.Query("offset"))
+	requests, total, err := h.refundRepo.ListByCompanyID(authCtx.CompanyID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list refund requests"})
+		return
+	}
+
+	responseItems := make([]refundRequestResponse, 0, len(requests))
+	for _, request := range requests {
+		responseItems = append(responseItems, toRefundRequestResponse(request, nil))
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":   responseItems,
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	})
+}
+
+// ListRefundRequestsForAdmin lists refund requests for billing admins.
+// GET /api/v1/admin/billing/refund-requests
+func (h *BillingHandler) ListRefundRequestsForAdmin(c *gin.Context) {
+	if h.refundRepo == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "refund requests are not configured"})
+		return
+	}
+
+	if _, ok := h.requireAdminAuth(c); !ok {
+		return
+	}
+
+	statusFilter := strings.ToLower(strings.TrimSpace(c.Query("status")))
+	if statusFilter != "" && !isValidRefundRequestStatus(statusFilter) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status filter"})
+		return
+	}
+
+	limit, offset := parseListPagination(c.Query("limit"), c.Query("offset"))
+	requests, total, err := h.refundRepo.List(statusFilter, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list refund requests"})
+		return
+	}
+
+	companyMap := make(map[uuid.UUID]*domain.Company)
+	responseItems := make([]refundRequestResponse, 0, len(requests))
+	for _, request := range requests {
+		company := companyMap[request.CompanyID]
+		if company == nil {
+			loadedCompany, companyErr := h.authRepo.GetCompanyByID(request.CompanyID)
+			if companyErr == nil {
+				company = loadedCompany
+				companyMap[request.CompanyID] = loadedCompany
+			}
+		}
+		responseItems = append(responseItems, toRefundRequestResponse(request, company))
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":   responseItems,
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	})
+}
+
+// ResolveRefundRequestForAdmin updates a refund request decision state.
+// PATCH /api/v1/admin/billing/refund-requests/:id
+func (h *BillingHandler) ResolveRefundRequestForAdmin(c *gin.Context) {
+	if h.refundRepo == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "refund requests are not configured"})
+		return
+	}
+
+	authCtx, ok := h.requireAdminAuth(c)
+	if !ok {
+		return
+	}
+
+	requestIDRaw := strings.TrimSpace(c.Param("id"))
+	requestID, err := uuid.Parse(requestIDRaw)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid refund request ID"})
+		return
+	}
+
+	var req ResolveRefundRequestRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	targetStatus := strings.ToLower(strings.TrimSpace(req.Status))
+	note := strings.TrimSpace(req.ResolutionNote)
+	stripeRefundID := strings.TrimSpace(req.StripeRefundID)
+
+	if targetStatus == domain.BillingRefundRequestStatusRefunded && stripeRefundID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "stripe_refund_id is required when status is refunded"})
+		return
+	}
+	if targetStatus != domain.BillingRefundRequestStatusRefunded && stripeRefundID != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "stripe_refund_id is only allowed when status is refunded"})
+		return
+	}
+	if targetStatus != domain.BillingRefundRequestStatusApproved && note == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "resolution_note is required for rejected/refunded decisions"})
+		return
+	}
+
+	request, err := h.refundRepo.GetByID(requestID)
+	if err != nil {
+		if errors.Is(err, postgres.ErrBillingRefundRequestNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "refund request not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load refund request"})
+		return
+	}
+
+	if !canTransitionRefundRequestStatus(request.Status, targetStatus) {
+		c.JSON(http.StatusConflict, gin.H{"error": "refund request status transition is not allowed"})
+		return
+	}
+
+	request.Status = targetStatus
+	if note != "" {
+		request.ResolutionNote = &note
+	} else {
+		request.ResolutionNote = nil
+	}
+	if targetStatus == domain.BillingRefundRequestStatusRefunded {
+		request.StripeRefundID = &stripeRefundID
+	} else {
+		request.StripeRefundID = nil
+	}
+
+	reviewerEmail := strings.TrimSpace(authCtx.Email)
+	if reviewerEmail == "" {
+		reviewerEmail = "admin"
+	}
+	request.ReviewedByEmail = &reviewerEmail
+	now := time.Now().UTC()
+	request.ReviewedAt = &now
+
+	if err := h.refundRepo.Update(request); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update refund request"})
+		return
+	}
+
+	company, _ := h.authRepo.GetCompanyByID(request.CompanyID)
+	c.JSON(http.StatusOK, toRefundRequestResponse(*request, company))
 }
 
 // HandleWebhook processes Stripe webhook events.
@@ -661,7 +960,7 @@ func applySubscriptionToCompany(company *domain.Company, subscription *services.
 
 func isStripeSubscriptionActive(status string) bool {
 	switch strings.ToLower(strings.TrimSpace(status)) {
-	case "active", "trialing":
+	case "active":
 		return true
 	default:
 		return false
@@ -679,6 +978,68 @@ func (h *BillingHandler) requireCompanyAuth(c *gin.Context) (*auth.Context, bool
 		return nil, false
 	}
 	return authCtx, true
+}
+
+func (h *BillingHandler) requireAdminAuth(c *gin.Context) (*auth.Context, bool) {
+	return middleware.RequireAdmin(c)
+}
+
+func parseListPagination(limitRaw, offsetRaw string) (int, int) {
+	limit, _ := strconv.Atoi(strings.TrimSpace(limitRaw))
+	offset, _ := strconv.Atoi(strings.TrimSpace(offsetRaw))
+	return normalizeListPagination(limit, offset)
+}
+
+func isValidRefundRequestStatus(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case domain.BillingRefundRequestStatusRequested,
+		domain.BillingRefundRequestStatusApproved,
+		domain.BillingRefundRequestStatusRejected,
+		domain.BillingRefundRequestStatusRefunded:
+		return true
+	default:
+		return false
+	}
+}
+
+func canTransitionRefundRequestStatus(currentStatus, targetStatus string) bool {
+	current := strings.ToLower(strings.TrimSpace(currentStatus))
+	target := strings.ToLower(strings.TrimSpace(targetStatus))
+
+	switch current {
+	case domain.BillingRefundRequestStatusRequested:
+		return target == domain.BillingRefundRequestStatusApproved ||
+			target == domain.BillingRefundRequestStatusRejected ||
+			target == domain.BillingRefundRequestStatusRefunded
+	case domain.BillingRefundRequestStatusApproved:
+		return target == domain.BillingRefundRequestStatusRejected ||
+			target == domain.BillingRefundRequestStatusRefunded
+	default:
+		return false
+	}
+}
+
+func toRefundRequestResponse(request domain.BillingRefundRequest, company *domain.Company) refundRequestResponse {
+	response := refundRequestResponse{
+		ID:                   request.ID,
+		CompanyID:            request.CompanyID,
+		RequestedByEmail:     request.RequestedByEmail,
+		Reason:               request.Reason,
+		Status:               request.Status,
+		StripeCustomerID:     request.StripeCustomerID,
+		StripeSubscriptionID: request.StripeSubscriptionID,
+		ReviewedByEmail:      request.ReviewedByEmail,
+		ReviewedAt:           request.ReviewedAt,
+		ResolutionNote:       request.ResolutionNote,
+		StripeRefundID:       request.StripeRefundID,
+		CreatedAt:            request.CreatedAt,
+		UpdatedAt:            request.UpdatedAt,
+	}
+	if company != nil {
+		response.CompanyRFC = company.RFC
+		response.CompanyName = company.Name
+	}
+	return response
 }
 
 func companyIDFromSession(session *services.CheckoutSession) (uuid.UUID, error) {

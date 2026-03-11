@@ -16,6 +16,7 @@ Implements the Repository Pattern to abstract data persistence concerns from bus
 - **report_repo.go**: Report generation with dynamic scoring calculations
 - **pending_registration_repo.go**: Pre-payment registration drafts (`pending_company_registrations`)
 - **stripe_webhook_event_repo.go**: Stripe webhook idempotency and retry tracking (`stripe_webhook_events`)
+- **refund_request_repo.go**: Authenticated refund request tickets (`billing_refund_requests`)
 
 ## Billing Persistence Responsibilities
 
@@ -31,6 +32,11 @@ The billing implementation now uses PostgreSQL adapters for production-safe stat
   - Stores Stripe `event.id`
   - Ensures idempotent webhook processing with retry-safe updates
   - Tracks status (`processing`, `processed`, `failed`) and attempt counts
+
+- `refund_request_repo.go`
+  - Creates authenticated company refund-request tickets
+  - Prevents duplicate open tickets per company
+  - Tracks request status for manual review workflows
 
 ## Testing Strategy
 
@@ -111,6 +117,7 @@ Important billing migrations:
 - `004_add_company_billing_and_admin_fields.*.sql`
 - `005_add_pending_company_registrations.*.sql`
 - `006_add_stripe_webhook_events.*.sql`
+- `007_add_billing_refund_requests.*.sql`
 
 Note: GORM `AutoMigrate` may create tables and basic indexes, but SQL migrations are still required for SQL-only constraints/triggers (for example the partial unique index on open pending registrations and `updated_at` triggers).
 

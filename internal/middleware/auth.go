@@ -109,3 +109,18 @@ func RequireAuth(c *gin.Context) (*auth.Context, bool) {
 	return authCtx, true
 }
 
+// RequireAdmin is a helper that aborts if the authenticated context is not an admin user.
+func RequireAdmin(c *gin.Context) (*auth.Context, bool) {
+	authCtx, ok := RequireAuth(c)
+	if !ok {
+		return nil, false
+	}
+
+	if authCtx.IsStaff() || !strings.EqualFold(authCtx.Role, "admin") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "admin authentication required"})
+		c.Abort()
+		return nil, false
+	}
+
+	return authCtx, true
+}
